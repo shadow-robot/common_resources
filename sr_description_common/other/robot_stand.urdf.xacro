@@ -24,7 +24,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://common_description/meshes/stand_link.stl" />
+          filename="package://sr_description_common/meshes/stand_link.stl" />
       </geometry>
       <material
         name="">
@@ -38,7 +38,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://common_description/meshes/stand_link.stl" />
+          filename="package://sr_description_common/meshes/stand_link.stl" />
       </geometry>
     </collision>
   </link>
@@ -64,7 +64,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://common_description/meshes/table_link.stl" />
+          filename="package://sr_description_common/meshes/table_link.stl" />
       </geometry>
       <material
         name="">
@@ -78,7 +78,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://common_description/meshes/table_link.stl" />
+          filename="package://sr_description_common/meshes/table_link.stl" />
       </geometry>
     </collision>
   </link>
