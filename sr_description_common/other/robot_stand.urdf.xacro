@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+
+<robot
+  name="robot_stand" xmlns:xacro="http://ros.org/wiki/xacro">
+  <link
+    name="stand_link">
+    <inertial>
+      <origin
+        xyz="-5.6091E-05 -0.011295 0.45916"
+        rpy="0 0 0" />
+      <mass
+        value="49.067" />
+      <inertia
+        ixx="4.7978"
+        ixy="0.00040602"
+        ixz="-0.0016412"
+        iyy="5.645"
+        iyz="-0.070732"
+        izz="3.9917" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sr_description_common/meshes/stand_link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.94902 0.9098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sr_description_common/meshes/stand_link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="table_link">
+    <inertial>
+      <origin
+        xyz="0.00024634 -0.00054756 -0.0060317"
+        rpy="0 0 0" />
+      <mass
+        value="11.011" />
+      <inertia
+        ixx="0.75436"
+        ixy="4.941E-05"
+        ixz="1.4939E-06"
+        iyy="0.75753"
+        iyz="1.0588E-06"
+        izz="1.5119" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sr_description_common/meshes/table_link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.6 0.54118 0.85882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sr_description_common/meshes/table_link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="table_fixed_joint"
+    type="fixed">
+    <origin
+      xyz="0.00010408 0.00010408 0.752"
+      rpy="3.8159E-16 0 0" />
+    <parent
+      link="stand_link" />
+    <child
+      link="table_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>
