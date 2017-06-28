@@ -32,7 +32,7 @@
       <name>wall_1</name>
       <pose>-0.48861 -0.48861 1.0 0 0 2.35619</pose>
     </include>
-    <!-- Left wall -->
+    <!-- Left wall: Modified to allow full extension of arm at startup. Real wall at 0.46315 instead of 1.26315 -->
     <include>
       <uri>model://wall</uri>
       <static>true</static>
