@@ -28,16 +28,16 @@
           args='-o $(arg log_location) --lz4 --split --max-splits=$(arg log_max_splits) --size $(arg log_split_size) $(arg log_topics) ' name="record"/>
   </group>
 
-  <node if="$(arg clear_old_sessions)" pkg="sr_ethercat_hand_config" type="bag_rotate.py" name="bag_rotate">
+  <node if="$(arg clear_old_sessions)" pkg="sr_logging_common" type="bag_rotate.py" name="bag_rotate">
     <param name="bag_files_num" value="$(arg log_max_splits)"/>
     <param name="bag_files_path" value="$(arg log_directory)"/>
   </node>
 
-  <node if="$(arg save_params)" pkg="sr_ethercat_hand_config" type="record_params.py" name="param_dump">
+  <node if="$(arg save_params)" pkg="sr_logging_common" type="record_params.py" name="param_dump">
     <param name="log_directory" value="$(arg log_directory)" />
   </node>
 
-  <node if="$(arg diff_ws)" pkg="sr_ethercat_hand_config" type="ws_diff.py" name="ws_diff">
+  <node if="$(arg diff_ws)" pkg="sr_logging_common" type="ws_diff.py" name="ws_diff">
     <param name="log_directory" value="$(arg log_directory)"/>
   </node>  
 </launch>
