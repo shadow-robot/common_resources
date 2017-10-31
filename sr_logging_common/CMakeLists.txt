@@ -27,8 +27,6 @@ include_directories(
 ## Install ##
 #############
 
-file(GLOB SCRIPTS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}")
-
 install(PROGRAMS ${SCRIPTS}
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY launch/
