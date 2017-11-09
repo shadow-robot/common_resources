@@ -27,7 +27,10 @@ include_directories(
 ## Install ##
 #############
 
-install(PROGRAMS ${SCRIPTS}
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+file(GLOB SCRIPTS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" 
+        "${CMAKE_CURRENT_SOURCE_DIR}/logging/*.py")
+catkin_install_python(PROGRAMS ${SCRIPTS}
+                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 install(DIRECTORY launch/
    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
