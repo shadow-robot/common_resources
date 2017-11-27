@@ -20,10 +20,10 @@
       <cast_shadows>true</cast_shadows>
     </light>
     <include>
-      <uri>model://shadow_table_2017_full</uri>
+      <uri>model://shadow_table_2017_full_simplified</uri>
       <static>true</static>
-      <name>shadow_table_2017_full</name>
-      <pose>0.0 0.0 0.762 0 0 0</pose>
+      <name>shadow_table_2017_full_simplified</name>
+      <pose>0.0 0.0 0.750 0 0 0</pose>
     </include>
     <include>
       <uri>model://ar_marker_a4</uri>
