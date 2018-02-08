@@ -31,6 +31,12 @@
       <name>ar_marker_a4</name>
       <pose>0.725 0.17 0.762 0.0 -1.57079632679 0</pose>
     </include>
+    <include>
+      <uri>model://lego_baseplate_32x32</uri>
+      <static>true</static>
+      <name>lego_baseplate_32x32</name>
+      <pose>0.809 0.809 0.762 0.0 0.0 0.0</pose>
+    </include>
     <!-- Rear wall -->
     <include>
       <uri>model://wall</uri>
