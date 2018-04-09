@@ -1,0 +1,9 @@
+string object_type
+string object_frame
+string object_path
+string manipulator_name
+string hand_name
+
+---
+
+sr_msgs_common/Grasp[] grasps

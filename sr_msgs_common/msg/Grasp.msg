@@ -1,0 +1,6 @@
+string hand_id
+string manipulator_id
+string object_id
+SqueezeDirection squeeze_direction
+FingersInContact fingers_in_contact
+moveit_msgs/Grasp grasp
