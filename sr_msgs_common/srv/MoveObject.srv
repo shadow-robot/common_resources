@@ -1,0 +1,4 @@
+string object_id
+geometry_msgs/Point place_position
+---
+bool success

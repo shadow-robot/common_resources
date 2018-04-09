@@ -25,6 +25,7 @@ add_service_files(
   FILES
   GetGraspForKnownObject.srv
   GetPoseByName.srv
+  MoveObject.srv
 )
 
 ## Generate actions in the 'action' folder
