@@ -1,0 +1,1 @@
+SrRecognizedObject[] objects
