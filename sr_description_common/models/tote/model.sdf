@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <model name="tote">
+    <static>true</static>
+    <link name="link">
+      <inertial>
+        <mass>1.0</mass>
+      </inertial>
+      <collision name="collision">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://tote/meshes/tote.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://tote/meshes/tote.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <emissive>0 0 0 0</emissive>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
