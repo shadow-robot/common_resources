@@ -21,6 +21,12 @@
             <uri>model://tote/meshes/tote.stl</uri>
           </mesh>
         </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <emissive>0 0 0 0</emissive>
+        </material>
       </visual>
     </link>
   </model>
