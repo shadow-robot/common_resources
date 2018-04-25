@@ -17,8 +17,6 @@ add_message_files(
   AvailableObjects.msg
   FingersInContact.msg
   SqueezeDirection.msg
-  SrRecognizedObject.msg
-  SrRecognizedObjectArray.msg
   Grasp.msg
   GraspCommand.msg
 )

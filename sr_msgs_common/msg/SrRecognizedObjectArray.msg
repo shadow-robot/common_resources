@@ -1,1 +1,0 @@
-SrRecognizedObject[] objects
