@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<sdf version="1.4">
+<model name="duplo_2x4x1_simplified">
+  <pose>0 0 0 0 0 0</pose>
+  <static>true</static>
+    <link name="link">
+    <pose>0 0 0.0095 0 0 0</pose>
+      <visual name="visual">
+        <transparency>0.5</transparency>
+        <geometry>
+          <box>
+            <size>0.064 0.032 0.019</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0 1 0 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+          <specular>0 0.1 0 1</specular>
+          <emissive>0 0 0 0</emissive>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
