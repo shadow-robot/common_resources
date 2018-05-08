@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+  <name>sr_utilities_common</name>
+  <version>1.0.0</version>
+  <description>The sr_utilities_common package</description>
+
+  <maintainer email="software@shadowrobot.com">Shadow Robot Ltd</maintainer>
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>GPL</license>
+
+  <url type="website">https://www.shadowrobot.com</url>
+  <url type="github repository">https://github.com/shadow-robot/sr_demos/</url>
+
+  <author email="beatriz@shadowrobot.com">Beatriz Leon</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+
+</package>
