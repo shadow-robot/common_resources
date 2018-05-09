@@ -20,11 +20,10 @@ add_service_files(
 )
 
 ## Generate actions in the 'action' folder
-add_action_files(
-   DIRECTORY action
-   FILES
-   Grasp.action
-)
+# add_action_files(
+#    DIRECTORY action
+#    FILES
+# )
 
 generate_messages(DEPENDENCIES ${MSG_DEPS})
 
