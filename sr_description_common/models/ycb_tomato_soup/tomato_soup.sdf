@@ -18,7 +18,7 @@
         <pose>0.0 0.0 -0.0505 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://ycb/campbells_condensed_tomato_soup/meshes/poisson_mesh.stl</uri>
+            <uri>model://ycb_tomato_soup/campbells_condensed_tomato_soup/meshes/poisson_mesh.stl</uri>
           </mesh>
         </geometry>
       </visual>
