@@ -18,7 +18,7 @@
         <pose>0.0 0.0 -0.1235 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://ycb/pringles_original/meshes/poisson_mesh.stl</uri>
+            <uri>model://ycb_pringles/pringles_original/meshes/poisson_mesh.stl</uri>
           </mesh>
         </geometry>
       </visual>

@@ -1,24 +1,23 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
-  <model name="tomato_soup">
+  <model name="orange">
     <link name="link">
       <inertial>
         <mass>0.01</mass>
       </inertial>
       <collision name="collision">
-        <pose>0.0 0.0 0.0505 0 0.0 0.0</pose>
+      	<pose>0.0 0.0 0.037 0 0.0 0.0</pose>
         <geometry>
-          <cylinder>
-            <radius>0.0335</radius>
-            <length>0.101</length>
-          </cylinder>
+          <sphere>
+            <radius>0.037</radius>
+          </sphere>
         </geometry>
       </collision>
       <visual name="visual">
-        <pose>0.0 0.0 -0.0505 0 0.0 0.0</pose>
+        <pose>0.005 -0.006 0.0 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://ycb/campbells_condensed_tomato_soup/meshes/poisson_mesh.stl</uri>
+            <uri>model://ycb_orange/melissa_doug_farm_fresh_fruit_orange/meshes/poisson_mesh.stl</uri>
           </mesh>
         </geometry>
       </visual>
