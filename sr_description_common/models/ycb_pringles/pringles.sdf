@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <model name="pringles">
+    <link name="link">
+      <inertial>
+        <mass>0.01</mass>
+      </inertial>
+      <collision name="collision">
+        <pose>0.0 0.0 0.1235 0 0.0 0.0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.0385</radius>
+            <length>0.247</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0.0 0.0 -0.1235 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://ycb_pringles/pringles_original/meshes/poisson_mesh.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

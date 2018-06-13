@@ -18,7 +18,7 @@
         <pose>0.0 0.0 -0.08 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://ycb/red_metal_cup_white_speckles/meshes/poisson_mesh.stl</uri>
+            <uri>model://ycb_red_cup/red_metal_cup_white_speckles/meshes/poisson_mesh.stl</uri>
           </mesh>
         </geometry>
       </visual>

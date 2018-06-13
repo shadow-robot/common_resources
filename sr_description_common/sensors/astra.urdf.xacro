@@ -3,7 +3,7 @@
 
   <xacro:property name="M_PI" value="3.1415926535897931" />
 
-  <xacro:include filename="$(find sr_description_common)/sensors/kinect.gazebo.xacro"/>
+  <xacro:include filename="$(find sr_description_common)/sensors/astra.gazebo.xacro"/>
 
   <xacro:macro name="sensor_kinect" params="parent cam_px cam_py cam_pz cam_or cam_op cam_oy">
 
