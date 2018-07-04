@@ -14,16 +14,19 @@ class PerformanceTest(object):
         rospy.loginfo("Performance test started")
         self.total_control_loop_overruns_count = 0
         self.total_recent_control_loop_overruns_count = 0
+        self.total_invalid_packets_total_count = 0
+        self.total_invalid_packets_recent = 0
 
-    def set_ethercat_values(self, diagnostics_ethercat_msg):
-        for value_list in diagnostics_ethercat_msg.values:
-            if value_list.key == "Control Loop Overruns":
-                control_loop_overruns_count = value_list.value
-            if value_list.key == "Recent Control Loop Overruns":
-                recent_control_loop_overruns_count = value_list.value
+    def set_ethercat_values(self, diagnostics_ethercat_msg_list):
+        for diagnostics_ethercat_msg in diagnostics_ethercat_msg_list:
+            for value_list in diagnostics_ethercat_msg.values:
+                if value_list.key == "Invalid Packets Total":
+                    invalid_packets_total_count = value_list.value
+                if value_list.key == "Invalid Packets Recent":
+                    invalid_packets_recent = value_list.value
 
-        self.total_control_loop_overruns_count += control_loop_overruns_count
-        self.total_recent_control_loop_overruns_count += recent_control_loop_overruns_count
+        self.total_invalid_packets_total_count = float(invalid_packets_total_count)
+        self.total_invalid_packets_recent += float(invalid_packets_recent)
 
     def set_control_loop_values(self, diagnostics_control_loop_msg):
         for value_list in diagnostics_control_loop_msg.values:
@@ -32,8 +35,8 @@ class PerformanceTest(object):
             if value_list.key == "Recent Control Loop Overruns":
                 recent_control_loop_overruns_count = value_list.value
 
-        self.total_control_loop_overruns_count += int(control_loop_overruns_count)
-        self.total_recent_control_loop_overruns_count += int(recent_control_loop_overruns_count)
+        self.total_control_loop_overruns_count = float(control_loop_overruns_count)
+        self.total_recent_control_loop_overruns_count += float(recent_control_loop_overruns_count)
 
     def run(self):
         rospy.loginfo("Got into run...")
@@ -43,26 +46,33 @@ class PerformanceTest(object):
         # hand_finder.hand_e_available()
         for i in range(20):
             diagnostics_control_loop_msg = None
-            diagnostics_ethercat_msg = None
+            diagnostics_ethercat_msg_list = list()
 
             diagnostics_full_msg = rospy.wait_for_message("/diagnostics_agg", DiagnosticArray)
-            # if hand_finder.hand_e_available():
-            #     ethercat_data = rospy.wait_for_message("/rh/debug_etherCAT_data", EthercatDebug)
+
             for msg in diagnostics_full_msg.status:
                 # rospy.loginfo("name: {}".format(msg.name))
                 if msg.name == "/Realtime Control Loop/Realtime Control Loop":
                     diagnostics_control_loop_msg = msg
-                if msg.name == "/EtherCat/EtherCAT Master/EtherCAT Master":
-                    diagnostics_ethercat_msg = msg
+                if hand_finder.hand_e_available():
+                    ethercat_data = rospy.wait_for_message("/rh/debug_etherCAT_data", EthercatDebug)
+                elif hand_finder.hand_h_available():
+                    if msg.name.startswith("/EtherCat/EtherCAT Slaves/H0_"):
+                        # rospy.loginfo("name: {}".format(msg.name))
+                        diagnostics_ethercat_msg_list.append(msg)
+                else:
+                    rospy.logerr("Not recognized hand!")
 
-            # self.set_ethercat_values(diagnostics_ethercat_msg)
+            self.set_ethercat_values(diagnostics_ethercat_msg_list)
             self.set_control_loop_values(diagnostics_control_loop_msg)
 
-        avg_control_loop_overruns_count = self.total_control_loop_overruns_count / 20.0
         avg_recent_control_loop_overruns_count = self.total_recent_control_loop_overruns_count / 20.0
+        avg_total_invalid_packets_recent = self.total_invalid_packets_recent / 20.0
 
-        rospy.loginfo("Control Loop Overruns: {}".format(avg_control_loop_overruns_count))
+        rospy.loginfo("Control Loop Overruns: {}".format(self.total_control_loop_overruns_count))
         rospy.loginfo("Recent Control Loop Overruns: {}".format(avg_recent_control_loop_overruns_count))
+        rospy.loginfo("Invalid Packets Total: {}".format(self.total_invalid_packets_total_count))
+        rospy.loginfo("Invalid Packets Recent: {}".format(avg_total_invalid_packets_recent))
 
 
 if __name__ == "__main__":
