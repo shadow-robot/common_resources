@@ -17,7 +17,7 @@ class PerformanceTest(object):
         self.total_invalid_packets_total_count = 0
         self.total_invalid_packets_recent = 0
 
-    def set_ethercat_values(self, diagnostics_ethercat_msg_list):
+    def _set_ethercat_values(self, diagnostics_ethercat_msg_list):
         for diagnostics_ethercat_msg in diagnostics_ethercat_msg_list:
             for value_list in diagnostics_ethercat_msg.values:
                 if value_list.key == "Invalid Packets Total":
@@ -28,7 +28,7 @@ class PerformanceTest(object):
         self.total_invalid_packets_total_count = float(invalid_packets_total_count)
         self.total_invalid_packets_recent += float(invalid_packets_recent)
 
-    def set_control_loop_values(self, diagnostics_control_loop_msg):
+    def _set_control_loop_values(self, diagnostics_control_loop_msg):
         for value_list in diagnostics_control_loop_msg.values:
             if value_list.key == "Control Loop Overruns":
                 control_loop_overruns_count = value_list.value
@@ -38,41 +38,49 @@ class PerformanceTest(object):
         self.total_control_loop_overruns_count = float(control_loop_overruns_count)
         self.total_recent_control_loop_overruns_count += float(recent_control_loop_overruns_count)
 
-    def run(self):
-        rospy.loginfo("Got into run...")
-        hand_finder = HandFinder()
-        rospy.loginfo("Hand E available: {}".format(hand_finder.hand_e_available()))
-        rospy.loginfo("Hand H available: {}".format(hand_finder.hand_h_available()))
-        # hand_finder.hand_e_available()
-        for i in range(20):
-            diagnostics_control_loop_msg = None
-            diagnostics_ethercat_msg_list = list()
-
-            diagnostics_full_msg = rospy.wait_for_message("/diagnostics_agg", DiagnosticArray)
-
-            for msg in diagnostics_full_msg.status:
-                # rospy.loginfo("name: {}".format(msg.name))
-                if msg.name == "/Realtime Control Loop/Realtime Control Loop":
-                    diagnostics_control_loop_msg = msg
-                if hand_finder.hand_e_available():
-                    ethercat_data = rospy.wait_for_message("/rh/debug_etherCAT_data", EthercatDebug)
-                elif hand_finder.hand_h_available():
-                    if msg.name.startswith("/EtherCat/EtherCAT Slaves/H0_"):
-                        # rospy.loginfo("name: {}".format(msg.name))
-                        diagnostics_ethercat_msg_list.append(msg)
-                else:
-                    rospy.logerr("Not recognized hand!")
-
-            self.set_ethercat_values(diagnostics_ethercat_msg_list)
-            self.set_control_loop_values(diagnostics_control_loop_msg)
-
-        avg_recent_control_loop_overruns_count = self.total_recent_control_loop_overruns_count / 20.0
-        avg_total_invalid_packets_recent = self.total_invalid_packets_recent / 20.0
+    def _print_results(self, iterations):
+        avg_recent_control_loop_overruns_count = self.total_recent_control_loop_overruns_count / iterations
+        avg_total_invalid_packets_recent = self.total_invalid_packets_recent / iterations
 
         rospy.loginfo("Control Loop Overruns: {}".format(self.total_control_loop_overruns_count))
         rospy.loginfo("Recent Control Loop Overruns: {}".format(avg_recent_control_loop_overruns_count))
         rospy.loginfo("Invalid Packets Total: {}".format(self.total_invalid_packets_total_count))
         rospy.loginfo("Invalid Packets Recent: {}".format(avg_total_invalid_packets_recent))
+
+    def run(self, iterations=20):
+        rospy.loginfo("Got into run...")
+        hand_finder = HandFinder()
+        hand_E = hand_finder.hand_e_available()
+        hand_H = hand_finder.hand_h_available()
+        rospy.loginfo("Hand E available: {}".format(hand_E))
+        rospy.loginfo("Hand H available: {}".format(hand_H))
+
+        if not hand_H and not hand_E:
+            rospy.logerr("Not recognize hand!")
+            return False
+
+        for i in range(iterations):
+            diagnostics_control_loop_msg = None
+            diagnostics_ethercat_msg_list = list()
+
+            diagnostics_full_msg = rospy.wait_for_message("/diagnostics_agg", DiagnosticArray)
+            if hand_finder.hand_e_available():
+                diagnostics_ethercat_msg_list = rospy.wait_for_message("/rh/debug_etherCAT_data", EthercatDebug)
+
+            for msg in diagnostics_full_msg.status:
+                # rospy.loginfo("name: {}".format(msg.name))
+                if msg.name == "/Realtime Control Loop/Realtime Control Loop":
+                    diagnostics_control_loop_msg = msg
+
+                if hand_finder.hand_h_available():
+                    if msg.name.startswith("/EtherCat/EtherCAT Slaves/H0_"):
+                        # rospy.loginfo("name: {}".format(msg.name))
+                        diagnostics_ethercat_msg_list.append(msg)
+
+            self._set_ethercat_values(diagnostics_ethercat_msg_list)
+            self._set_control_loop_values(diagnostics_control_loop_msg)
+
+            self._print_results(iterations)
 
 
 if __name__ == "__main__":
