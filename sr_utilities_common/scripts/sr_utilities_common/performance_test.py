@@ -57,15 +57,12 @@ class PerformanceTest(object):
                 for value_list in diagnostics_ethercat_msg.values:
                     if value_list.key == "Invalid Packets Total":
                         invalid_packets_total_count_list.append(float(value_list.value))
-                        rospy.loginfo("{}".format(diagnostics_ethercat_msg.name))
-                        rospy.loginfo("{}".format(invalid_packets_total_count_list))
                     if value_list.key == "Invalid Packets Recent":
                         self.total_invalid_packets_recent += float(value_list.value)
+                self.total_invalid_packets_total_count = deepcopy(invalid_packets_total_count_list)
             elif self._hand_e:
                 if diagnostics_ethercat_msg.motor_data_type.data == 0:
                     self._invalid_hand_e_packets_total += 1
-        if self._hand_h:
-            self.total_invalid_packets_total_count = deepcopy(invalid_packets_total_count_list)
 
     def _set_control_loop_values(self, diagnostics_control_loop_msg):
         for value_list in diagnostics_control_loop_msg.values:
@@ -91,7 +88,6 @@ class PerformanceTest(object):
             rospy.loginfo("Invalid Packets Total: {}".format(self._invalid_hand_e_packets_total))
 
     def run(self, duration=20.0):
-
         if not self._hand_h and not self._hand_e:
             rospy.logerr("Not recognize hand!")
             return False
