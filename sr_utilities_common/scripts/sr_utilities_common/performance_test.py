@@ -8,6 +8,7 @@ import argparse
 from sr_utilities.hand_finder import HandFinder
 from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
+from copy import deepcopy
 
 
 class PerformanceTest(object):
@@ -25,7 +26,7 @@ class PerformanceTest(object):
 
         self.total_control_loop_overruns_count = 0
         self.total_recent_control_loop_overruns_count = 0
-        self.total_invalid_packets_total_count = 0
+        self.total_invalid_packets_total_count = list()
         self.total_invalid_packets_recent = 0
         self._invalid_hand_e_packets_total = 0
 
@@ -50,19 +51,21 @@ class PerformanceTest(object):
         self._set_ethercat_values(msg_list)
 
     def _set_ethercat_values(self, diagnostics_ethercat_msg_list):
+        invalid_packets_total_count_list = list()
         for diagnostics_ethercat_msg in diagnostics_ethercat_msg_list:
             if self._hand_h:
                 for value_list in diagnostics_ethercat_msg.values:
                     if value_list.key == "Invalid Packets Total":
-                        invalid_packets_total_count = value_list.value
+                        invalid_packets_total_count_list.append(float(value_list.value))
+                        rospy.loginfo("{}".format(diagnostics_ethercat_msg.name))
+                        rospy.loginfo("{}".format(invalid_packets_total_count_list))
                     if value_list.key == "Invalid Packets Recent":
-                        invalid_packets_recent = value_list.value
+                        self.total_invalid_packets_recent += float(value_list.value)
             elif self._hand_e:
                 if diagnostics_ethercat_msg.motor_data_type.data == 0:
                     self._invalid_hand_e_packets_total += 1
         if self._hand_h:
-            self.total_invalid_packets_total_count = float(invalid_packets_total_count)
-            self.total_invalid_packets_recent += float(invalid_packets_recent)
+            self.total_invalid_packets_total_count = deepcopy(invalid_packets_total_count_list)
 
     def _set_control_loop_values(self, diagnostics_control_loop_msg):
         for value_list in diagnostics_control_loop_msg.values:
@@ -81,7 +84,8 @@ class PerformanceTest(object):
         rospy.loginfo("Control Loop Overruns: {}".format(self.total_control_loop_overruns_count))
         rospy.loginfo("Recent Control Loop Overruns: {}".format(avg_recent_control_loop_overruns_count))
         if self._hand_h:
-            rospy.loginfo("Invalid Packets Total: {}".format(self.total_invalid_packets_total_count))
+            for i, value in enumerate(self.total_invalid_packets_total_count):
+                rospy.loginfo("Invalid Packets Total in finger {}: {}".format(i, value))
             rospy.loginfo("Invalid Packets Recent: {}".format(avg_total_invalid_packets_recent))
         else:
             rospy.loginfo("Invalid Packets Total: {}".format(self._invalid_hand_e_packets_total))
