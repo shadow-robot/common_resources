@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <model name="utl5_medium">
+    <static>true</static>
+    <link name="link">
+      <inertial>
+        <mass>0.2</mass>
+      </inertial>
+      <collision name="collision">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://utl5_medium/meshes/utl5_medium.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://utl5_medium/meshes/utl5_medium.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
