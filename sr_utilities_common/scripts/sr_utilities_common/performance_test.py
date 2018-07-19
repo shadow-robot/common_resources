@@ -5,6 +5,8 @@
 
 import rospy
 import argparse
+import rospkg
+import yaml
 from sr_utilities.hand_finder import HandFinder
 from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
@@ -22,13 +24,42 @@ class PerformanceTest(object):
 
         rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self._diagnostics_agg_callback)
         if self._hand_e:
-            rospy.Subscriber("/rh/debug_etherCAT_data", EthercatDebug, self._ethercat_data_callback)
+            rospy.Subscriber("/rh/debug_etherCAT_data", EthercatDebug, self._ethercat_data_hand_e_callback)
 
-        self.total_control_loop_overruns_count = 0
-        self.total_recent_control_loop_overruns_count = 0
-        self.total_invalid_packets_total_count = list()
-        self.total_invalid_packets_recent = 0
-        self._invalid_hand_e_packets_total = 0
+        self.total_control_loop_overruns = 0
+        self.max_recent_control_loop_overruns = 0
+        self.total_invalid_packets = list()
+        self.max_invalid_packets_recent = list()
+        self.invalid_hand_e_packets_total = 0
+        self._start_hand_e_ethercat_time = 0.0
+        self._old_invalid_hand_e_packets = 0
+        self.max_invalid_hand_e_packets_recent = 0
+        self._total_control_loop_overruns_threshold = 0
+        self._max_recent_control_loop_overruns_threshold = 0
+        self._total_invalid_packets_threshold = 0
+        self._max_invalid_packets_recent_threshold = 0
+
+        self._parse_thresholds_from_yaml()
+
+    def _parse_thresholds_from_yaml(self):
+        rospack = rospkg.RosPack()
+        yaml_path = rospack.get_path('sr_utilities_common') + '/config/yaml/performance_script_thresholds.yaml'
+        with open(yaml_path, 'r') as stream:
+            try:
+                thresholds = yaml.load(stream)
+                # thresholds = parsed_yaml['thresholds']
+                for threshold in thresholds:
+                    if 'total_control_loop_overruns' in threshold:
+                        self._total_control_loop_overruns_threshold = thresholds['total_control_loop_overruns']
+                    if 'max_recent_control_loop_overruns' in threshold:
+                        self._max_recent_control_loop_overruns_threshold = \
+                            thresholds['max_recent_control_loop_overruns']
+                    if 'total_invalid_packets' in threshold:
+                        self._total_invalid_packets_threshold = thresholds['total_invalid_packets']
+                    if 'max_invalid_packets_recent' in threshold:
+                        self._max_invalid_packets_recent_threshold = thresholds['max_invalid_packets_recent']
+            except yaml.YAMLError as exc:
+                rospy.logerr('Failed to parse YAML symmetry.')
 
     def _diagnostics_agg_callback(self, diagnostics_full_msg):
         diagnostics_control_loop_msg = None
@@ -43,67 +74,104 @@ class PerformanceTest(object):
 
         self._set_control_loop_values(diagnostics_control_loop_msg)
         if self._hand_h:
-            self._set_ethercat_values(diagnostics_ethercat_msg_list)
+            self._set_ethercat_hand_h_values(diagnostics_ethercat_msg_list)
 
-    def _ethercat_data_callback(self, msg):
-        msg_list = list()
-        msg_list.append(msg)
-        self._set_ethercat_values(msg_list)
+    def _ethercat_data_hand_e_callback(self, diagnostics_ethercat_msg):
+        if diagnostics_ethercat_msg.motor_data_type.data == 0:
+            self.invalid_hand_e_packets_total += 1
+        self._start_hand_e_ethercat_time = rospy.get_time()
+        if rospy.get_time() - self._start_hand_e_ethercat_time > 1.0:
+            self._start_hand_e_ethercat_time = rospy.get_time()
+            invalid_hand_e_packets_recent = self.invalid_hand_e_packets_total - self._old_invalid_hand_e_packets
+            self._old_invalid_hand_e_packets = self.invalid_hand_e_packets_total
+            if invalid_hand_e_packets_recent > self.max_invalid_hand_e_packets_recent:
+                self.max_invalid_hand_e_packets_recent = invalid_hand_e_packets_recent
 
-    def _set_ethercat_values(self, diagnostics_ethercat_msg_list):
-        invalid_packets_total_count_list = list()
+    def _set_ethercat_hand_h_values(self, diagnostics_ethercat_msg_list):
+        invalid_packets_total_list = list()
+        invalid_packets_recent_list = list()
         for diagnostics_ethercat_msg in diagnostics_ethercat_msg_list:
-            if self._hand_h:
-                for value_list in diagnostics_ethercat_msg.values:
-                    if value_list.key == "Invalid Packets Total":
-                        invalid_packets_total_count_list.append(float(value_list.value))
-                    if value_list.key == "Invalid Packets Recent":
-                        self.total_invalid_packets_recent += float(value_list.value)
-                self.total_invalid_packets_total_count = deepcopy(invalid_packets_total_count_list)
-            elif self._hand_e:
-                if diagnostics_ethercat_msg.motor_data_type.data == 0:
-                    self._invalid_hand_e_packets_total += 1
+            for value_list in diagnostics_ethercat_msg.values:
+                if value_list.key == "Invalid Packets Total":
+                    invalid_packets_total_list.append(float(value_list.value))
+                if value_list.key == "Invalid Packets Recent":
+                    invalid_packets_recent_list.append(float(value_list.value))
+        if not self.max_invalid_packets_recent:
+            self.max_invalid_packets_recent = [0] * len(invalid_packets_recent_list)
+        for i in range(len(invalid_packets_recent_list)):
+            if invalid_packets_recent_list[i] > self.max_invalid_packets_recent[i]:
+                self.max_invalid_packets_recent[i] = invalid_packets_recent_list[i]
+        self.total_invalid_packets = deepcopy(invalid_packets_total_list)
 
     def _set_control_loop_values(self, diagnostics_control_loop_msg):
         for value_list in diagnostics_control_loop_msg.values:
             if value_list.key == "Control Loop Overruns":
-                control_loop_overruns_count = value_list.value
+                self.total_control_loop_overruns = float(value_list.value)
             if value_list.key == "Recent Control Loop Overruns":
-                recent_control_loop_overruns_count = value_list.value
+                recent_control_loop_overruns = float(value_list.value)
+                if recent_control_loop_overruns > self.max_recent_control_loop_overruns:
+                    self.max_recent_control_loop_overruns = recent_control_loop_overruns
 
-        self.total_control_loop_overruns_count = float(control_loop_overruns_count)
-        self.total_recent_control_loop_overruns_count += float(recent_control_loop_overruns_count)
-
-    def _print_results(self, duration):
-        avg_recent_control_loop_overruns_count = self.total_recent_control_loop_overruns_count / duration
-        avg_total_invalid_packets_recent = self.total_invalid_packets_recent / duration
-
-        rospy.loginfo("Control Loop Overruns: {}".format(self.total_control_loop_overruns_count))
-        rospy.loginfo("Recent Control Loop Overruns: {}".format(avg_recent_control_loop_overruns_count))
+    def _print_results(self):
+        rospy.loginfo("Control Loop Overruns: {}".format(self.total_control_loop_overruns))
+        rospy.loginfo("Max Recent Control Loop Overruns: {}".format(self.max_recent_control_loop_overruns))
         if self._hand_h:
-            for i, value in enumerate(self.total_invalid_packets_total_count):
+            for i, value in enumerate(self.total_invalid_packets):
                 rospy.loginfo("Invalid Packets Total in finger {}: {}".format(i, value))
-            rospy.loginfo("Invalid Packets Recent: {}".format(avg_total_invalid_packets_recent))
+            for i, value in enumerate(self.max_invalid_packets_recent):
+                rospy.loginfo("Max Invalid Packets Recent in finger {}: {}".format(i, value))
         else:
-            rospy.loginfo("Invalid Packets Total: {}".format(self._invalid_hand_e_packets_total))
+            rospy.loginfo("Invalid Packets Total: {}".format(self.invalid_hand_e_packets_total))
+            rospy.loginfo("Max Invalid Packets Recent: {}".format(self.max_invalid_hand_e_packets_recent))
+
+    def _check_threshold_validity(self):
+        pass_flag = True
+        if self.total_control_loop_overruns > self._total_control_loop_overruns_threshold:
+            rospy.logerr("Total control loop overruns have exceeded the threshold")
+            pass_flag = False
+
+        if self.max_recent_control_loop_overruns > self._max_recent_control_loop_overruns_threshold:
+            rospy.logerr("Max recent control loop overruns have exceeded the threshold")
+            pass_flag = False
+
+        if self._hand_h:
+            for i in range(len(self.total_invalid_packets)):
+                if self.total_invalid_packets[i] > self._total_invalid_packets_threshold:
+                    rospy.logerr("Total invalid packets have exceeded the threshold on finger {}".format(i))
+                    pass_flag = False
+            for i in range(len(self.max_invalid_packets_recent)):
+                if self.max_invalid_packets_recent[i] > self._max_invalid_packets_recent_threshold:
+                    rospy.logerr("Max recent invalid packets have exceeded the threshold on finger {}".format(i))
+                    pass_flag = False
+        else:
+            if self.invalid_hand_e_packets_total > self._total_invalid_packets_threshold:
+                rospy.logerr("Total invalid packets have exceeded the threshold")
+                pass_flag = False
+            if self.max_invalid_hand_e_packets_recent > self._max_invalid_packets_recent_threshold:
+                rospy.logerr("Max recent invalid packets have exceeded the threshold")
+                pass_flag = False
+
+        if pass_flag:
+            rospy.loginfo("Performance Test: PASSED")
+        else:
+            rospy.logerr("Performance Test: FAILED")
 
     def run(self, duration=20.0):
         if not self._hand_h and not self._hand_e:
-            rospy.logerr("Not recognize hand!")
+            rospy.logerr("No hand was found!!!")
             return False
         start_time = rospy.get_time()
         time = 0.0
         while time < duration and not rospy.is_shutdown():
             time = rospy.get_time() - start_time
-            rospy.sleep(0.0001)
+            rospy.sleep(0.1)
 
-        self._print_results(duration)
+        self._print_results()
+        self._check_threshold_validity()
 
 
 if __name__ == "__main__":
     rospy.init_node('performance_test', anonymous=True)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-it', dest='duration', type=float, default=20)
-    args, unknown = parser.parse_known_args()
+    test_duration = rospy.get_param('~test_duration', 20.0)
     pt = PerformanceTest()
-    pt.run(duration=args.duration)
+    pt.run(duration=test_duration)

@@ -1,0 +1,5 @@
+thresholds:
+  - total_control_loop_overruns: 1
+  - max_recent_control_loop_overruns: 1
+  - total_invalid_packets: 1
+  - max_invalid_packets_recent: 1

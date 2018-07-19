@@ -1,0 +1,6 @@
+<launch>
+    <arg name="test_duration" default="20.0" />
+    <node name="performance_test" pkg="sr_utilities_common" type="performance_test.py" output="screen">
+            <param name="test_duration" value="$(arg test_duration)" />
+    </node>
+</launch>
