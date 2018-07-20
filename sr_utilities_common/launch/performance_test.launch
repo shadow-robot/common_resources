@@ -1,0 +1,15 @@
+<launch>
+    <arg name="test_duration" default="20.0" />
+    <arg name="total_control_loop_overruns_threshold" default="1" />
+    <arg name="max_recent_control_loop_overruns_threshold" default="1" />
+    <arg name="total_invalid_packets_threshold" default="1" />
+    <arg name="max_invalid_packets_recent_threshold" default="1" />
+
+    <node name="performance_test" pkg="sr_utilities_common" type="performance_test.py" output="screen">
+        <param name="test_duration" value="$(arg test_duration)" />
+        <param name="total_control_loop_overruns_threshold" value="$(arg total_control_loop_overruns_threshold)" />
+        <param name="max_recent_control_loop_overruns_threshold" value="$(arg max_recent_control_loop_overruns_threshold)" />
+        <param name="total_invalid_packets_threshold" value="$(arg total_invalid_packets_threshold)" />
+        <param name="max_invalid_packets_recent_threshold" value="$(arg max_invalid_packets_recent_threshold)" />
+    </node>
+</launch>
