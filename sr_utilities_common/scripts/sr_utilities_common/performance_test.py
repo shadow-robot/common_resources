@@ -130,7 +130,9 @@ class PerformanceTest(object):
                 pass_flag = False
 
         if pass_flag:
-            rospy.loginfo("Performance Test: PASSED")
+            green_color = "\033[92m"
+            end_color = "\033[0m"
+            rospy.loginfo("{}Performance Test: PASSED{}".format(green_color, end_color))
         else:
             rospy.logerr("Performance Test: FAILED")
 
