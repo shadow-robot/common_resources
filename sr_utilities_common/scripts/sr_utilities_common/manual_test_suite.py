@@ -4,6 +4,7 @@ import rospy
 import sys
 import argparse
 
+
 class ManualTestSuite(object):
     def __init__(self, tested_class, unattended=False):
         self.tested_class = tested_class
@@ -42,6 +43,7 @@ class ManualTestSuite(object):
             exit(1)
         exit(0)
 
+
 class DummyClass(object):
     def __init__(self):
         self.dummy_variable = 1
@@ -49,6 +51,7 @@ class DummyClass(object):
     def dummy_method(self):
         if 1 == self.dummy_variable:
             return True
+
 
 class DummyClassClient(object):
     def __init__(self):
