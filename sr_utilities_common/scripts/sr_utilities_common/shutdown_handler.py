@@ -3,6 +3,7 @@
 import rospy
 import signal
 
+
 class ShutdownHandler(object):
     def __init__(self, handled_object, handled_method, unattended=False):
         rospy.logwarn('Overriding default node shutdown handler!')
