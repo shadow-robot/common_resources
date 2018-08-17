@@ -4,6 +4,9 @@ import rospy
 import signal
 
 class ShutdownHandler(object):
+    '''
+    Custom handler for SIGINT signal (ctrl + C) executing 
+    '''
     def __init__(self, handled_object, handled_method, unattended=False):
         rospy.logwarn('Overriding default node shutdown handler!')
         signal.signal(signal.SIGINT, self.handler)
