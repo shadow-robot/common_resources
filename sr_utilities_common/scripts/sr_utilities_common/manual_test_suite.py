@@ -13,13 +13,13 @@ class ManualTestSuite(object):
         self.color_codes = {'green': '\033[92m', 'red': '\033[91m',
                             'orange': '\033[93m', 'default': '\033[0m'}
 
-    def create_test(self, command):
+    def create_test(self, command, ignore_result=False):
         if not self.unattended:
             raw_input(self.color_codes['orange'] +
                       'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'], command))
         self.test_results['total'] += 1
         exec('result = self.tested_class.{}'.format(command))
-        if result:
+        if result or ignore_result:
             rospy.logwarn('{} test passed'.format(command))
             self.test_results['passed'] += 1
         else:
