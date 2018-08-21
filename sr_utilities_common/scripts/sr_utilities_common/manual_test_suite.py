@@ -7,8 +7,8 @@ import inspect
 
 
 class ManualTestSuite(object):
-    def __init__(self, tested_class, unattended=False):
-        self.tested_class = tested_class
+    def __init__(self, test_case_class, unattended=False):
+        self.test_case_class = test_case_class
         self.unattended = unattended
         self.test_results = {'total': 0, 'passed': 0, 'failed': 0}
         self.color_codes = {'green': '\033[92m', 'red': '\033[91m',
@@ -17,16 +17,17 @@ class ManualTestSuite(object):
         self._print_summary()
 
     def _create_all_tests(self):
-        members = inspect.getmembers(self.tested_class, predicate=inspect.ismethod)
+        members = inspect.getmembers(self.test_case_class, predicate=inspect.ismethod)
         for member in members:
             if member[0].startswith('test_'):
-                test_method = getattr(self.tested_class, member[0])
+                test_method = getattr(self.test_case_class, member[0])
                 self._create_test(test_method)
 
     def _create_test(self, test_method, ignore_result=False):
         if not self.unattended:
             raw_input(self.color_codes['orange'] +
-                      'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'], test_method.__name__))
+                      'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'],
+                                                                          test_method.__name__))
         self.test_results['total'] += 1
         result = test_method()
         if result or ignore_result:
