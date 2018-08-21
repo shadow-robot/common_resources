@@ -21,14 +21,14 @@ class ManualTestSuite(object):
                 test_method = getattr(self.test_case_class, test_method_name)
                 self._create_test(test_method)
 
-    def _create_test(self, test_method, ignore_result=False):
+    def _create_test(self, test_method):
         if not self.unattended:
             raw_input(self.color_codes['orange'] +
                       'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'],
                                                                           test_method.__name__))
         self.test_results['total'] += 1
         result = test_method()
-        if result or ignore_result:
+        if result:
             rospy.logwarn('{} test passed'.format(test_method.__name__))
             self.test_results['passed'] += 1
         else:
