@@ -3,12 +3,12 @@
 import rospy
 import sys
 import argparse
-import inspect
 
 
 class ManualTestSuite(object):
-    def __init__(self, test_case_class, unattended=False):
+    def __init__(self, test_case_class, ordered_test_method_list, unattended=False):
         self.test_case_class = test_case_class
+        self.ordered_test_method_list = ordered_test_method_list
         self.unattended = unattended
         self.test_results = {'total': 0, 'passed': 0, 'failed': 0}
         self.color_codes = {'green': '\033[92m', 'red': '\033[91m',
@@ -17,10 +17,8 @@ class ManualTestSuite(object):
         self._print_summary()
 
     def _create_all_tests(self):
-        members = inspect.getmembers(self.test_case_class, predicate=inspect.ismethod)
-        for member in members:
-            if member[0].startswith('test_'):
-                test_method = getattr(self.test_case_class, member[0])
+        for test_method_name in self.ordered_test_method_list:
+                test_method = getattr(self.test_case_class, test_method_name)
                 self._create_test(test_method)
 
     def _create_test(self, test_method, ignore_result=False):
@@ -85,4 +83,5 @@ if __name__ == '__main__':
     parser.add_argument("-u", "--unattended", help="Run unattended (no user input).", action='store_true')
     args, unknown_args = parser.parse_known_args()
     dummy_class_client = DummyClassClient()
-    test_suite = ManualTestSuite(dummy_class_client, unattended=args.unattended)
+    ordered_test_method_list = ['test_dummy_method_2', 'test_dummy_method_1']
+    test_suite = ManualTestSuite(dummy_class_client, ordered_test_method_list, unattended=args.unattended)
