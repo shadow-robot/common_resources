@@ -3,6 +3,7 @@
 import rospy
 import sys
 import argparse
+import inspect
 
 
 class ManualTestSuite(object):
@@ -12,8 +13,16 @@ class ManualTestSuite(object):
         self.test_results = {'total': 0, 'passed': 0, 'failed': 0}
         self.color_codes = {'green': '\033[92m', 'red': '\033[91m',
                             'orange': '\033[93m', 'default': '\033[0m'}
+        self._create_all_tests()
+        self._print_summary()
 
-    def create_test(self, command, ignore_result=False):
+    def _create_all_tests(self):
+        members = inspect.getmembers(self.tested_class, predicate=inspect.ismethod)
+        for member in members:
+            if member[0].startswith('test_'):
+                self._create_test('{}()'.format(member[0]))
+
+    def _create_test(self, command, ignore_result=False):
         if not self.unattended:
             raw_input(self.color_codes['orange'] +
                       'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'], command))
@@ -26,7 +35,7 @@ class ManualTestSuite(object):
             rospy.logwarn('{} test failed!'.format(command))
             self.test_results['failed'] += 1
 
-    def print_summary(self):
+    def _print_summary(self):
         if self.test_results['failed'] > 0:
             result = 'FAILURE'
             result_color = self.color_codes['red']
@@ -48,17 +57,25 @@ class DummyClass(object):
     def __init__(self):
         self.dummy_variable = 1
 
-    def dummy_method(self):
+    def dummy_method_1(self):
         if 1 == self.dummy_variable:
             return True
+
+    def dummy_method_2(self):
+            return 2 * self.dummy_variable
 
 
 class DummyClassClient(object):
     def __init__(self):
         self.dummy_class_instance = DummyClass()
 
-    def test_dummy_method(self):
-        return self.dummy_class_instance.dummy_method()
+    def test_dummy_method_1(self):
+        return self.dummy_class_instance.dummy_method_1()
+
+    def test_dummy_method_2(self):
+        if 2 == self.dummy_class_instance.dummy_method_2():
+            return True
+        return False
 
 if __name__ == '__main__':
     rospy.init_node('manual_test_suite')
@@ -67,5 +84,3 @@ if __name__ == '__main__':
     args, unknown_args = parser.parse_known_args()
     dummy_class_client = DummyClassClient()
     test_suite = ManualTestSuite(dummy_class_client, unattended=args.unattended)
-    test_suite.create_test('test_dummy_method')
-    test_suite.print_summary()
