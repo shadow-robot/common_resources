@@ -20,19 +20,20 @@ class ManualTestSuite(object):
         members = inspect.getmembers(self.tested_class, predicate=inspect.ismethod)
         for member in members:
             if member[0].startswith('test_'):
-                self._create_test('{}()'.format(member[0]))
+                test_method = getattr(self.tested_class, member[0])
+                self._create_test(test_method)
 
-    def _create_test(self, command, ignore_result=False):
+    def _create_test(self, test_method, ignore_result=False):
         if not self.unattended:
             raw_input(self.color_codes['orange'] +
-                      'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'], command))
+                      'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'], test_method.__name__))
         self.test_results['total'] += 1
-        exec('result = self.tested_class.{}'.format(command))
+        result = test_method()
         if result or ignore_result:
-            rospy.logwarn('{} test passed'.format(command))
+            rospy.logwarn('{} test passed'.format(test_method.__name__))
             self.test_results['passed'] += 1
         else:
-            rospy.logwarn('{} test failed!'.format(command))
+            rospy.logwarn('{} test failed!'.format(test_method.__name__))
             self.test_results['failed'] += 1
 
     def _print_summary(self):
