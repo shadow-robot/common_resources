@@ -6,27 +6,36 @@ import argparse
 
 
 class ManualTestSuite(object):
-    def __init__(self, tested_class, unattended=False):
-        self.tested_class = tested_class
+    def __init__(self, test_case_class, ordered_test_method_list, unattended=False):
+        self.test_case_class = test_case_class
+        self.ordered_test_method_list = ordered_test_method_list
         self.unattended = unattended
         self.test_results = {'total': 0, 'passed': 0, 'failed': 0}
         self.color_codes = {'green': '\033[92m', 'red': '\033[91m',
                             'orange': '\033[93m', 'default': '\033[0m'}
+        self._create_all_tests()
+        self._print_summary()
 
-    def create_test(self, command, ignore_result=False):
+    def _create_all_tests(self):
+        for test_method_name in self.ordered_test_method_list:
+                test_method = getattr(self.test_case_class, test_method_name)
+                self._create_test(test_method)
+
+    def _create_test(self, test_method):
         if not self.unattended:
             raw_input(self.color_codes['orange'] +
-                      'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'], command))
+                      'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'],
+                                                                          test_method.__name__))
         self.test_results['total'] += 1
-        exec('result = self.tested_class.{}'.format(command))
-        if result or ignore_result:
-            rospy.logwarn('{} test passed'.format(command))
+        result = test_method()
+        if result:
+            rospy.logwarn('{} test passed'.format(test_method.__name__))
             self.test_results['passed'] += 1
         else:
-            rospy.logwarn('{} test failed!'.format(command))
+            rospy.logwarn('{} test failed!'.format(test_method.__name__))
             self.test_results['failed'] += 1
 
-    def print_summary(self):
+    def _print_summary(self):
         if self.test_results['failed'] > 0:
             result = 'FAILURE'
             result_color = self.color_codes['red']
@@ -48,17 +57,25 @@ class DummyClass(object):
     def __init__(self):
         self.dummy_variable = 1
 
-    def dummy_method(self):
+    def dummy_method_1(self):
         if 1 == self.dummy_variable:
             return True
+
+    def dummy_method_2(self):
+            return 2 * self.dummy_variable
 
 
 class DummyClassClient(object):
     def __init__(self):
         self.dummy_class_instance = DummyClass()
 
-    def test_dummy_method(self):
-        return self.dummy_class_instance.dummy_method()
+    def test_dummy_method_1(self):
+        return self.dummy_class_instance.dummy_method_1()
+
+    def test_dummy_method_2(self):
+        if 2 == self.dummy_class_instance.dummy_method_2():
+            return True
+        return False
 
 if __name__ == '__main__':
     rospy.init_node('manual_test_suite')
@@ -66,6 +83,5 @@ if __name__ == '__main__':
     parser.add_argument("-u", "--unattended", help="Run unattended (no user input).", action='store_true')
     args, unknown_args = parser.parse_known_args()
     dummy_class_client = DummyClassClient()
-    test_suite = ManualTestSuite(dummy_class_client, unattended=args.unattended)
-    test_suite.create_test('test_dummy_method')
-    test_suite.print_summary()
+    ordered_test_method_list = ['test_dummy_method_2', 'test_dummy_method_1']
+    test_suite = ManualTestSuite(dummy_class_client, ordered_test_method_list, unattended=args.unattended)
