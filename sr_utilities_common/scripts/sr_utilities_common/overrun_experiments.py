@@ -9,6 +9,7 @@ from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
 import csv
 
+
 class OverrunExperiment(object):
     def __init__(self, hand_type):
         self.hand_type = hand_type
@@ -19,8 +20,8 @@ class OverrunExperiment(object):
         overrun = data.status[9].values[9].value
         rospy.loginfo(overrun)
         self.num_of_drops = int(data.status[4].values[8].value) + \
-            int(data.status[5].values[8].value) + \
-                int(data.status[6].values[8].value)
+                            int(data.status[5].values[8].value) + \
+                            int(data.status[6].values[8].value)
 
         with open("overruns_data.txt", "a") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
@@ -39,7 +40,7 @@ class OverrunExperiment(object):
     def drops_callback_hand_e(self, data):
         if (0 == data.sensors[10]):
             self.num_of_drops += 1
-     
+
     def listener(self):
         if 'hand_h' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_h)
