@@ -13,6 +13,7 @@ import csv
 class OverrunExperiment(object):
     def __init__(self, hand_type):
         self.hand_type = hand_type
+        self.supported_hand_types = ['hand_e', 'hand_h']
         self.num_of_drops = 0
         self.iterations = 0
 
@@ -40,17 +41,20 @@ class OverrunExperiment(object):
             self.num_of_drops += 1
 
     def listener(self):
+        if not self.hand_type:
+            raise ValueError('Please specify hand type using -ht (--hand_type) flag!')
+        elif self.hand_type not in self.supported_hand_types:
+            raise ValueError('Unrecognized hand type: {}!'.format(self.hand_type))
+
+        rospy.loginfo("Your data is being recorded, please wait...")
         if 'hand_h' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_h)
         elif 'hand_e' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_e)
             rospy.Subscriber("/rh/debug_etherCAT_data", EthercatDebug, self.drops_callback_hand_e)
-        elif not self.hand_type:
-            raise ValueError('Please specify hand type using -ht (--hand_type) flag!')
-        else:
-            raise ValueError('Unrecognized hand type: {}!'.format(self.hand_type))
         while (self.iterations < 30) and (not rospy.is_shutdown()):
             rospy.sleep(0.1)
+        rospy.loginfo("Your data has been recorded to ./overruns_data.txt file.")
 
 
 if __name__ == '__main__':
