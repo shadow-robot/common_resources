@@ -45,13 +45,6 @@
       <name>wall_2</name>
       <pose>-0.5 -0.46315 1.0 0 0 1.57079632679</pose>
     </include>
-    <!-- Ceiling -->
-    <include>
-      <uri>model://ground</uri>
-      <static>true</static>
-      <name>ground_2</name>
-      <pose>-0.2 0.6 1.907 0 0 0</pose>
-    </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
       <ode>
