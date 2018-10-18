@@ -11,7 +11,7 @@ import csv
 
 
 class OverrunExperiment(object):
-    def __init__(self, hand_type,time):
+    def __init__(self, hand_type, time):
         self.hand_type = hand_type
         self.time = time
         self.supported_hand_types = ['hand_e', 'hand_h']
@@ -53,9 +53,9 @@ class OverrunExperiment(object):
         elif self.hand_type not in self.supported_hand_types:
             raise ValueError('Unrecognized hand type: {}!'.format(self.hand_type))
         elif self.time < 1:
-            raise ValueError('Please specify the time in full seconds how long you want to run the experiment with -t 60 for example)')
+            raise ValueError('Please specify the experiment duration in seconds with -t 60 for example')
 
-        rospy.loginfo("Your data is being recorded, please wait for "+str(self.time)+ " seconds")
+        rospy.loginfo("Your data is being recorded, please wait for " + str(self.time) + " seconds")
         if 'hand_h' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_h)
         elif 'hand_e' == self.hand_type:
@@ -75,5 +75,5 @@ if __name__ == '__main__':
     parser.add_argument('-ht', '--hand_type', type=str, help='Hand type, e.g. hand_e or hand_h')
     parser.add_argument('-t', '--time', type=int, help='Number of seconds for the experiment to run')
     args = parser.parse_args()
-    oe = OverrunExperiment(args.hand_type,arg.time)
+    oe = OverrunExperiment(args.hand_type, arg.time)
     oe.listener()
