@@ -25,7 +25,7 @@ class OverrunExperiment(object):
         rospy.loginfo(overrun)
         self.num_of_drops = sum(int(data.status[idx].values[8].value) for idx in range(4, 7))
 
-        with open("overruns_data.txt", "a") as myfile:
+        with open("overruns_data.txt", "w+") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
         self.overrun_average += int(overrun)
@@ -35,7 +35,7 @@ class OverrunExperiment(object):
 
     def overruns_callback_hand_e(self, data):
         overrun = data.status[12].values[9].value
-        with open("overruns_data.txt", "a") as myfile:
+        with open("overruns_data.txt", "w+") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
         self.overrun_average += int(overrun)
