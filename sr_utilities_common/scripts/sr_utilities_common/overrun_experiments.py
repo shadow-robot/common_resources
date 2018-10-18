@@ -10,6 +10,7 @@ from sr_robot_msgs.msg import EthercatDebug
 import csv
 import os
 
+
 class OverrunExperiment(object):
     def __init__(self, hand_type, time):
         self.hand_type = hand_type
@@ -71,7 +72,7 @@ class OverrunExperiment(object):
 
 if __name__ == '__main__':
     if os.path.exists("overruns_data.txt"):
-       os.remove("overruns_data.txt")
+        os.remove("overruns_data.txt")
     rospy.init_node('overruns_experiment', anonymous=True)
     parser = argparse.ArgumentParser()
     parser.add_argument('-ht', '--hand_type', type=str, help='Hand type, e.g. hand_e or hand_h')
