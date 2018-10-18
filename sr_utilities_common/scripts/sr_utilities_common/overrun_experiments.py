@@ -28,7 +28,7 @@ class OverrunExperiment(object):
         with open("overruns_data.txt", "a") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
-        self.overrun_average += overrun
+        self.overrun_average += int(overrun)
         self.drop_average += self.num_of_drops
         self.num_of_drops = 0
         self.iterations += 1
@@ -38,7 +38,7 @@ class OverrunExperiment(object):
         with open("overruns_data.txt", "a") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
-        self.overrun_average += overrun
+        self.overrun_average += int(overrun)
         self.drop_average += self.num_of_drops
         self.num_of_drops = 0
         self.iterations += 1
@@ -64,8 +64,8 @@ class OverrunExperiment(object):
         while (self.iterations < self.time) and (not rospy.is_shutdown()):
             rospy.sleep(0.1)
         rospy.loginfo("Your data has been recorded to ./overruns_data.txt file.")
-        self.overrun_average = overrun / self.time
-        self.drop_average = self.num_of_drops / self.time
+        self.overrun_average = self.overrun_average / self.time
+        self.drop_average = self.drop_average / self.time
         rospy.loginfo("Overrun average: "+str(self.overrun_average)+" Drop average: "+str(self.drop_average))
 
 
