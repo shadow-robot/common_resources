@@ -8,7 +8,7 @@ from std_msgs.msg import String
 from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
 import csv
-
+import os
 
 class OverrunExperiment(object):
     def __init__(self, hand_type, time):
@@ -25,7 +25,7 @@ class OverrunExperiment(object):
         rospy.loginfo(overrun)
         self.num_of_drops = sum(int(data.status[idx].values[8].value) for idx in range(4, 7))
 
-        with open("overruns_data.txt", "w+") as myfile:
+        with open("overruns_data.txt", "a+") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
         self.overrun_average += int(overrun)
@@ -35,7 +35,7 @@ class OverrunExperiment(object):
 
     def overruns_callback_hand_e(self, data):
         overrun = data.status[12].values[9].value
-        with open("overruns_data.txt", "w+") as myfile:
+        with open("overruns_data.txt", "a+") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
         self.overrun_average += int(overrun)
@@ -70,6 +70,8 @@ class OverrunExperiment(object):
 
 
 if __name__ == '__main__':
+    if os.path.exists("overruns_data.txt"):
+       os.remove("overruns_data.txt")
     rospy.init_node('overruns_experiment', anonymous=True)
     parser = argparse.ArgumentParser()
     parser.add_argument('-ht', '--hand_type', type=str, help='Hand type, e.g. hand_e or hand_h')
