@@ -66,7 +66,7 @@ class OverrunExperiment(object):
         rospy.loginfo("Your data has been recorded to ./overruns_data.txt file.")
         self.overrun_average = overrun / self.time
         self.drop_average = self.num_of_drops / self.time
-        rospy.loginfo("Overrun average: "+str(self.overrun_average)+" Drop average: "+str(self.drop_average)")
+        rospy.loginfo("Overrun average: "+str(self.overrun_average)+" Drop average: "+str(self.drop_average))
 
 
 if __name__ == '__main__':
