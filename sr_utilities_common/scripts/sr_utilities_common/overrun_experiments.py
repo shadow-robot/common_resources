@@ -75,5 +75,5 @@ if __name__ == '__main__':
     parser.add_argument('-ht', '--hand_type', type=str, help='Hand type, e.g. hand_e or hand_h')
     parser.add_argument('-t', '--time', type=int, help='Number of seconds for the experiment to run')
     args = parser.parse_args()
-    oe = OverrunExperiment(args.hand_type, arg.time)
+    oe = OverrunExperiment(args.hand_type, args.time)
     oe.listener()
