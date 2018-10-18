@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# example use: ./overrun_experiments.py -ht hand_e
+# example use: ./overrun_experiments.py -ht hand_e -t 60
 
 import rospy
 import argparse
