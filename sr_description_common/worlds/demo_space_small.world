@@ -36,14 +36,14 @@
       <uri>model://wall</uri>
       <static>true</static>
       <name>wall_1</name>
-      <pose>-0.48861 -0.5 1.0 0 0 0</pose>
+      <pose>-0.48861 -0.96 1.0 0 0 0</pose>
     </include>
-    <!-- Left wall: Modified to allow full extension of arm at startup. Real wall at 0.46315 instead of 1.26315 -->
+    <!-- Left wall-->
     <include>
       <uri>model://wall</uri>
       <static>true</static>
       <name>wall_2</name>
-      <pose>-0.5 -0.46315 1.0 0 0 1.57079632679</pose>
+      <pose>-0.98 -0.46315 1.0 0 0 1.57079632679</pose>
     </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
