@@ -19,7 +19,7 @@ def getFolderSize(folder):
 
 if __name__ == '__main__':
     rospy.init_node('core_dump_limit', anonymous=True)
-    desired_size = rospy.get_param('~desired_folder_size', 1000000000)
+    desired_size = rospy.get_param('~desired_folder_size', 1024000000)
     path = rospy.get_param('~core_dump_path', '/home/user/.ros/log/core_dumps')
     while not rospy.is_shutdown():
         if getFolderSize(path) > desired_size:

@@ -10,7 +10,7 @@
   <arg name="log_bag_prefix" default="sr_log"/>
 
   <arg name="core_dump_path" default="/home/user/.ros/log/core_dumps"/>
-  <arg name="desired_folder_size" default="1000000000"/>
+  <arg name="desired_folder_size" default="1024000000"/>
 
   <arg name="log_location" value="$(arg log_directory)/$(arg log_bag_prefix)"/>
 
