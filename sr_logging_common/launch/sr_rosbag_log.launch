@@ -9,6 +9,9 @@
   <arg name="log_directory" default="."/>
   <arg name="log_bag_prefix" default="sr_log"/>
 
+  <arg name="core_dump_path" default="/home/user/.ros/log/core_dumps"/>
+  <arg name="desired_folder_size" default="1024000000"/>
+
   <arg name="log_location" value="$(arg log_directory)/$(arg log_bag_prefix)"/>
 
   <arg name="clear_old_sessions" default="true"/>
@@ -17,6 +20,7 @@
 
   <arg name="save_params" default="true"/>
   <arg name="diff_ws" default="true"/>
+  <arg name="dump_limit" default="true"/>
 
   <group unless="$(arg split_logs_by_size)">
     <node  if="$(arg split_logs_by_duration)" pkg="rosbag" type="record"
@@ -39,5 +43,11 @@
 
   <node if="$(arg diff_ws)" pkg="sr_logging_common" type="ws_diff.py" name="ws_diff">
     <param name="log_directory" value="$(arg log_directory)"/>
-  </node>  
+  </node>
+  
+  <node if="$(arg dump_limit)" pkg="sr_logging_common" type="core_dump_limit.py" name="core_dump_limit">
+    <param name="core_dump_path" value="$(arg core_dump_path)"/>
+    <param name="desired_folder_size" value="$(arg desired_folder_size)"/>
+  </node>
+
 </launch>
