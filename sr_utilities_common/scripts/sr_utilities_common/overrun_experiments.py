@@ -21,8 +21,14 @@ class OverrunExperiment(object):
         self.overrun_average = 0
         self.drop_average = 0
 
+    def get_recent_overruns_by_regex(self, msg):
+	for status in msg.status:
+	    for value_dict in status.values:
+		if 'Recent Control Loop Overruns' == value_dict.key:
+		    return value_dict.value
+		    
     def overruns_callback_hand_h(self, data):
-        overrun = data.status[9].values[9].value
+        overrun = self.get_recent_overruns_by_regex(data)
         rospy.loginfo(overrun)
         self.num_of_drops = sum(int(data.status[idx].values[8].value) for idx in range(4, 7))
 
@@ -35,11 +41,11 @@ class OverrunExperiment(object):
         self.iterations += 1
 
     def overruns_callback_hand_e(self, data):
-        overrun = data.status[12].values[9].value
+        overrun = self.get_recent_overruns_by_regex(data)
         with open("overruns_data.txt", "a+") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
-        self.overrun_average += int(overrun)
+        self.overrun_average += int(float(overrun))
         self.drop_average += self.num_of_drops
         self.num_of_drops = 0
         self.iterations += 1
