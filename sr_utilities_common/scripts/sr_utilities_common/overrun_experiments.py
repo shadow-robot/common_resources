@@ -22,11 +22,11 @@ class OverrunExperiment(object):
         self.drop_average = 0
 
     def get_recent_overruns_by_regex(self, msg):
-	for status in msg.status:
-	    for value_dict in status.values:
-		if 'Recent Control Loop Overruns' == value_dict.key:
-		    return value_dict.value
-		    
+        for status in msg.status:
+            for value_dict in status.values:
+                if 'Recent Control Loop Overruns' == value_dict.key:
+                    return value_dict.value
+
     def overruns_callback_hand_h(self, data):
         overrun = self.get_recent_overruns_by_regex(data)
         rospy.loginfo(overrun)
