@@ -9,7 +9,7 @@
         <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://wall_with_hole/meshes/wall_with_hole_3.stl</uri>
+            <uri>model://wall_with_hole/meshes/wall_with_hole.stl</uri>
           </mesh>
         </geometry>
       </collision>
@@ -17,7 +17,7 @@
         <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://wall_with_hole/meshes/wall_with_hole_3.stl</uri>
+            <uri>model://wall_with_hole/meshes/wall_with_hole.stl</uri>
           </mesh>
         </geometry>
       </visual>
