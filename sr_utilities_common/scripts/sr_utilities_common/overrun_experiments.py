@@ -26,6 +26,7 @@ class OverrunExperiment(object):
             for value_dict in status.values:
                 if 'Recent Control Loop Overruns' == value_dict.key:
                     return value_dict.value
+        raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
 
     def overruns_callback_hand_h(self, data):
         overrun = self.get_recent_overruns_by_regex(data)
