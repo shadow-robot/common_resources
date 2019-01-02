@@ -4,6 +4,8 @@ import sys
 import rospy
 import curses
 import locale
+import psutil
+from threading import Thread, Lock
 from sr_utilities_common.shutdown_handler import ShutdownHandler
 
 #TODO: Change to decided convention of enum and put inside of class
@@ -18,6 +20,7 @@ class SrWatchdog(object):
         self.warning_checks_list = warning_checks_list
 
         self.demo_status = Status.PENDING
+        self.cpu_usage = []
         self.node_logs = []
         self.check_results = {}
 
@@ -34,6 +37,24 @@ class SrWatchdog(object):
         curses.noecho()
         curses.cbreak()
 
+    def main_thread_method(self):
+        while not rospy.is_shutdown():
+            self.report_status()
+            self.get_cpu_usage()
+
+    def checks_thread_method(self):
+        while not rospy.is_shutdown():
+            self.run_checks()
+
+    def run(self):
+        main_thread = Thread(target=self.main_thread_method)
+        main_thread.daemon = True
+        main_thread.start()
+
+        checks_thread = Thread(target=self.checks_thread_method)
+        checks_thread.daemon = True
+        checks_thread.start()
+
     def report_status(self):
         self.stdscr.clear()
         if Status.OK == self.demo_status:
@@ -42,6 +63,7 @@ class SrWatchdog(object):
             color_pair_idx = 3
         else:
             color_pair_idx = 1
+
         self.stdscr.addstr(0, 0, "Demo status:".format(self.demo_status))
         self.stdscr.addstr(0, 13, self.demo_status, curses.color_pair(color_pair_idx))
 
@@ -54,8 +76,8 @@ class SrWatchdog(object):
             self.stdscr.addstr(idx+1, 4, box_utf_8_code + u'\u2500'.encode('utf-8') + u'\u2500'.encode('utf-8') + u'\u257C'.encode('utf-8'))
             self.stdscr.addstr(idx+1, 9, key)
     
-        self.stdscr.addstr(number_of_failing_tests+1, 0, "CPU usage: {}".format("?"))
-        self.stdscr.addstr(number_of_failing_tests+2, 0, "---------------")
+        self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {}".format(self.cpu_usage))
+        self.stdscr.addstr(number_of_failing_tests+3, 0, "---------------")
         if 15 < len(self.node_logs):
             del self.node_logs[0]
         for idx, log in enumerate(self.node_logs):
@@ -65,13 +87,8 @@ class SrWatchdog(object):
                 color_pair_idx = 2
             elif 'err' == log[1]:
                 color_pair_idx = 3
-            self.stdscr.addstr(idx+number_of_failing_tests+3, 0, log[0], curses.color_pair(color_pair_idx))
+            self.stdscr.addstr(idx+number_of_failing_tests+4, 0, log[0], curses.color_pair(color_pair_idx))
         self.stdscr.refresh()
-
-    def run(self):
-        self.report_status()
-        while not rospy.is_shutdown():
-            self.run_checks()
 
     def run_checks(self):
         self.run_error_checks()
@@ -126,11 +143,14 @@ class SrWatchdog(object):
 
     def run_error_checks(self):
         self.run_status_checks('err')
-        self.report_status()
+        # self.report_status()
 
     def run_warning_checks(self):
         self.run_status_checks('warn')
-        self.report_status()
+        # self.report_status()
+
+    def get_cpu_usage(self):
+            self.cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
 
     def clean_up(self):
         curses.echo()
@@ -180,3 +200,4 @@ if __name__ == '__main__':
     teleop_watchdog = SrWatchdog(test_class, error_checks_list, warning_checks_list)
     shutdown_handler = ShutdownHandler(teleop_watchdog, 'clean_up()')
     teleop_watchdog.run()
+    rospy.spin()
