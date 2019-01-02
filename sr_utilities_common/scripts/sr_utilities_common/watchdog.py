@@ -77,7 +77,7 @@ class SrWatchdog(object):
             self.stdscr.addstr(idx+1, 9, key)
     
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {}".format(self.cpu_usage))
-        self.stdscr.addstr(number_of_failing_tests+3, 0, "---------------")
+        self.stdscr.addstr(number_of_failing_tests+4, 0, "-----------------------------------")
         if 15 < len(self.node_logs):
             del self.node_logs[0]
         for idx, log in enumerate(self.node_logs):
@@ -87,7 +87,7 @@ class SrWatchdog(object):
                 color_pair_idx = 2
             elif 'err' == log[1]:
                 color_pair_idx = 3
-            self.stdscr.addstr(idx+number_of_failing_tests+4, 0, log[0], curses.color_pair(color_pair_idx))
+            self.stdscr.addstr(idx+number_of_failing_tests+5, 0, log[0], curses.color_pair(color_pair_idx))
         self.stdscr.refresh()
 
     def run_checks(self):
