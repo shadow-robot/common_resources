@@ -14,7 +14,6 @@ class Status:
 
 class SrWatchdog(object):
     def __init__(self, checks_class=None, error_checks_list=[], warning_checks_list=[]):
-
         self.checks_class = checks_class
         self.error_checks_list = error_checks_list
         self.warning_checks_list = warning_checks_list
@@ -47,13 +46,8 @@ class SrWatchdog(object):
             self.run_checks()
 
     def run(self):
-        main_thread = Thread(target=self.main_thread_method)
-        main_thread.daemon = True
-        main_thread.start()
-
-        checks_thread = Thread(target=self.checks_thread_method)
-        checks_thread.daemon = True
-        checks_thread.start()
+        main_thread = Thread(target=self.main_thread_method).start()
+        checks_thread = Thread(target=self.checks_thread_method).start()
 
     def report_status(self):
         self.stdscr.clear()
@@ -78,6 +72,7 @@ class SrWatchdog(object):
     
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {}".format(self.cpu_usage))
         self.stdscr.addstr(number_of_failing_tests+4, 0, "-----------------------------------")
+
         if 15 < len(self.node_logs):
             del self.node_logs[0]
         for idx, log in enumerate(self.node_logs):
@@ -143,11 +138,9 @@ class SrWatchdog(object):
 
     def run_error_checks(self):
         self.run_status_checks('err')
-        # self.report_status()
 
     def run_warning_checks(self):
         self.run_status_checks('warn')
-        # self.report_status()
 
     def get_cpu_usage(self):
             self.cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
