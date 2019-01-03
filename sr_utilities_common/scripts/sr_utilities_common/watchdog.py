@@ -8,9 +8,11 @@ import psutil
 from threading import Thread, Lock
 from sr_utilities_common.shutdown_handler import ShutdownHandler
 
-#TODO: Change to decided convention of enum and put inside of class
+
+# TODO: Change to decided convention of enum and put inside of class
 class Status:
     PENDING, OK, ERROR = ('pending', 'ok', 'error')
+
 
 class SrWatchdog(object):
     def __init__(self, checks_class=None, error_checks_list=[], warning_checks_list=[]):
@@ -61,15 +63,18 @@ class SrWatchdog(object):
         self.stdscr.addstr(0, 0, "Demo status:".format(self.demo_status))
         self.stdscr.addstr(0, 13, self.demo_status, curses.color_pair(color_pair_idx))
 
-        number_of_failing_tests = sum(False == val for val in self.check_results.values())
-        for idx, key in enumerate([key for key, val in self.check_results.items() if val==False]):
+        number_of_failing_tests = sum(val is False for val in self.check_results.values())
+        for idx, key in enumerate([key for key, val in self.check_results.items() if val is False]):
             if idx < number_of_failing_tests - 1:
                 box_utf_8_code = u'\u251C'.encode('utf-8')
             else:
                 box_utf_8_code = u'\u2514'.encode('utf-8')
-            self.stdscr.addstr(idx+1, 4, box_utf_8_code + u'\u2500'.encode('utf-8') + u'\u2500'.encode('utf-8') + u'\u257C'.encode('utf-8'))
+            self.stdscr.addstr(idx+1, 4, box_utf_8_code + 
+                                         u'\u2500'.encode('utf-8') +
+                                         u'\u2500'.encode('utf-8') +
+                                         u'\u257C'.encode('utf-8'))
             self.stdscr.addstr(idx+1, 9, key)
-    
+
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {}".format(self.cpu_usage))
         self.stdscr.addstr(number_of_failing_tests+4, 0, "-----------------------------------")
 
@@ -123,7 +128,8 @@ class SrWatchdog(object):
                     if error_msg is None:
                         error_log = ("[{}] Check \'{}\' failed!".format(msg_type, check), check_type)
                     else:
-                        error_log = ("[{}] Check \'{}\' failed with message: {}".format(msg_type, check, error_msg), check_type)
+                        error_log = ("[{}] Check \'{}\' failed with message: {}" \
+                                        .format(msg_type, check, error_msg), check_type)
                     self.node_logs.append(error_log)
                 else:
                     self.node_logs.append(("[INFO] Check \'{}\' passing again!".format(check), 'info'))
