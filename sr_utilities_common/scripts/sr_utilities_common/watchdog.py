@@ -69,11 +69,8 @@ class SrWatchdog(object):
                 box_utf_8 = u'\u251C'.encode('utf-8')
             else:
                 box_utf_8 = u'\u2514'.encode('utf-8')
-            arrow_string_utf_8 = box_utf_8 + \
-                                u'\u2500'.encode('utf-8') + \
-                                u'\u2500'.encode('utf-8') + \
-                                u'\u257C'.encode('utf-8')
-            self.stdscr.addstr(idx+1, 4, arrow_string_utf_8)
+            arrow_str = box_utf_8 + u'\u2500'.encode('utf-8') + u'\u2500'.encode('utf-8') + u'\u257C'.encode('utf-8')
+            self.stdscr.addstr(idx+1, 4, arrow_str)
             self.stdscr.addstr(idx+1, 9, key)
 
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {}".format(self.cpu_usage))
