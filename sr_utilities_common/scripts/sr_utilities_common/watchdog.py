@@ -66,13 +66,14 @@ class SrWatchdog(object):
         number_of_failing_tests = sum(val is False for val in self.check_results.values())
         for idx, key in enumerate([key for key, val in self.check_results.items() if val is False]):
             if idx < number_of_failing_tests - 1:
-                box_utf_8_code = u'\u251C'.encode('utf-8')
+                box_utf_8 = u'\u251C'.encode('utf-8')
             else:
-                box_utf_8_code = u'\u2514'.encode('utf-8')
-            self.stdscr.addstr(idx+1, 4, box_utf_8_code +
-                                         u'\u2500'.encode('utf-8') +
-                                         u'\u2500'.encode('utf-8') +
-                                         u'\u257C'.encode('utf-8'))
+                box_utf_8 = u'\u2514'.encode('utf-8')
+            arrow_string_utf_8 = box_utf_8 + \
+                                 u'\u2500'.encode('utf-8') + \
+                                 u'\u2500'.encode('utf-8') + \
+                                 u'\u257C'.encode('utf-8')
+            self.stdscr.addstr(idx+1, 4, arrow_string_utf_8)
             self.stdscr.addstr(idx+1, 9, key)
 
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {}".format(self.cpu_usage))
@@ -129,7 +130,7 @@ class SrWatchdog(object):
                         error_log = ("[{}] Check \'{}\' failed!".format(msg_type, check), check_type)
                     else:
                         error_log = ("[{}] Check \'{}\' failed with message: {}"
-                                    .format(msg_type, check, error_msg), check_type)
+                                        .format(msg_type, check, error_msg), check_type)
                     self.node_logs.append(error_log)
                 else:
                     self.node_logs.append(("[INFO] Check \'{}\' passing again!".format(check), 'info'))
