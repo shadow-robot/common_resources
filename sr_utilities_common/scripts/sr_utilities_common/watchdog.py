@@ -70,9 +70,9 @@ class SrWatchdog(object):
             else:
                 box_utf_8 = u'\u2514'.encode('utf-8')
             arrow_string_utf_8 = box_utf_8 + \
-                                 u'\u2500'.encode('utf-8') + \
-                                 u'\u2500'.encode('utf-8') + \
-                                 u'\u257C'.encode('utf-8')
+                                u'\u2500'.encode('utf-8') + \
+                                u'\u2500'.encode('utf-8') + \
+                                u'\u257C'.encode('utf-8')
             self.stdscr.addstr(idx+1, 4, arrow_string_utf_8)
             self.stdscr.addstr(idx+1, 9, key)
 
@@ -130,7 +130,7 @@ class SrWatchdog(object):
                         error_log = ("[{}] Check \'{}\' failed!".format(msg_type, check), check_type)
                     else:
                         error_log = ("[{}] Check \'{}\' failed with message: {}"
-                                        .format(msg_type, check, error_msg), check_type)
+                                     .format(msg_type, check, error_msg), check_type)
                     self.node_logs.append(error_log)
                 else:
                     self.node_logs.append(("[INFO] Check \'{}\' passing again!".format(check), 'info'))
