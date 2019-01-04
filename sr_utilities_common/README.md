@@ -29,7 +29,7 @@ if __name__ == '__main__':
 The above code will be executing an infinite loop until shutdown for the node is initiated. Then, before the node dies, the `clean_up` method will be executed. 
 
 ## Watchdog
-A watchdog class that continuously runs specified check methods and informs user about any undesired behaviours.
+A watchdog class that continuously runs specified check methods and informs the user about any undesired behaviours.
 
 <p align="center">
     <img src="doc/watchdog.png">
@@ -79,9 +79,9 @@ if __name__ == '__main__':
     rospy.spin()
 ```
 
-All the check methods are defined in a separate class. There are two types of checks supported. Error checks, which will change general status to `error` and throw an errro message, and warning checks, which do not affect the reported status but inform user that something has happened. In order to classify a check as error or warning check, their method name needs to be put in a proper list that is further passed to the `SrWatchdog` class constructor, together with the checks class object.
+All the check methods are defined in a separate class. There are two types of checks supported. Error checks, which will change general status to `error` and throw an error message, and warning checks, which do not affect the reported status but inform the user that something has happened. In order to classify a check as error or warning check, their method name needs to be put in a proper list that is further passed to the `SrWatchdog` class constructor, together with the checks class object.
 
-The check methods are required to return either `True` (for passsed check) or `False` (for failed check) values. Alternatively, in case of failure, error checks can return a tuple of `(False, <error message>)` where `<error message>` is additional, user-defined error message.
+The check methods are required to return either `True` (for passed check) or `False` (for failed check) values. Alternatively, in case of failure, error checks can return a tuple of `(False, <error message>)` where `<error message>` is additional, user-defined error message.
 
 In the code snippet above, a `ShutdownHandler` is defined as well in order to clean up console display changes performed by the watchdog class. This step is desired, but not necessary.
 
