@@ -21,7 +21,8 @@ class SrWatchdog(object):
         self.warning_checks_list = warning_checks_list
 
         self.demo_status = Status.PENDING
-        self.cpu_usage = []
+        self.cpu_usage = 0
+        self.cpu_usage_per_core = []
         self.node_logs = []
         self.check_results = {}
 
@@ -73,7 +74,8 @@ class SrWatchdog(object):
             self.stdscr.addstr(idx+1, 4, arrow_str)
             self.stdscr.addstr(idx+1, 9, key)
 
-        self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {}".format(self.cpu_usage))
+        self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {} {} [%]".format(self.cpu_usage,
+                                                                                       tuple(self.cpu_usage_per_core)))
         self.stdscr.addstr(number_of_failing_tests+4, 0, "-----------------------------------")
 
         if 15 < len(self.node_logs):
@@ -147,7 +149,8 @@ class SrWatchdog(object):
         self.run_status_checks('warn')
 
     def get_cpu_usage(self):
-            self.cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
+            self.cpu_usage_per_core = psutil.cpu_percent(interval=1, percpu=True)
+            self.cpu_usage = sum(self.cpu_usage_per_core)/len(self.cpu_usage_per_core)
 
     def clean_up(self):
         curses.echo()
