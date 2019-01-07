@@ -25,6 +25,7 @@ class SrWatchdog(object):
         self.cpu_usage_per_core = []
         self.node_logs = []
         self.check_results = {}
+        self.checks_done_in_current_cycle = 0
 
         self.init_reporting()
 
@@ -76,7 +77,10 @@ class SrWatchdog(object):
 
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {} {} [%]".format(self.cpu_usage,
                                                                                        tuple(self.cpu_usage_per_core)))
-        self.stdscr.addstr(number_of_failing_tests+4, 0, "-----------------------------------")
+
+        checks_done_in_current_cycle_percent = self.checks_done_in_current_cycle / float(len(self.error_checks_list) + len(self.warning_checks_list)) * 100
+        self.stdscr.addstr(number_of_failing_tests+3, 0, "Current check cycle completion: {} %".format(checks_done_in_current_cycle_percent))
+        self.stdscr.addstr(number_of_failing_tests+4, 0, "-----------------------------------\n")
 
         if 15 < len(self.node_logs):
             del self.node_logs[0]
@@ -87,10 +91,11 @@ class SrWatchdog(object):
                 color_pair_idx = 2
             elif 'err' == log[1]:
                 color_pair_idx = 3
-            self.stdscr.addstr(idx+number_of_failing_tests+5, 0, log[0], curses.color_pair(color_pair_idx))
+            self.stdscr.addstr(log[0] + '\n', curses.color_pair(color_pair_idx))
         self.stdscr.refresh()
 
     def run_checks(self):
+        self.checks_done_in_current_cycle = 0
         self.run_error_checks()
         self.run_warning_checks()
         if Status.PENDING == self.demo_status:
@@ -132,7 +137,7 @@ class SrWatchdog(object):
                                      .format(msg_type, check, error_msg), check_type)
                     self.node_logs.append(error_log)
                 else:
-                    self.node_logs.append(("[INFO] Check \'{}\' passing again!".format(check), 'info'))
+                    self.node_logs.append(("[INFO] Check \'{}\' passing now!".format(check), 'info'))
 
             if 'err' == check_type:
                 self.check_results[check] = result
@@ -141,6 +146,8 @@ class SrWatchdog(object):
                 self.demo_status = Status.ERROR
             else:
                 self.demo_status = Status.OK
+
+            self.checks_done_in_current_cycle += 1
 
     def run_error_checks(self):
         self.run_status_checks('err')
