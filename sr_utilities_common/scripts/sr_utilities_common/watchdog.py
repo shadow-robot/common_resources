@@ -100,6 +100,7 @@ class SrWatchdog(object):
         self.run_warning_checks()
         if Status.PENDING == self.demo_status:
             self.demo_status = Status.OK
+        rospy.sleep(0.5)
 
     def run_status_checks(self, check_type):
         if 'err' == check_type:
