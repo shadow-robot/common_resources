@@ -115,16 +115,21 @@ class SrWatchdog(object):
             if check not in self.check_results:
                 self.check_results[check] = True
             method_to_call = getattr(self.checks_class, check)
-            return_value = method_to_call()
+            try:
+                return_value = method_to_call()
+            except Exception as ex:
+                self.node_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'. Skipping...".format(check, type(ex).__name__), 'warn'))
+                self.checks_done_in_current_cycle += 1
+                continue
 
-            if not isinstance(return_value, tuple):
+            if isinstance(return_value, bool):
                 result = return_value
                 error_msg = None
-            elif isinstance(return_value, tuple) and 2 == len(return_value):
+            elif isinstance(return_value, tuple) and 2 == len(return_value):    # TODO: check for bool and str
                 result = return_value[0]
                 error_msg = return_value[1]
             else:
-                self.node_logs.append(("Wrong method result format for \'{}\'."
+                self.node_logs.append(("[WARN] Wrong method result format for \'{}\'."
                                       "Need either a bool or (bool, string) tuple!".format(check), 'warn'))
                 continue
 
