@@ -78,8 +78,11 @@ class SrWatchdog(object):
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {} {} [%]".format(self.cpu_usage,
                                                                                        tuple(self.cpu_usage_per_core)))
 
-        checks_done_in_current_cycle_percent = self.checks_done_in_current_cycle / float(len(self.error_checks_list) + len(self.warning_checks_list)) * 100
-        self.stdscr.addstr(number_of_failing_tests+4, 0, "Current check cycle completion: {} %".format(checks_done_in_current_cycle_percent))
+        checks_done_in_current_cycle_percent = self.checks_done_in_current_cycle / \
+                                                float(len(self.error_checks_list) + \
+                                                       len(self.warning_checks_list)) * 100
+        self.stdscr.addstr(number_of_failing_tests+4, 0, "Current check cycle completion: {} %"
+                                                         .format(checks_done_in_current_cycle_percent))
         self.stdscr.addstr(number_of_failing_tests+5, 0, "\n-----------------------------------\n")
 
         if 10 < len(self.node_logs):
@@ -119,19 +122,20 @@ class SrWatchdog(object):
             try:
                 return_value = method_to_call()
             except Exception as ex:
-                self.node_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'. Skipping...".format(check, type(ex).__name__), 'warn'))
+                self.node_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'. Skipping..."
+                                       .format(check, type(ex).__name__), 'warn'))
                 self.checks_done_in_current_cycle += 1
                 continue
 
             if isinstance(return_value, bool):
                 result = return_value
                 error_msg = None
-            elif isinstance(return_value, tuple) and 2 == len(return_value):    # TODO: check for bool and str
+            elif isinstance(return_value, tuple) and 2 == len(return_value):
                 result = return_value[0]
                 error_msg = return_value[1]
             else:
                 self.node_logs.append(("[WARN] Wrong method result format for \'{}\'."
-                                      "Need either a bool or (bool, string) tuple!".format(check), 'warn'))
+                                       "Need either a bool or (bool, string) tuple!".format(check), 'warn'))
                 continue
 
             if result != self.check_results[check]:
