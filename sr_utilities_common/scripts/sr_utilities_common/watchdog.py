@@ -134,7 +134,7 @@ class SrWatchdog(object):
                 result = return_value[0]
                 error_msg = return_value[1]
             else:
-                self.node_logs.append(("[WARN] Wrong method result format for \'{}\'."
+                self.node_logs.append(("[WARN] Wrong method result format for \'{}\'. "
                                        "Need either a bool or (bool, string) tuple!".format(check), 'warn'))
                 continue
 
