@@ -177,7 +177,7 @@ class TestChecksClass(object):
         self.tmp = [0, 0, 0]
 
     def mock_check_robot_clear_from_collision(self):
-        rospy.sleep(4)
+        rospy.sleep(2)
         if self.tmp[0] != 1:
             self.tmp[0] = 1
             return False
@@ -186,7 +186,7 @@ class TestChecksClass(object):
             return True
 
     def mock_check_if_arm_running(self):
-        rospy.sleep(5)
+        rospy.sleep(3)
         if self.tmp[1] != 0:
             self.tmp[1] = 0
             return False
@@ -195,7 +195,7 @@ class TestChecksClass(object):
             return True
 
     def mock_check_if_hand_running(self):
-        rospy.sleep(3)
+        rospy.sleep(1)
         self.tmp[2] += 1
         if self.tmp[2] > 5 and self.tmp[2] < 10:
             return (False, "Hand not running!")
