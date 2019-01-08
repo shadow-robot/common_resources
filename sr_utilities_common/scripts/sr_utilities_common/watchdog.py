@@ -79,10 +79,10 @@ class SrWatchdog(object):
                                                                                        tuple(self.cpu_usage_per_core)))
 
         checks_done_in_current_cycle_percent = self.checks_done_in_current_cycle / float(len(self.error_checks_list) + len(self.warning_checks_list)) * 100
-        self.stdscr.addstr(number_of_failing_tests+3, 0, "Current check cycle completion: {} %".format(checks_done_in_current_cycle_percent))
-        self.stdscr.addstr(number_of_failing_tests+4, 0, "-----------------------------------\n")
+        self.stdscr.addstr(number_of_failing_tests+4, 0, "Current check cycle completion: {} %".format(checks_done_in_current_cycle_percent))
+        self.stdscr.addstr(number_of_failing_tests+5, 0, "\n-----------------------------------\n")
 
-        if 15 < len(self.node_logs):
+        if 10 < len(self.node_logs):
             del self.node_logs[0]
         for idx, log in enumerate(self.node_logs):
             if 'info' == log[1]:
@@ -100,7 +100,7 @@ class SrWatchdog(object):
         self.run_warning_checks()
         if Status.PENDING == self.demo_status:
             self.demo_status = Status.OK
-        rospy.sleep(0.5)
+        rospy.sleep(1)
 
     def run_status_checks(self, check_type):
         if 'err' == check_type:
