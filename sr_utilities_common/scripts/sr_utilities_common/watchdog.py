@@ -149,11 +149,12 @@ class SrWatchdog(object):
             if 'err' == check_type:
                 self.check_results[check] = result
 
+            if not result:
+                self.demo_status = Status.ERROR
+
             self.checks_done_in_current_cycle += 1
 
-        if False in self.check_results.values():
-            self.demo_status = Status.ERROR
-        else:
+        if False not in self.check_results.values():
             self.demo_status = Status.OK
 
     def run_error_checks(self):
