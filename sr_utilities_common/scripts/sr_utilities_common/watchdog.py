@@ -100,8 +100,6 @@ class SrWatchdog(object):
         self.checks_done_in_current_cycle = 0
         self.run_error_checks()
         self.run_warning_checks()
-        if Status.PENDING == self.demo_status:
-            self.demo_status = Status.OK
         rospy.sleep(1)
 
     def run_status_checks(self, check_type):
@@ -151,12 +149,12 @@ class SrWatchdog(object):
             if 'err' == check_type:
                 self.check_results[check] = result
 
-            if False in self.check_results.values():
-                self.demo_status = Status.ERROR
-            else:
-                self.demo_status = Status.OK
-
             self.checks_done_in_current_cycle += 1
+
+        if False in self.check_results.values():
+            self.demo_status = Status.ERROR
+        else:
+            self.demo_status = Status.OK
 
     def run_error_checks(self):
         self.run_status_checks('err')
