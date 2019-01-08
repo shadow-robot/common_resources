@@ -78,11 +78,10 @@ class SrWatchdog(object):
         self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {} {} [%]".format(self.cpu_usage,
                                                                                        tuple(self.cpu_usage_per_core)))
 
-        checks_done_in_current_cycle_percent = self.checks_done_in_current_cycle / \
-                                               float(len(self.error_checks_list) +
-                                                     len(self.warning_checks_list)) * 100
+        checks_done_in_cycle_percent = self.checks_done_in_current_cycle / float(len(self.error_checks_list) +
+                                                                                 len(self.warning_checks_list)) * 100
         self.stdscr.addstr(number_of_failing_tests+4, 0, "Current check cycle completion: {} %"
-                                                         .format(checks_done_in_current_cycle_percent))
+                                                         .format(checks_done_in_cycle_percent))
         self.stdscr.addstr(number_of_failing_tests+5, 0, "\n-----------------------------------\n")
 
         if 10 < len(self.node_logs):
