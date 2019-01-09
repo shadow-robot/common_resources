@@ -1,0 +1,3 @@
+<launch>
+    <node name="mock_watchdog" pkg="sr_utilities_common" type="watchdog.py" output="screen" launch-prefix="xterm -e" />
+</launch>
