@@ -6,7 +6,7 @@
         <mass>20</mass>
       </inertial>
       <collision name="collision">
-        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
         <geometry>
           <mesh>
             <uri>model://shadow_table_2017_full_simplified/meshes/shadow_table_2017_full_simplified.stl</uri>
@@ -14,7 +14,7 @@
         </geometry>
       </collision>
       <visual name="visual">
-        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
         <geometry>
           <mesh>
             <uri>model://shadow_table_2017_full_simplified/meshes/shadow_table_2017_full_simplified.stl</uri>
