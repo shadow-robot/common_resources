@@ -23,13 +23,13 @@
       <uri>model://shadow_table_2017_full_simplified</uri>
       <static>true</static>
       <name>shadow_table_2017_full_simplified</name>
-      <pose>0.0 0.0 0.743 0 0 0</pose>
+      <pose>0.0 0.0 0.755 0 0 0</pose>
     </include>
     <include>
       <uri>model://ar_marker_a4</uri>
       <static>true</static>
       <name>ar_marker_a4</name>
-      <pose>0.725 0.17 0.762 0.0 -1.57079632679 0</pose>
+      <pose>0.725 0.17 0.755 0.0 -1.57079632679 0</pose>
     </include>
     <!-- Rear wall -->
     <include>
