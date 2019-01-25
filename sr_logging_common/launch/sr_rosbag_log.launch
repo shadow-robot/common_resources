@@ -16,11 +16,13 @@
 
   <arg name="clear_old_sessions" default="true"/>
 
-  <arg name="log_topics" default='-e ".*(controller|debug_etherCAT_data).*" /joint_states /tf /tf_static /rosout /diagnostics /mechanism_statistics'/>
+  <arg name="log_topics" default='-e ".*(controller|debug_etherCAT_data).*" /joint_states /tf /tf_static /rosout /diagnostics /mechanism_statistics /journalctl_pub'/>
 
   <arg name="save_params" default="true"/>
   <arg name="diff_ws" default="true"/>
   <arg name="dump_limit" default="true"/>
+
+  <arg name="journalctl_log" default="True"/>
 
   <group unless="$(arg split_logs_by_size)">
     <node  if="$(arg split_logs_by_duration)" pkg="rosbag" type="record"
@@ -49,5 +51,7 @@
     <param name="core_dump_path" value="$(arg core_dump_path)"/>
     <param name="desired_folder_size" value="$(arg desired_folder_size)"/>
   </node>
+
+  <node if="$(arg journalctl_log)" pkg="sr_logging_common" type="journalctl_pub.py" name="journalctl_pub"/>
 
 </launch>
