@@ -10,9 +10,10 @@ set(MSG_DEPS
 
 find_package(catkin REQUIRED COMPONENTS roslib genmsg message_generation ${MSG_DEPS})
 
-# add_message_files(
-#   FILES
-# )
+add_message_files(
+  FILES
+  journal_log_msg.msg
+)
 
 add_service_files(
   FILES
