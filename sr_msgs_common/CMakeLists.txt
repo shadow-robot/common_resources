@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS roslib genmsg message_generation ${MSG_D
 
 add_message_files(
   FILES
-  journal_log_msg.msg
+  journal_log.msg
 )
 
 add_service_files(
