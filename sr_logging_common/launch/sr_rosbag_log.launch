@@ -16,7 +16,7 @@
 
   <arg name="clear_old_sessions" default="true"/>
 
-  <arg name="log_topics" default='-e ".*(controller|debug_etherCAT_data).*" /joint_states /tf /tf_static /rosout /diagnostics /mechanism_statistics /journalctl_pub'/>
+  <arg name="log_topics" default='-e ".*(controller|debug_etherCAT_data).*" /joint_states /tf /tf_static /rosout /diagnostics /mechanism_statistics /journalctl_log'/>
 
   <arg name="save_params" default="true"/>
   <arg name="diff_ws" default="true"/>
