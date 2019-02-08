@@ -2,14 +2,17 @@
 
 import re
 import rospy
+import rospkg
 import argparse
-from tf.transformations import euler_from_quaternion
 from gazebo_msgs.msg import ModelStates
+from tf.transformations import euler_from_quaternion
 
 class GazeboWorldSaver(object):
     def __init__(self, world_file_name='user_defined_world'):
         self.model_and_pose = {}
-        self.world_file = world_file_name + '.world' 
+        self.world_file = world_file_name + '.world'
+        self.description_path = rospkg.RosPack().get_path('sr_description_common')
+        self.config_path = rospkg.RosPack().get_path('sr_world_generator') + '/config'
 
         model_states_msg = self._get_gazebo_models_states()
         self._extract_model_data_from_msg(model_states_msg)
@@ -35,23 +38,24 @@ class GazeboWorldSaver(object):
             self.model_and_pose[model_name] = ' '.join(str(val) for val in pose_as_list)
 
     def _save_models_to_world_file(self):
-        with open(self.world_file, 'a') as myfile:
-            for key, value in self.model_and_pose.iteritems():
-                myfile.write('    <include>\n')
-                myfile.write('      <uri>model://' + re.sub(r'_\d+$', '', key) + '</uri>\n')
-                myfile.write('      <static>true</static>\n')
-                myfile.write('      <name>' + key + '</name>\n')
-                myfile.write('      <pose>' + value + '</pose>\n')
-                myfile.write('    </include>\n')
+        all_objects_string = ''
+        for key, value in self.model_and_pose.iteritems():
+            all_objects_string += '    <include>\n'
+            all_objects_string += '      <uri>model://' + re.sub(r'_\d+$', '', key) + '</uri>\n'
+            all_objects_string += '      <static>true</static>\n'
+            all_objects_string += '      <name>' + key + '</name>\n'
+            all_objects_string += '      <pose>' + value + '</pose>\n'
+            all_objects_string += '    </include>\n'
+        self._save_to_world_file(all_objects_string)
 
     def _save_lighting_config_to_world_file(self):
-        with open ("../config/gazebo_light_string", "r") as myfile:
+        with open (self.config_path + '/gazebo_light_string', 'r') as myfile:
             data = myfile.readlines()
         data = ''.join(data) + '\n'
         self._save_to_world_file(data)
 
     def _save_physics_config_to_world_file(self):
-        with open ("../config/gazebo_physics_string", "r") as myfile:
+        with open (self.config_path + '/gazebo_physics_string', 'r') as myfile:
             data = myfile.readlines()
         data = ''.join(data) + '\n'
         self._save_to_world_file(data)
@@ -65,7 +69,7 @@ class GazeboWorldSaver(object):
         self._save_to_world_file(trailing_string)
 
     def _save_to_world_file(self, string):
-        with open(self.world_file, 'a') as myfile:
+        with open(self.description_path + '/worlds/' + self.world_file, 'a') as myfile:
             myfile.write(string)
 
 if __name__ == '__main__':
