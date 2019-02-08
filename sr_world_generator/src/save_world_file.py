@@ -7,8 +7,10 @@ from tf.transformations import euler_from_quaternion
 from gazebo_msgs.msg import ModelStates
 
 class GazeboWorldSaver(object):
-    def __init__(self):
+    def __init__(self, world_file_name='user_defined_world'):
         self.model_and_pose = {}
+        self.world_file = world_file_name + '.world' 
+
         model_states_msg = self._get_gazebo_models_states()
         self._extract_model_data_from_msg(model_states_msg)
     
@@ -33,7 +35,7 @@ class GazeboWorldSaver(object):
             self.model_and_pose[model_name] = ' '.join(str(val) for val in pose_as_list)
 
     def _save_models_to_world_file(self):
-        with open("test.world", "a") as myfile:
+        with open(self.world_file, 'a') as myfile:
             for key, value in self.model_and_pose.iteritems():
                 myfile.write('    <include>\n')
                 myfile.write('      <uri>model://' + re.sub(r'_\d+$', '', key) + '</uri>\n')
@@ -63,9 +65,9 @@ class GazeboWorldSaver(object):
         self._save_to_world_file(trailing_string)
 
     def _save_to_world_file(self, string):
-        with open("test.world", "a") as myfile:
+        with open(self.world_file, 'a') as myfile:
             myfile.write(string)
 
 if __name__ == '__main__':
     rospy.init_node('serfow_state_machine', anonymous=True)
-    gws = GazeboWorldSaver()
+    gws = GazeboWorldSaver('new_world')
