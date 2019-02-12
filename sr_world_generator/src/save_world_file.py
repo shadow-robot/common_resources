@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import re
+import os
 import sys
 import rospy
 import rospkg
@@ -18,6 +19,7 @@ class GazeboWorldSaver(object):
         self.description_path = rospkg.RosPack().get_path('sr_description_common')
         self.config_path = rospkg.RosPack().get_path('sr_world_generator') + '/config'
 
+        self._check_if_world_file_exists()
         self._start_gazebo_with_newly_created_world()
         self._get_gazebo_models_states()
         self._extract_model_data_from_msg()
@@ -28,8 +30,12 @@ class GazeboWorldSaver(object):
         self._finish_up_world_file()
         self._clean_exit()
 
+    def _check_if_world_file_exists(self):
+        if not os.path.isfile(self.gazebo_generated_world_file_path):
+            raise IOError("Gazebo generated world file does not exist!")
+
     def _start_gazebo_with_newly_created_world(self):
-        self.process = subprocess.Popen(['xterm -e roslaunch sr_world_generator create_world_template.launch \
+        self.process = subprocess.Popen(['xterm -e roslaunch sr_world_generator create_world_template.launch gui:=false \
                                         scene:=true world:={}'.format(self.gazebo_generated_world_file_path)],
                                         shell=True)
 
@@ -76,6 +82,7 @@ class GazeboWorldSaver(object):
         self._save_to_world_file(data)
 
     def _initiate_world_file(self):
+        self._remove_output_file_if_exists()
         leading_string = '<?xml version="1.0" ?>\n' + '<sdf version="1.4">\n' + '  <world name="default">\n'
         self._save_to_world_file(leading_string)
 
@@ -86,6 +93,11 @@ class GazeboWorldSaver(object):
     def _save_to_world_file(self, string):
         with open(self.description_path + '/worlds/' + self.output_world_file, 'a') as myfile:
             myfile.write(string)
+
+    def _remove_output_file_if_exists(self):
+        full_file_path = self.description_path + '/worlds/' + self.output_world_file
+        if os.path.isfile(full_file_path):
+            os.remove(full_file_path)
 
 if __name__ == '__main__':
     rospy.init_node('save_gazebo_world_file', anonymous=True)
