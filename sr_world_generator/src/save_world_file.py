@@ -1,34 +1,49 @@
 #!/usr/bin/env python
 
 import re
+import sys
 import rospy
 import rospkg
 import argparse
+import subprocess
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
 class GazeboWorldSaver(object):
-    def __init__(self, world_file_name='user_defined_world'):
+    def __init__(self):
+
         self.model_and_pose = {}
-        self.world_file = world_file_name + '.world'
+        self.gazebo_generated_world_file_path = rospy.get_param('~gazebo_generated_world_file_path')
+        self.output_world_file = rospy.get_param('~output_world_file_name', 'new_world') + '.world'
         self.description_path = rospkg.RosPack().get_path('sr_description_common')
         self.config_path = rospkg.RosPack().get_path('sr_world_generator') + '/config'
 
-        model_states_msg = self._get_gazebo_models_states()
-        self._extract_model_data_from_msg(model_states_msg)
-    
+        self._start_gazebo_with_newly_created_world()
+        self._get_gazebo_models_states()
+        self._extract_model_data_from_msg()
         self._initiate_world_file()
         self._save_lighting_config_to_world_file()
         self._save_models_to_world_file()
         self._save_physics_config_to_world_file()
         self._finish_up_world_file()
+        self._clean_exit()
+
+    def _start_gazebo_with_newly_created_world(self):
+        self.process = subprocess.Popen(['xterm -e roslaunch sr_world_generator create_world_template.launch \
+                                        scene:=true world:={}'.format(self.gazebo_generated_world_file_path)],
+                                        shell=True)
+
+    def _clean_exit(self):
+        rospy.loginfo("World saved!")
+        self.process.kill()
+        rospy.sleep(3)
+        sys.exit(0)
 
     def _get_gazebo_models_states(self):
-        model_states = rospy.wait_for_message('/gazebo/model_states', ModelStates)
-        return model_states
+        self.gazebo_model_states_msg = rospy.wait_for_message('/gazebo/model_states', ModelStates)
 
-    def _extract_model_data_from_msg(self, gazebo_model_states_msg):
-        for model_name, pose in zip(gazebo_model_states_msg.name, gazebo_model_states_msg.pose):
+    def _extract_model_data_from_msg(self):
+        for model_name, pose in zip(self.gazebo_model_states_msg.name, self.gazebo_model_states_msg.pose):
             if 'ursrbox' == model_name:
                 continue
             position_as_list = [pose.position.x, pose.position.y, pose.position.z]
@@ -69,9 +84,9 @@ class GazeboWorldSaver(object):
         self._save_to_world_file(trailing_string)
 
     def _save_to_world_file(self, string):
-        with open(self.description_path + '/worlds/' + self.world_file, 'a') as myfile:
+        with open(self.description_path + '/worlds/' + self.output_world_file, 'a') as myfile:
             myfile.write(string)
 
 if __name__ == '__main__':
-    rospy.init_node('serfow_state_machine', anonymous=True)
-    gws = GazeboWorldSaver('new_world')
+    rospy.init_node('save_gazebo_world_file', anonymous=True)
+    gws = GazeboWorldSaver()
