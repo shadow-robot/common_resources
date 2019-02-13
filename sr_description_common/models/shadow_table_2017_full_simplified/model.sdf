@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <model name="shadow_table_2017_full_simplified">
-    <static>1</static>
+    <static>true</static>
     <link name="link">
       <inertial>
         <mass>20</mass>

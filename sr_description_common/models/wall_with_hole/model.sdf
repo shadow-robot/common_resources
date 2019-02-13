@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <model name="wall_with_hole">
+    <static>true</static>
     <link name="link">
       <inertial>
         <mass>20</mass>
