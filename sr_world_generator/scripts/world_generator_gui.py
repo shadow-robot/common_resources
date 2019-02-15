@@ -44,19 +44,58 @@ class SrWorldGeneratorGui(Plugin):
 
         self._widget.setWindowTitle("Gazebo World Generator")
         self.init_widget_children()
-        self.example_button.clicked.connect(self.example_method)
+
+        self.open_gazebo_button.clicked.connect(self.start_gazebo_process)
+        self.close_gazebo_button.clicked.connect(self.stop_gazebo_process)
+        self.transform_world_file_button.clicked.connect(self.transform_world_file)
+
+        self.empty_world_yes_radio.clicked.connect(self.disable_world_path)
+        self.empty_world_no_radio.clicked.connect(self.enable_world_path)
 
     def init_widget_children(self):
-        self.example_button = self._widget.findChild(QPushButton, "example_button")
-        # self.clearance_layout = self._widget.findChild(QVBoxLayout, "clearance_layout")
-        # self.initial_z_combo_box = self._widget.findChild(QComboBox, "initial_z_comboBox")
+        self.open_gazebo_button = self._widget.findChild(QPushButton, "open_gazebo_button")
+        self.close_gazebo_button = self._widget.findChild(QPushButton, "close_gazebo_button")
+        self.world_browse_button = self._widget.findChild(QPushButton, "world_browse_button")
+        self.gazebo_generated_file_browse = self._widget.findChild(QPushButton, "gazebo_generated_file_browse")
+        self.transform_world_file_button = self._widget.findChild(QPushButton, "transform_world_file_button")
+
+        self.start_home_yes_radio = self._widget.findChild(QRadioButton, "start_home_yes_radio")
+        self.start_home_no_radio = self._widget.findChild(QRadioButton, "start_home_no_radio")
+        self.empty_world_yes_radio = self._widget.findChild(QRadioButton, "empty_world_yes_radio")
+        self.empty_world_no_radio = self._widget.findChild(QRadioButton, "empty_world_no_radio")
+
+        self.world_line_edit = self._widget.findChild(QLineEdit, "world_line_edit")
+        self.initial_z_line_edit = self._widget.findChild(QLineEdit, "initial_z_line_edit")
+        self.gazebo_generated_world_path_line_edit = self._widget.findChild(QLineEdit, "gazebo_generated_world_path_line_edit")
+
+        self.transform_file_group_box = self._widget.findChild(QGroupBox, "transform_file_group_box")
 
     def destruct(self):
         self._widget = None
         rospy.loginfo("Closing gazebo world generator")
 
-    def example_method(self):
-        print "Example!"
+    def start_gazebo_process(self):
+        print "Starting gazebo!"
+        self.open_gazebo_button.setEnabled(False)
+        self.close_gazebo_button.setEnabled(True)
+        self.transform_file_group_box.setEnabled(False)
+
+    def stop_gazebo_process(self):
+        print "Stopping gazebo!"
+        self.open_gazebo_button.setEnabled(True)
+        self.close_gazebo_button.setEnabled(False)
+        self.transform_file_group_box.setEnabled(True)
+
+    def transform_world_file(self):
+        print "Transforming world!"
+
+    def enable_world_path(self):
+        self.world_line_edit.setEnabled(True)
+        self.world_browse_button.setEnabled(True)
+
+    def disable_world_path(self):
+        self.world_line_edit.setEnabled(False)
+        self.world_browse_button.setEnabled(False)
 
 if __name__ == "__main__":
     rospy.init_node("sr_gazebo_world_generator")
