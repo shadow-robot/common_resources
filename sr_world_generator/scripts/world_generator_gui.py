@@ -47,6 +47,8 @@ class SrWorldGeneratorGui(Plugin):
 
         self.open_gazebo_button.clicked.connect(self.start_gazebo_process)
         self.close_gazebo_button.clicked.connect(self.stop_gazebo_process)
+        self.world_browse_button.clicked.connect(self.get_world_file_path)
+        self.gazebo_generated_file_browse.clicked.connect(self.get_world_file_to_transform_path)
         self.transform_world_file_button.clicked.connect(self.transform_world_file)
 
         self.empty_world_yes_radio.clicked.connect(self.disable_world_path)
@@ -96,6 +98,20 @@ class SrWorldGeneratorGui(Plugin):
     def disable_world_path(self):
         self.world_line_edit.setEnabled(False)
         self.world_browse_button.setEnabled(False)
+
+    def get_world_file_path(self):
+        self.world_line_edit.clear()
+        chosen_path = self.get_file_path()
+        self.world_line_edit.setText(chosen_path)
+
+    def get_world_file_to_transform_path(self):
+        self.gazebo_generated_world_path_line_edit.clear()
+        chosen_path = self.get_file_path()
+        self.gazebo_generated_world_path_line_edit.setText(chosen_path)
+
+    def get_file_path(self):
+        chosen_path = QFileDialog.getOpenFileName(self._widget, 'Open file', "")
+        return chosen_path[0]
 
 if __name__ == "__main__":
     rospy.init_node("sr_gazebo_world_generator")
