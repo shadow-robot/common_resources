@@ -11,10 +11,7 @@ try:
 except ImportError:
     pass
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-from matplotlib import __version__ as matplotlibversion
+from sr_world_generator.save_world_file import GazeboWorldSaver
 
 import signal
 import rospy
@@ -77,19 +74,37 @@ class SrWorldGeneratorGui(Plugin):
         rospy.loginfo("Closing gazebo world generator")
 
     def start_gazebo_process(self):
-        print "Starting gazebo!"
         self.open_gazebo_button.setEnabled(False)
         self.close_gazebo_button.setEnabled(True)
         self.transform_file_group_box.setEnabled(False)
 
+        is_robot_starting_home = self.start_home_yes_radio.isChecked()
+        is_starting_with_empty_world = self.empty_world_yes_radio.isChecked()
+
+        gazebo_start_command = 'xterm -e roslaunch sr_world_generator create_world_template.launch start_home:={} '.format(is_robot_starting_home) + \
+                               'scene:={}'.format(not is_starting_with_empty_world)
+
+        if not is_starting_with_empty_world:
+            world_file_path = self.world_line_edit.displayText()
+            gazebo_start_command += ' world:={}'.format(world_file_path)
+
+        self.process = subprocess.Popen([gazebo_start_command],
+                                        shell=True)
+
     def stop_gazebo_process(self):
-        print "Stopping gazebo!"
+        self.process.kill()
+
         self.open_gazebo_button.setEnabled(True)
         self.close_gazebo_button.setEnabled(False)
         self.transform_file_group_box.setEnabled(True)
 
     def transform_world_file(self):
-        print "Transforming world!"
+        worlds_path = rospkg.RosPack().get_path('sr_description_common') + '/worlds/'
+        output_file_path = QFileDialog.getSaveFileName(self._widget, 'Save File',
+                                                  worlds_path + 'new_world.world',
+                                                  'World Files (*.world)')
+        gazebo_generated_world_file_path = self.gazebo_generated_world_path_line_edit.displayText()
+        gws = GazeboWorldSaver(gazebo_generated_world_file_path, output_file_path[0])
 
     def enable_world_path(self):
         self.world_line_edit.setEnabled(True)
