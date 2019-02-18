@@ -10,7 +10,7 @@ if __name__ == "__main__":
     rospy.init_node('journalctl_pub', anonymous=True)
     pub = rospy.Publisher('journalctl_log', journal_log, queue_size=10)
 
-    args = ['journalctl', '--lines', '0', '--follow']
+    args = ['journalctl', '--directory', '/host_run/log/journal/' '--lines', '0', '--follow']
     f = subprocess.Popen(args, stdout=subprocess.PIPE)
     p = select.poll()
     p.register(f.stdout)
