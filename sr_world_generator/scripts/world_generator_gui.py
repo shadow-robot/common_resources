@@ -78,11 +78,12 @@ class SrWorldGeneratorGui(Plugin):
         self.close_gazebo_button.setEnabled(True)
         self.transform_file_group_box.setEnabled(False)
 
+        initial_z = self.initial_z_line_edit.displayText()
         is_robot_starting_home = self.start_home_yes_radio.isChecked()
         is_starting_with_empty_world = self.empty_world_yes_radio.isChecked()
 
         gazebo_start_command = 'xterm -e roslaunch sr_world_generator create_world_template.launch start_home:={} '.format(is_robot_starting_home) + \
-                               'scene:={}'.format(not is_starting_with_empty_world)
+                               'scene:={} initial_z:={}'.format(not is_starting_with_empty_world, initial_z)
 
         if not is_starting_with_empty_world:
             world_file_path = self.world_line_edit.displayText()
