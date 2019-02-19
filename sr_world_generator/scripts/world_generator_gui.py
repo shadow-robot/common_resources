@@ -17,8 +17,6 @@ import signal
 import rospy
 import os
 import rospkg
-import sqlite3
-import rviz
 import subprocess
 
 
@@ -27,10 +25,6 @@ class SrWorldGeneratorGui(Plugin):
         super(SrWorldGeneratorGui, self).__init__(context)
         self.setObjectName("SrWorldGeneratorGui")
         self._widget = QWidget()
-
-        self.available_databases = []
-        self.available_benchmarks = []
-        self.planners = []
 
         ui_file = os.path.join(rospkg.RosPack().get_path(
             'sr_world_generator'), 'uis', 'moveit_planner_benchmarking.ui')
