@@ -2,10 +2,8 @@
 
 import re
 import os
-import sys
 import rospy
 import rospkg
-import argparse
 import subprocess
 import rospkg
 from gazebo_msgs.msg import ModelStates
