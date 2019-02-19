@@ -142,7 +142,7 @@ class SrWorldGeneratorGui(Plugin):
         msg.setIcon(QMessageBox.Warning)
         msg.setText(message)
         msg.setWindowTitle("Warning!")
-        msg.setStandardButtons(QMessageBox.Ok)    
+        msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
 if __name__ == "__main__":
