@@ -22,7 +22,7 @@ class GazeboWorldSaver(object):
         else:
             self.gazebo_generated_world_file_path = gazebo_generated_world_file_path
 
-        if output_world_file is None:
+        if output_world_file_path is None:
             output_world_file_name = rospy.get_param('~output_world_file_name', 'new_world') + '.world'
             description_path = rospkg.RosPack().get_path('sr_description_common')
             self.output_world_file_path = description_path + '/worlds/' + output_world_file_name

@@ -75,10 +75,6 @@ class SrWorldGeneratorGui(Plugin):
         rospy.loginfo("Closing gazebo world generator")
 
     def start_gazebo_process(self):
-        self.open_gazebo_button.setEnabled(False)
-        self.close_gazebo_button.setEnabled(True)
-        self.transform_file_group_box.setEnabled(False)
-
         initial_z = self.initial_z_line_edit.displayText()
         is_robot_starting_home = self.start_home_yes_radio.isChecked()
         is_starting_with_empty_world = self.empty_world_yes_radio.isChecked()
@@ -89,7 +85,14 @@ class SrWorldGeneratorGui(Plugin):
 
         if not is_starting_with_empty_world:
             world_file_path = self.world_line_edit.displayText()
+            if not os.path.isfile(world_file_path):
+                self.throw_warning_dialog("File does not exist!")
+                return
             gazebo_start_command += ' world:={}'.format(world_file_path)
+
+        self.open_gazebo_button.setEnabled(False)
+        self.close_gazebo_button.setEnabled(True)
+        self.transform_file_group_box.setEnabled(False)
 
         self.process = subprocess.Popen([gazebo_start_command],
                                         shell=True)
@@ -107,6 +110,9 @@ class SrWorldGeneratorGui(Plugin):
                                                        worlds_path + 'new_world.world',
                                                        'World Files (*.world)')
         gazebo_generated_world_file_path = self.gazebo_generated_world_path_line_edit.displayText()
+        if not os.path.isfile(gazebo_generated_world_file_path):
+            self.throw_warning_dialog("File chosen to be transformed does not exist!")
+            return
         gws = GazeboWorldSaver(gazebo_generated_world_file_path, output_file_path[0])
 
     def enable_world_path(self):
@@ -130,6 +136,14 @@ class SrWorldGeneratorGui(Plugin):
     def get_file_path(self):
         chosen_path = QFileDialog.getOpenFileName(self._widget, 'Open file', "")
         return chosen_path[0]
+
+    def throw_warning_dialog(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(message)
+        msg.setWindowTitle("Warning!")
+        msg.setStandardButtons(QMessageBox.Ok)    
+        msg.exec_()
 
 if __name__ == "__main__":
     rospy.init_node("sr_gazebo_world_generator")
