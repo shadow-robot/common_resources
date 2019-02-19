@@ -27,7 +27,7 @@ class SrWorldGeneratorGui(Plugin):
         self._widget = QWidget()
 
         ui_file = os.path.join(rospkg.RosPack().get_path(
-            'sr_world_generator'), 'uis', 'moveit_planner_benchmarking.ui')
+            'sr_world_generator'), 'uis', 'world_generator.ui')
 
         loadUi(ui_file, self._widget)
         if __name__ != "__main__":
