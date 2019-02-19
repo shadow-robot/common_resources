@@ -65,7 +65,8 @@ class SrWorldGeneratorGui(Plugin):
 
         self.world_line_edit = self._widget.findChild(QLineEdit, "world_line_edit")
         self.initial_z_line_edit = self._widget.findChild(QLineEdit, "initial_z_line_edit")
-        self.gazebo_generated_world_path_line_edit = self._widget.findChild(QLineEdit, "gazebo_generated_world_path_line_edit")
+        self.gazebo_generated_world_path_line_edit = self._widget.findChild(QLineEdit,
+                                                                            "gazebo_generated_world_path_line_edit")
 
         self.transform_file_group_box = self._widget.findChild(QGroupBox, "transform_file_group_box")
 
@@ -82,7 +83,8 @@ class SrWorldGeneratorGui(Plugin):
         is_robot_starting_home = self.start_home_yes_radio.isChecked()
         is_starting_with_empty_world = self.empty_world_yes_radio.isChecked()
 
-        gazebo_start_command = 'xterm -e roslaunch sr_world_generator create_world_template.launch start_home:={} '.format(is_robot_starting_home) + \
+        gazebo_start_command = 'xterm -e roslaunch sr_world_generator' + \
+                               ' create_world_template.launch start_home:={} '.format(is_robot_starting_home) + \
                                'scene:={} initial_z:={}'.format(not is_starting_with_empty_world, initial_z)
 
         if not is_starting_with_empty_world:
@@ -102,8 +104,8 @@ class SrWorldGeneratorGui(Plugin):
     def transform_world_file(self):
         worlds_path = rospkg.RosPack().get_path('sr_description_common') + '/worlds/'
         output_file_path = QFileDialog.getSaveFileName(self._widget, 'Save File',
-                                                  worlds_path + 'new_world.world',
-                                                  'World Files (*.world)')
+                                                       worlds_path + 'new_world.world',
+                                                       'World Files (*.world)')
         gazebo_generated_world_file_path = self.gazebo_generated_world_path_line_edit.displayText()
         gws = GazeboWorldSaver(gazebo_generated_world_file_path, output_file_path[0])
 

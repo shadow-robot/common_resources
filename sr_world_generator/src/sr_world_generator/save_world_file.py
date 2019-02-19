@@ -11,6 +11,7 @@ import rospkg
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
+
 class GazeboWorldSaver(object):
     def __init__(self, gazebo_generated_world_file_path=None, output_world_file_path=None):
 
@@ -21,8 +22,7 @@ class GazeboWorldSaver(object):
         else:
             self.gazebo_generated_world_file_path = gazebo_generated_world_file_path
 
-
-        if output_world_file_path is None:
+        if output_world_file is None:
             output_world_file_name = rospy.get_param('~output_world_file_name', 'new_world') + '.world'
             description_path = rospkg.RosPack().get_path('sr_description_common')
             self.output_world_file_path = description_path + '/worlds/' + output_world_file_name
@@ -80,13 +80,13 @@ class GazeboWorldSaver(object):
         self._save_to_world_file(all_objects_string)
 
     def _save_lighting_config_to_world_file(self):
-        with open (self.config_path + '/gazebo_light_string', 'r') as myfile:
+        with open(self.config_path + '/gazebo_light_string', 'r') as myfile:
             data = myfile.readlines()
         data = ''.join(data) + '\n'
         self._save_to_world_file(data)
 
     def _save_physics_config_to_world_file(self):
-        with open (self.config_path + '/gazebo_physics_string', 'r') as myfile:
+        with open(self.config_path + '/gazebo_physics_string', 'r') as myfile:
             data = myfile.readlines()
         data = ''.join(data) + '\n'
         self._save_to_world_file(data)
@@ -97,7 +97,7 @@ class GazeboWorldSaver(object):
         self._save_to_world_file(leading_string)
 
     def _finish_up_world_file(self):
-        trailing_string = '  </world>\n' +  '</sdf>'
+        trailing_string = '  </world>\n' + '</sdf>'
         self._save_to_world_file(trailing_string)
 
     def _save_to_world_file(self, string):
