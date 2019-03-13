@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Example use: ./environment_setup.sh -b /home/user/.bashrc -c "source /home/shadowop/utl5_workspace/devel/setup.bash" "export test_var=1"
+# Example use: ./environment_setup.sh -b /home/user/.bashrc -c "source /home/user/example_workspace/devel/setup.bash" "export example_var=1"
 
 set -e
 tag_number=$RANDOM
@@ -37,7 +37,7 @@ function check_if_bashrc_ends_with_empty_line {
 function append_to_bash {
     for item in "${commands[@]}"
     do
-        # Do not add to .bashrc if starts with '__'. This is to prevent rosrun arguemnts to be added.
+        # Do not add to .bashrc if starts with '__'. This is to prevent rosrun arguments to be added.
         if ! [[ "$item" =~ ^__ ]]
         then
             echo -e "$item" "# tmp_$tag_number" >> $bashrc_path
