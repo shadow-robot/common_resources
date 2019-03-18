@@ -8,14 +8,20 @@ Trajectories that can be used by `SrRunTrajectories` class need to be defined in
 
 ## Using the class
 
-In order to use the `SrRunTrajectories` class, create an object while passing the trajectories yaml file path to the class constructor, i.e.:
+In order to use the `SrRunTrajectories` class, create an object while passing the trajectories yaml file path to the class constructor, e.g.:
 
 ```python
     trajectories_file_path = rospkg.RosPack().get_path('sr_run_trajectories') + '/config/example_trajectories.yaml'
     srt = SrRunTrajectories(trajectories_file_path)
 ```
 
-In order to run a trajectory use the `run_trajectory` method. First argument of the method denotes type of the move group to be controlled (`arm`, `hand` and `arm_and_hand` allowed), second one is the name of one of the trajectories defined in the yaml file. An example node executing trajectories for each move group can be found [here](./scripts/run_trajectories_node.py)
+In order to run a trajectory use the `run_trajectory` method. First argument of the method denotes type of the move group to be controlled (`arm`, `hand` and `arm_and_hand` allowed), second one is the name of one of the trajectories defined in the yaml file, e.g.:
+
+```python
+srt.run_trajectory('arm_and_hand', 'test_trajectory')
+```
+
+An example node executing trajectories for each move group can be found [here](./scripts/run_trajectories_node.py)
 
 ## Getting joint angles
 
