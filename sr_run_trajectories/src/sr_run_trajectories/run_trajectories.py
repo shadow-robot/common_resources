@@ -46,7 +46,7 @@ class SrRunTrajectories(object):
         self._arm_trajectories = self._parse_trajectories_dict(arm_trajectories, arm_joints_order)
         self._hand_trajectories = self._parse_trajectories_dict(hand_trajectories, hand_joints_order)
         self._arm_and_hand_trajectories = self._parse_trajectories_dict(arm_and_hand_trajectories,
-                                                                       arm_and_hand_joints_order)
+                                                                        arm_and_hand_joints_order)
 
     def _parse_trajectories_dict(self, trajectories_dict, joints_order):
         parsed_trajectories_dict = {}
