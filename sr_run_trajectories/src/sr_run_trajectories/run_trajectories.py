@@ -15,17 +15,21 @@ class SrRunTrajectories(object):
         self._hand_trajectories = {}
         self._arm_and_hand_trajectories = {}
 
+        self._arm_commander = None
+        self._hand_commander = None
+        self._arm_and_hand_commander = None
+
         self._init_moveit_commanders()
         self._parse_all_trajectories(trajectories_file_path)
 
     def _init_moveit_commanders(self):
-        self.arm_commander = SrArmCommander(name='right_arm_and_wrist', set_ground=False)
-        self.hand_commander = SrHandCommander(name='right_hand')
-        self.arm_and_hand_commander = SrArmCommander(name='right_arm_and_hand', set_ground=False)
-        if self.arm_commander is None or self.hand_commander is None or self.arm_and_hand_commander is None:
+        self._arm_commander = SrArmCommander(name='right_arm_and_wrist', set_ground=False)
+        self._hand_commander = SrHandCommander(name='right_hand')
+        self._arm_and_hand_commander = SrArmCommander(name='right_arm_and_hand', set_ground=False)
+        if self._arm_commander is None or self._hand_commander is None or self._arm_and_hand_commander is None:
             raise MoveItCommanderException('Failed to initialise robot commander!')
-        self.arm_commander.set_max_velocity_scaling_factor(0.3)
-        self.arm_and_hand_commander.set_max_velocity_scaling_factor(0.3)
+        self._arm_commander.set_max_velocity_scaling_factor(0.3)
+        self._arm_and_hand_commander.set_max_velocity_scaling_factor(0.3)
 
     def _parse_all_trajectories(self, trajectories_file_path):
         with open(trajectories_file_path, 'r') as stream:
@@ -58,10 +62,10 @@ class SrRunTrajectories(object):
 
     def run_trajectory(self, configuration, trajectory_name):
         if configuration is 'arm':
-            self.arm_commander.run_named_trajectory(self._arm_trajectories[trajectory_name])
+            self._arm_commander.run_named_trajectory(self._arm_trajectories[trajectory_name])
         elif configuration is 'hand':
-            self.hand_commander.run_named_trajectory(self._hand_trajectories[trajectory_name])
+            self._hand_commander.run_named_trajectory(self._hand_trajectories[trajectory_name])
         elif configuration is 'arm_and_hand':
-            self.arm_and_hand_commander.run_named_trajectory(self._arm_and_hand_trajectories[trajectory_name])
+            self._arm_and_hand_commander.run_named_trajectory(self._arm_and_hand_trajectories[trajectory_name])
         else:
             rospy.logerr("Unknown configuration!")
