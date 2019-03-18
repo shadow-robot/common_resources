@@ -1,21 +1,22 @@
 # sr_run_trajectories
 
-This package contains code allowing quick and easy setup of scripts running arm, hand and arm and hand trajectories.
+This package contains code allowing quick and easy setup of scripts running arm, hand, and arm and hand trajectories.
 
 ## Creating trajectories
 
-Trajectories that can be used by `SrRunTrajectories` class are defined in a yaml file. Each yaml file used need to have joint order defined for each move group, plus the actual trajectories that user desires to run. For each trajectory, multiple waypoints are allowed, and each waypoint has to have joint angles and interpolation time defined. An example, properly formatted yaml file can be found [here](./config/example_trajectories.yaml).
+Trajectories that can be used by `SrRunTrajectories` class need to be defined in a yaml file. Each yaml file used needs to have joint order specified for each move group, as well as the actual trajectories that user desires to run. For each trajectory, multiple waypoints are allowed, and each waypoint has to have joint angles and interpolation time defined. An example, properly formatted yaml file can be found [here](./config/example_trajectories.yaml).
 
 ## Using the class
 
-In order to use the class, create an object while passing the trajectories yaml file to the class constructor, i.e.:
+In order to use the `SrRunTrajectories` class, create an object while passing the trajectories yaml file path to the class constructor, i.e.:
 
 ```python
     trajectories_file_path = rospkg.RosPack().get_path('sr_run_trajectories') + '/config/example_trajectories.yaml'
     srt = SrRunTrajectories(trajectories_file_path)
 ```
 
-Then, in order to run a trajectory use the `run_trajectory` method. First argument of the method denotes type of the move group to be controlled, second one is the name of one of the trajectories defined in the yaml file. An example node executing trajectories for each move group can be found [here](./scripts/run_trajectories_node.py) 
+In order to run a trajectory use the `run_trajectory` method. First argument of the method denotes type of the move group to be controlled (`arm`, `hand` and `arm_and_hand` allowed), second one is the name of one of the trajectories defined in the yaml file. An example node executing trajectories for each move group can be found [here](./scripts/run_trajectories_node.py)
+
 ## Getting joint angles
 
 In order to easily get joint angles in the correct order, [this script](./scripts/get_joint_angles.py) can be used. Example output:
