@@ -25,7 +25,7 @@ class SrRunTrajectories(object):
         if self.arm_commander is None or self.hand_commander is None or self.arm_and_hand_commander is None:
             raise MoveItCommanderException('Failed to initialise robot commander!')
         self.arm_commander.set_max_velocity_scaling_factor(0.3)
-        self.arm_and_hand_commander.set_max_velocity_scaling_factor(0.1)
+        self.arm_and_hand_commander.set_max_velocity_scaling_factor(0.3)
 
     def _parse_all_trajectories(self, trajectories_file_path):
         with open(trajectories_file_path, 'r') as stream:
