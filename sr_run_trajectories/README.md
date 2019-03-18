@@ -1,0 +1,34 @@
+# sr_run_trajectories
+
+This package contains code allowing quick and easy setup of scripts running arm, hand and arm and hand trajectories.
+
+## Creating trajectories
+
+Trajectories that can be used by `SrRunTrajectories` class are defined in a yaml file. Each yaml file used need to have joint order defined for each move group, plus the actual trajectories that user desires to run. For each trajectory, multiple waypoints are allowed, and each waypoint has to have joint angles and interpolation time defined. An example, properly formatted yaml file can be found [here](./config/example_trajectories.yaml).
+
+## Using the class
+
+In order to use the class, create an object while passing the trajectories yaml file to the class constructor, i.e.:
+
+```python
+    trajectories_file_path = rospkg.RosPack().get_path('sr_run_trajectories') + '/config/example_trajectories.yaml'
+    srt = SrRunTrajectories(trajectories_file_path)
+```
+
+Then, in order to run a trajectory use the `run_trajectory` method. First argument of the method denotes type of the move group to be controlled, second one is the name of one of the trajectories defined in the yaml file. An example node executing trajectories for each move group can be found [here](./scripts/run_trajectories_node.py) 
+## Getting joint angles
+
+In order to easily get joint angles in the correct order, [this script](./scripts/get_joint_angles.py) can be used. Example output:
+
+```sh
+Arm joints:
+[2.352, -2.2, 0.376, -0.119, 0.448, 3.105]
+
+
+Hand joints:
+[0.239, 0.866, 0.417, 0.028, 0.373, 0.462, 0.874, -0.018, 0.107, 1.022, 0.749, 0.803, 0.108, 0.433, 0.583, 0.837, -0.0, 0.518, 0.171, -0.059, 1.126, -0.132, 0.034, -0.03]
+
+
+Arm and hand joints:
+[2.352, -2.2, 0.376, -0.119, 0.448, 3.105, 0.239, 0.866, 0.417, 0.028, 0.373, 0.462, 0.874, -0.018, 0.107, 1.022, 0.749, 0.803, 0.108, 0.433, 0.583, 0.837, -0.0, 0.518, 0.171, -0.059, 1.126, -0.132, 0.034, -0.03]
+```
