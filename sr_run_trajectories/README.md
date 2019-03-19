@@ -25,7 +25,13 @@ An example node executing trajectories for each move group can be found [here](.
 
 ## Getting joint angles
 
-In order to easily get joint angles in the correct order, [this script](./scripts/get_joint_angles.py) can be used. Example output:
+In order to easily get joint angles in the correct order, [this script](./scripts/get_joint_angles.py) can be used. In order to run the script, run:
+
+```sh
+rosrun sr_run_trajectories get_joint_angles.py
+```
+
+ Example output:
 
 ```sh
 Arm joints:
