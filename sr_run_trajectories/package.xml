@@ -4,7 +4,8 @@
   <version>0.0.0</version>
   <description>The sr_run_trajectories package</description>
 
-  <maintainer email="michal@shadowrobot.com">Michal Kramarczyk</maintainer>
+  <maintainer email="software@shadowrobot.com">Shadow Robot Software Team</maintainer>
+  <author>Michal Kramarczyk</author>
 
   <license>GPL</license>
 
