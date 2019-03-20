@@ -1,0 +1,24 @@
+<launch>
+  <arg name="sim" default="true"/>
+  <arg name="scene" default="true"/>
+  <arg name="scene_file" default="$(find sr_description_common)/scenes/demo_space_small.scene"/>
+  <arg name="world" default="$(find sr_description_common)/worlds/demo_space_small.world"/>
+  <arg name="robot_description" default="'$(find sr_multi_description)/urdf/right_srhand_ur10.urdf.xacro'"/>
+
+  <include file="$(find sr_robot_launch)/launch/sr_right_ur10arm_hand.launch">
+    <env name="GAZEBO_MODEL_PATH" value="$(find sr_description_common)/models/" />
+    <env name="GAZEBO_MODEL_DATABASE_URI" value="" />
+    <env name="MESH_WORKSPACE_PATH" value="$(find sr_description_common)/models/" />
+    <arg name="sim" value="$(arg sim)"/>
+    <arg name="scene_file" value="$(arg scene_file)"/>
+    <arg name="scene" value="$(arg scene)"/>
+    <arg name="world" default="$(arg world)" if="$(arg sim)"/>
+    <arg name="initial_z" default="0.7621" />
+    <arg name="include_wrist_in_arm_controller" value="true"/>
+    <arg name="eth_port" value="enx000ec6ac260a" />
+    <arg name="hand_serial" value="1130" />
+    <arg name="start_home" value="true" />
+    <arg name="home_angles" value="-J ra_shoulder_pan_joint 0.0 -J ra_elbow_joint 2.0 -J ra_wrist_1_joint -0.733 -J ra_wrist_2_joint 1.5708 -J ra_shoulder_lift_joint -1.25 -J ra_wrist_3_joint 3.1416"/>
+    <arg name="robot_description" value="$(arg robot_description)"/>
+  </include>
+</launch>

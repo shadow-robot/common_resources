@@ -1,0 +1,26 @@
+arm_trajectories:
+  test_trajectory:
+    - joint_angles: [1.704, -1.068, 0.407, -0.745, 1.534, 3.0975]
+      interpolate_time: 2
+    - joint_angles: [1.633, -1.017, 0.571, -0.725, 1.697, 3.079]
+      interpolate_time: 2
+
+hand_trajectories:
+  test_trajectory:
+    - joint_angles: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      interpolate_time: 1
+    - joint_angles: [0.0, 0.0, 0.0, 0.0, 0.531, 0.443, 0.257, 0.0, 0.310, 0.0, 0.0, 0.0, 0.0, 0.623, 0.659, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      interpolate_time: 1
+    - joint_angles: [0.0, 0.0, 0.0, 0.0, 0.475, 0.499, 0.257, 0.0, 0.310, 0.201, 0.203, 0.0, 0.0, 0.514, 0.768, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      interpolate_time: 1
+    - joint_angles: [0.261, 0.052, 0.591, 0.0, 0.435, 0.539, 0.257, -0.045, 0.310, 0.075, 0.324, 0.0, 0.0, 0.434, 0.848, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      interpolate_time: 1
+
+arm_and_hand_trajectories:
+  test_trajectory:
+    - joint_angles: [2.077, -1.062, 0.312, -2.604, 1.561, 4.448, -0.0, -0.0, -0.0, -0.034, -0.0, -0.0, -0.0, 0.03, -0.0, -0.0, -0.0, -0.0, -0.035, -0.0, -0.0, -0.0, 0.033, -0.0, 0.003, -0.014, 0.087, 0.002, 0.008, 0.008]
+      interpolate_time: 1
+
+arm_joints_order: [ra_elbow_joint, ra_shoulder_lift_joint, ra_shoulder_pan_joint, ra_wrist_1_joint, ra_wrist_2_joint, ra_wrist_3_joint]
+hand_joints_order: [rh_FFJ1, rh_FFJ2, rh_FFJ3, rh_FFJ4, rh_LFJ1, rh_LFJ2, rh_LFJ3, rh_LFJ4, rh_LFJ5, rh_MFJ1, rh_MFJ2, rh_MFJ3, rh_MFJ4, rh_RFJ1, rh_RFJ2, rh_RFJ3, rh_RFJ4, rh_THJ1, rh_THJ2, rh_THJ3, rh_THJ4, rh_THJ5, rh_WRJ1, rh_WRJ2]
+arm_and_hand_joints_order: [ra_elbow_joint, ra_shoulder_lift_joint, ra_shoulder_pan_joint, ra_wrist_1_joint, ra_wrist_2_joint, ra_wrist_3_joint, rh_FFJ1, rh_FFJ2, rh_FFJ3, rh_FFJ4, rh_LFJ1, rh_LFJ2, rh_LFJ3, rh_LFJ4, rh_LFJ5, rh_MFJ1, rh_MFJ2, rh_MFJ3, rh_MFJ4, rh_RFJ1, rh_RFJ2, rh_RFJ3, rh_RFJ4, rh_THJ1, rh_THJ2, rh_THJ3, rh_THJ4, rh_THJ5, rh_WRJ1, rh_WRJ2]
