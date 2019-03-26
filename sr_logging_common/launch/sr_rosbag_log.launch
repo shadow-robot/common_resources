@@ -1,7 +1,7 @@
 <launch>
   <arg name="split_logs_by_duration" default="True"/>
   <arg name="log_split_duration" default="10m"/>
-  <arg name="node_name" default="record">
+  <arg name="node_name" default="record"/>
   <arg name="split_logs_by_size" default="false"/>
   <arg name="log_split_size" default="1024"/>
 
@@ -26,12 +26,12 @@
 
   <group unless="$(arg split_logs_by_size)">
     <node  if="$(arg split_logs_by_duration)" pkg="rosbag" type="record"
-           args='-o $(arg log_location) --lz4 --split --max-splits=$(arg log_max_splits) --duration $(arg log_split_duration) $(arg log_topics)' name="$(arg record)"/>
+           args='-o $(arg log_location) --lz4 --split --max-splits=$(arg log_max_splits) --duration $(arg log_split_duration) $(arg log_topics)' name="$(arg node_name)"/>
   </group>
 
   <group unless="$(arg split_logs_by_duration)">
     <node if="$(arg split_logs_by_size)" pkg="rosbag" type="record"
-          args='-o $(arg log_location) --lz4 --split --max-splits=$(arg log_max_splits) --size $(arg log_split_size) $(arg log_topics) ' name="$(arg record)"/>
+          args='-o $(arg log_location) --lz4 --split --max-splits=$(arg log_max_splits) --size $(arg log_split_size) $(arg log_topics) ' name="$(arg node_name)"/>
   </group>
 
   <node if="$(arg clear_old_sessions)" pkg="sr_logging_common" type="bag_rotate.py" name="bag_rotate">
