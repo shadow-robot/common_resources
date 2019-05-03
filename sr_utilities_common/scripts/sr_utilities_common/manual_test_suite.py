@@ -15,7 +15,6 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-import sys
 import argparse
 
 
@@ -63,8 +62,8 @@ class ManualTestSuite(object):
                       ' * FAILURES: {}'.format(self.test_results['failed']))
 
         if 'FAILURE' == result:
-            exit(1)
-        exit(0)
+            return False
+        return True
 
 
 class DummyClass(object):
