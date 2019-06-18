@@ -16,48 +16,33 @@
 
 import sys
 import rospy
-import curses
-import locale
 import psutil
 from threading import Thread, Lock
-from sr_utilities_common.shutdown_handler import ShutdownHandler
+from sr_watchdog.msg import TestStatus, SystemStatus
 
 
 # TODO: Change to decided convention of enum and put inside of class
 class Status:
-    PENDING, OK, ERROR = ('pending', 'ok', 'error')
+    PENDING, OK, ERROR = (-1, 0, 1)
 
 
 class SrWatchdog(object):
-    def __init__(self, checks_class=None, error_checks_list=[], warning_checks_list=[]):
+    def __init__(self, tested_system_name="tested system", checks_class=None,
+                 error_checks_list=[], warning_checks_list=[]):
+        self.tested_system_name = tested_system_name
         self.checks_class = checks_class
         self.error_checks_list = error_checks_list
         self.warning_checks_list = warning_checks_list
 
+        self.watchdog_publisher = rospy.Publisher('sr_watchdog', SystemStatus, queue_size=10)
         self.demo_status = Status.PENDING
-        self.cpu_usage = 0
-        self.cpu_usage_per_core = []
         self.node_logs = []
-        self.check_results = {}
+        self.check_results = []
         self.checks_done_in_current_cycle = 0
-
-        self.init_reporting()
-
-    def init_reporting(self):
-        locale.setlocale(locale.LC_ALL, '')
-        self.stdscr = curses.initscr()
-        curses.start_color()
-        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.noecho()
-        curses.cbreak()
 
     def main_thread_method(self):
         while not rospy.is_shutdown():
             self.report_status()
-            self.get_cpu_usage()
 
     def checks_thread_method(self):
         while not rospy.is_shutdown():
@@ -68,47 +53,17 @@ class SrWatchdog(object):
         checks_thread = Thread(target=self.checks_thread_method).start()
 
     def report_status(self):
-        self.stdscr.clear()
-        if Status.OK == self.demo_status:
-            color_pair_idx = 4
-        elif Status.ERROR == self.demo_status:
-            color_pair_idx = 3
-        else:
-            color_pair_idx = 1
+        rate = rospy.Rate(1)
+        system_status = SystemStatus()
+        system_status.system_name = self.tested_system_name
+        system_status.checks_cycle_completion = self.checks_done_in_current_cycle / float(len(self.error_checks_list) +
+                                                                                          len(self.warning_checks_list)) * 100
+        system_status.status = self.demo_status
 
-        self.stdscr.addstr(0, 0, "Demo status:".format(self.demo_status))
-        self.stdscr.addstr(0, 13, self.demo_status, curses.color_pair(color_pair_idx))
-
-        number_of_failing_tests = sum(val is False for val in self.check_results.values())
-        for idx, key in enumerate([key for key, val in self.check_results.items() if val is False]):
-            if idx < number_of_failing_tests - 1:
-                box_utf_8 = u'\u251C'.encode('utf-8')
-            else:
-                box_utf_8 = u'\u2514'.encode('utf-8')
-            arrow_str = box_utf_8 + u'\u2500'.encode('utf-8') + u'\u2500'.encode('utf-8') + u'\u257C'.encode('utf-8')
-            self.stdscr.addstr(idx+1, 4, arrow_str)
-            self.stdscr.addstr(idx+1, 9, key)
-
-        self.stdscr.addstr(number_of_failing_tests+2, 0, "CPU usage: {} {} [%]".format(self.cpu_usage,
-                                                                                       tuple(self.cpu_usage_per_core)))
-
-        checks_done_in_cycle_percent = self.checks_done_in_current_cycle / float(len(self.error_checks_list) +
-                                                                                 len(self.warning_checks_list)) * 100
-        self.stdscr.addstr(number_of_failing_tests+4, 0, "Current check cycle completion: {} %"
-                                                         .format(checks_done_in_cycle_percent))
-        self.stdscr.addstr(number_of_failing_tests+5, 0, "\n-----------------------------------\n")
-
-        if 10 < len(self.node_logs):
-            del self.node_logs[0]
-        for idx, log in enumerate(self.node_logs):
-            if 'info' == log[1]:
-                color_pair_idx = 1
-            elif 'warn' == log[1]:
-                color_pair_idx = 2
-            elif 'err' == log[1]:
-                color_pair_idx = 3
-            self.stdscr.addstr(log[0] + '\n', curses.color_pair(color_pair_idx))
-        self.stdscr.refresh()
+        system_status.test_statuses = self.check_results
+        system_status.logs = [log[0] for log in self.node_logs]
+        self.watchdog_publisher.publish(system_status)
+        rate.sleep()
 
     def run_checks(self):
         self.checks_done_in_current_cycle = 0
@@ -127,8 +82,12 @@ class SrWatchdog(object):
             raise ValueError("Wrong status check type")
 
         for check in checks_list:
-            if check not in self.check_results:
-                self.check_results[check] = True
+            if check not in [check_result.test_name for check_result in self.check_results]:
+                new_test = TestStatus()
+                new_test.test_name = check
+                new_test.test_type = msg_type
+                new_test.result = True
+                self.check_results.append(new_test)
             method_to_call = getattr(self.checks_class, check)
             try:
                 return_value = method_to_call()
@@ -149,7 +108,7 @@ class SrWatchdog(object):
                                        "Need either a bool or (bool, string) tuple!".format(check), 'warn'))
                 continue
 
-            if result != self.check_results[check]:
+            if result != [check_result.result for check_result in self.check_results if check == check_result.test_name]:
                 if not result:
                     if error_msg is None:
                         error_log = ("[{}] Check \'{}\' failed!".format(msg_type, check), check_type)
@@ -160,15 +119,16 @@ class SrWatchdog(object):
                 else:
                     self.node_logs.append(("[INFO] Check \'{}\' passing now!".format(check), 'info'))
 
-            if 'err' == check_type:
-                self.check_results[check] = result
+            for i in range(len(self.check_results)):
+                if check == self.check_results[i].test_name:
+                    self.check_results[i].result = result
 
-            if not result:
+            if not result and 'ERROR' == msg_type:
                 self.demo_status = Status.ERROR
 
             self.checks_done_in_current_cycle += 1
 
-        if False not in self.check_results.values():
+        if False not in [check_result.result for check_result in self.check_results if 'ERROR' == check_result.test_type]:
             self.demo_status = Status.OK
 
     def run_error_checks(self):
@@ -176,16 +136,6 @@ class SrWatchdog(object):
 
     def run_warning_checks(self):
         self.run_status_checks('warn')
-
-    def get_cpu_usage(self):
-            self.cpu_usage_per_core = psutil.cpu_percent(interval=1, percpu=True)
-            self.cpu_usage = sum(self.cpu_usage_per_core)/len(self.cpu_usage_per_core)
-
-    def clean_up(self):
-        curses.echo()
-        curses.nocbreak()
-        curses.endwin()
-        exit(0)
 
 
 class TestChecksClass(object):
@@ -226,7 +176,6 @@ if __name__ == '__main__':
     error_checks_list = ['mock_check_if_arm_running', 'mock_check_if_hand_running']
     warning_checks_list = ['mock_check_robot_clear_from_collision']
 
-    teleop_watchdog = SrWatchdog(test_class, error_checks_list, warning_checks_list)
-    shutdown_handler = ShutdownHandler(teleop_watchdog, 'clean_up()')
-    teleop_watchdog.run()
+    mock_watchdog = SrWatchdog("mock system", test_class, error_checks_list, warning_checks_list)
+    mock_watchdog.run()
     rospy.spin()
