@@ -1,5 +1,23 @@
 #!/usr/bin/env python
 
+# Copyright 2019 Shadow Robot Company Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# WHEN TO USE:
+# Use this script when you have a rosbag and wand to play the trajectory data to a hand
+# or when you are using a right glove (i.e. cyberglove) and you are using a left shadow hand.
+#
 # HOW TO USE:
 # To use the trajectory republisher, select if you are using a left hand.
 # Then, select which joints you want to move (don't change the prefix).
