@@ -53,14 +53,18 @@ class SrWatchdog(object):
         checks_thread = Thread(target=self.checks_thread_method).start()
 
     def report_status(self):
-        rate = rospy.Rate(1)
+        rate = rospy.Rate(10)
         system_status = SystemStatus()
         system_status.system_name = self.tested_system_name
-        system_status.checks_cycle_completion = self.checks_done_in_current_cycle / float(len(self.error_checks_list) +
-                                                                                          len(self.warning_checks_list)) * 100
+        system_status.checks_cycle_completion = int(round(self.checks_done_in_current_cycle / float(len(self.error_checks_list) +
+                                                                                          len(self.warning_checks_list)) * 100))
         system_status.status = self.demo_status
 
         system_status.test_statuses = self.check_results
+
+        if 10 < len(self.node_logs):
+            del self.node_logs[0]
+
         system_status.logs = [log[0] for log in self.node_logs]
         self.watchdog_publisher.publish(system_status)
         rate.sleep()

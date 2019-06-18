@@ -8,6 +8,6 @@ byte ERROR=1
 
 string system_name
 byte status
-float32 checks_cycle_completion
+int32 checks_cycle_completion
 TestStatus[] test_statuses
 string[] logs
