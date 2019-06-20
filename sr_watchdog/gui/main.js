@@ -101,9 +101,9 @@ function change_system_status(status_value, system_status_label, system_status_l
 
 function handle_failing_tests_list(tests_message, failing_tests_textbox, status_led){
     var failing_tests_list = "";
-    for (var i = 0; i < tests_message.test_statuses.length; i++) {
-        if (!tests_message.test_statuses[i].result) {
-            failing_tests_list += tests_message.test_statuses[i].test_name + "\n";
+    for (var i = 0; i < tests_message.check_statuses.length; i++) {
+        if (!tests_message.check_statuses[i].result) {
+            failing_tests_list += tests_message.check_statuses[i].test_name + "\n";
             if (0 == tests_message.status) {
                 change_led_color(status_led, led_color.YELLOW)
             }

@@ -18,44 +18,45 @@ import sys
 import rospy
 import psutil
 from threading import Thread, Lock
-from sr_watchdog.msg import TestStatus, SystemStatus, SystemLog
+from sr_watchdog.msg import CheckStatus, SystemStatus, SystemLog
 
 
 class SrWatchdog(object):
     def __init__(self, tested_system_name="tested system", checks_class=None,
-                 error_checks_list=[], warning_checks_list=[]):
+                 error_check_names_list=[], warning_check_names_list=[]):
         self.tested_system_name = tested_system_name
         self.checks_class = checks_class
-        self.error_checks_list = error_checks_list
-        self.warning_checks_list = warning_checks_list
+        self.error_check_names_list = error_check_names_list
+        self.warning_check_names_list = warning_check_names_list
 
         self.watchdog_publisher = rospy.Publisher('sr_watchdog', SystemStatus, queue_size=10)
         self.demo_status = SystemStatus.PENDING
         self.watchdog_logs = []
-        self.check_results = []
+        self.checks_list = []
         self.checks_done_in_current_cycle = 0
 
-    def main_thread_method(self):
-        while not rospy.is_shutdown():
-            self.report_status()
-
-    def checks_thread_method(self):
-        while not rospy.is_shutdown():
-            self.run_checks()
+        self._parse_checks()
 
     def run(self):
-        main_thread = Thread(target=self.main_thread_method).start()
-        checks_thread = Thread(target=self.checks_thread_method).start()
+        main_thread = Thread(target=self._report_thread_method).start()
+        checks_thread = Thread(target=self._checks_thread_method).start()
 
-    def report_status(self):
+    def _report_thread_method(self):
+        while not rospy.is_shutdown():
+            self._report_status()
+
+    def _checks_thread_method(self):
+        while not rospy.is_shutdown():
+            self._run_checks()
+
+    def _report_status(self):
         rate = rospy.Rate(10)
         system_status = SystemStatus()
         system_status.system_name = self.tested_system_name
         system_status.checks_cycle_completion = int(round(self.checks_done_in_current_cycle /
-                                                          float(len(self.error_checks_list) +
-                                                          len(self.warning_checks_list)) * 100))
+                                                          float(len(self.checks_list)) * 100))
         system_status.status = self.demo_status
-        system_status.test_statuses = self.check_results
+        system_status.check_statuses = self.checks_list
 
         for log in self.watchdog_logs:
             new_log = SystemLog()
@@ -69,127 +70,83 @@ class SrWatchdog(object):
         self.watchdog_publisher.publish(system_status)
         rate.sleep()
 
-    def run_checks(self):
+    def _run_checks(self):
         self.checks_done_in_current_cycle = 0
-        self.run_error_checks()
-        self.run_warning_checks()
+        self._run_checks()
         rospy.sleep(1)
 
-    def run_status_checks(self, check_type):
-        if TestStatus.ERROR == check_type:
-            checks_list = self.error_checks_list
-            log_type = SystemLog.ERROR
-        elif TestStatus.WARN == check_type:
-            checks_list = self.warning_checks_list
-            log_type = SystemLog.WARN
+    def _create_new_check_object(self, check_name, check_type, initial_check_result=True):
+        new_test = CheckStatus()
+        new_test.test_name = check_name
+        new_test.test_type = check_type
+        new_test.result = True
+        return new_test
+
+    def _parse_checks(self):
+        for error_check_name in self.error_check_names_list:
+            self.checks_list.append(self._create_new_check_object(error_check_name, CheckStatus.ERROR))
+        for warn_check_name in self.warning_check_names_list:
+            self.checks_list.append(self._create_new_check_object(warn_check_name, CheckStatus.WARN))
+
+    def _run_single_check(self, check_name):
+        method_to_call = getattr(self.checks_class, check_name)
+        try:
+            return_value = method_to_call()
+        except Exception as ex:
+            self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'. Skipping..."
+                                        .format(check_name, type(ex).__name__), SystemLog.WARN))
+            self.checks_done_in_current_cycle += 1
+            return (None, None)
+
+        if isinstance(return_value, bool):
+            result = return_value
+            error_msg = None
+        elif isinstance(return_value, tuple) and 2 == len(return_value):
+            result = return_value[0]
+            error_msg = return_value[1]
         else:
-            raise ValueError("Wrong status check type")
+            self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
+                                       "Need either a bool or (bool, string) tuple!".format(check_name), SystemLog.WARN))
+            return (None, None)
+        return (result, error_msg)
 
-        for check in checks_list:
-            if check not in [check_result.test_name for check_result in self.check_results]:
-                new_test = TestStatus()
-                new_test.test_name = check
-                new_test.test_type = check_type
-                new_test.result = True
-                self.check_results.append(new_test)
+    def _update_check_result(self, check_name, new_result):
+        for i in range(len(self.checks_list)):
+            if check_name == self.checks_list[i].test_name:
+                self.checks_list[i].result = new_result
+                break
 
-            method_to_call = getattr(self.checks_class, check)
-            try:
-                return_value = method_to_call()
-            except Exception as ex:
-                self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'. Skipping..."
-                                          .format(check, type(ex).__name__), SystemLog.WARN))
-                self.checks_done_in_current_cycle += 1
-                continue
-
-            if isinstance(return_value, bool):
-                result = return_value
-                error_msg = None
-            elif isinstance(return_value, tuple) and 2 == len(return_value):
-                result = return_value[0]
-                error_msg = return_value[1]
+    def _run_checks(self):
+        for check in self.checks_list:
+            if CheckStatus.ERROR == check.test_type:
+                log_type = SystemLog.ERROR
+            elif CheckStatus.WARN == check.test_type:
+                log_type = SystemLog.WARN
             else:
-                self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
-                                       "Need either a bool or (bool, string) tuple!".format(check), SystemLog.WARN))
+                raise ValueError("Wrong status check type")
+
+            result, error_msg = self._run_single_check(check.test_name)
+            if result is None:
                 continue
 
-            current_check_result = None
-            for check_result in self.check_results:
-                if check == check_result.test_name:
-                    current_check_result = check_result.result
-                    break
-
-            if result != current_check_result:
+            if result != check.result:
                 if not result:
                     if error_msg is None:
-                        error_log = ("[{}] Check \'{}\' failed!".format("WARN" if SystemLog.WARN == log_type else "ERROR", check), log_type)
+                        error_log = ("[{}] Check \'{}\' failed!"
+                                     .format("WARN" if SystemLog.WARN == log_type else "ERROR", check.test_name), log_type)
                     else:
                         error_log = ("[{}] Check \'{}\' failed with message: {}"
-                                     .format("WARN" if SystemLog.WARN == log_type else "ERROR", check, error_msg), log_type)
+                                     .format("WARN" if SystemLog.WARN == log_type else "ERROR", check.test_name, error_msg), log_type)
                     self.watchdog_logs.append(error_log)
                 else:
-                    self.watchdog_logs.append(("[INFO] Check \'{}\' passing now!".format(check), SystemLog.INFO))
+                    self.watchdog_logs.append(("[INFO] Check \'{}\' passing now!".format(check.test_name), SystemLog.INFO))
 
-            for i in range(len(self.check_results)):
-                if check == self.check_results[i].test_name:
-                    self.check_results[i].result = result
+                self._update_check_result(check.test_name, result)
 
-            if not result and TestStatus.ERROR == check_type:
+            if not result and CheckStatus.ERROR == check.test_type:
                 self.demo_status = SystemStatus.ERROR
 
-            self.checks_done_in_current_cycle += 1
-
-            if False not in [check_result.result for check_result in self.check_results if TestStatus.ERROR == check_result.test_type]:
+            if False not in [check_result.result for check_result in self.checks_list if CheckStatus.ERROR == check_result.test_type]:
                 self.demo_status = SystemStatus.OK
 
-    def run_error_checks(self):
-        self.run_status_checks(TestStatus.ERROR)
-
-    def run_warning_checks(self):
-        self.run_status_checks(TestStatus.WARN)
-
-
-class TestChecksClass(object):
-    def __init__(self):
-        self.tmp = [0, 0, 0]
-
-    def mock_check_robot_clear_from_collision(self):
-        rospy.sleep(8)
-        if self.tmp[0] != 1:
-            self.tmp[0] = 1
-            return False
-        else:
-            self.tmp[0] = 0
-            return True
-
-    def mock_check_if_arm_running(self):
-        rospy.sleep(12)
-        if self.tmp[1] != 0:
-            self.tmp[1] = 0
-            return False
-        else:
-            self.tmp[1] = 1
-            return True
-
-    def mock_check_if_hand_running(self):
-        rospy.sleep(4)
-        self.tmp[2] += 1
-        if self.tmp[2] > 5 and self.tmp[2] < 10:
-            return (False, "Hand not running!")
-        elif 36 == self.tmp[2]:
-            self.tmp[2] = 0
-            return True
-        else:
-            return True
-
-
-if __name__ == '__main__':
-    rospy.init_node('mock_sr_teleop_watchdog')
-
-    test_class = TestChecksClass()
-    error_checks_list = ['mock_check_if_arm_running', 'mock_check_if_hand_running']
-    warning_checks_list = ['mock_check_robot_clear_from_collision']
-
-    mock_watchdog = SrWatchdog("mock system", test_class, error_checks_list, warning_checks_list)
-    mock_watchdog.run()
-    rospy.spin()
+            self.checks_done_in_current_cycle += 1

@@ -15,8 +15,6 @@ import rospkg
 import cgi
 import os
 
-sgs_rest_interface = None
-
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
@@ -25,7 +23,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 class SgsRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args):
-        self.sgs_rest_interface = sgs_rest_interface
         self.SUCCESS_CODE = 200
         self.FAIL_CODE = 503
         self.BAD_REQUEST_CODE = 400

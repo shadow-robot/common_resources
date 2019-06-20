@@ -46,7 +46,7 @@ catkin_python_setup()
 add_message_files(
   FILES
   SystemStatus.msg
-  TestStatus.msg
+  CheckStatus.msg
   SystemLog.msg
 )
 
