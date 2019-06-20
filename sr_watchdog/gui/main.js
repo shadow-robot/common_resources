@@ -1,5 +1,20 @@
-// Connecting to ROS
-// -----------------  
+var led_color = {
+    GREEN: 0,
+    RED: 1,
+    YELLOW: 2,
+  };
+
+var system_status_code = {
+    PENDING: -1,
+    OK: 0,
+    ERROR: 1,
+  };
+
+var log_type_code = {
+    INFO: 0,
+    ERROR: 1,
+    WARN: 2,
+  };
 
 var system_name = $("#" + getElementIdByNameFromDiv("watchdog", "system_name_text"))
 var system_status = $("#" + getElementIdByNameFromDiv("watchdog", "system_status_text"))
@@ -9,7 +24,7 @@ var failing_tests_textbox = $("#" + getElementIdByNameFromDiv("watchdog", "faili
 var logs_textbox = $("#" + getElementIdByNameFromDiv("watchdog", "logs_textbox"))
 var led = $("#" + getElementIdByNameFromDiv("watchdog", "status_led"))
 
-// failing_tests_textbox.text('chuj')
+// ROSLIB HANDLING
 
 var ros = new ROSLIB.Ros({
     url : 'ws://localhost:9090'
@@ -26,10 +41,7 @@ ros.on('error', function(error) {
 ros.on('close', function() {
     console.log('Connection to websocket server closed.');
 });
-    
-// Subscribing to a Topic
-// ----------------------
-    
+ 
 var listener = new ROSLIB.Topic({
     ros : ros,
     name : '/sr_watchdog',
@@ -38,31 +50,62 @@ var listener = new ROSLIB.Topic({
     
 listener.subscribe(function(message) {
     system_name.val(message.system_name)
-
-    if (-1 == message.status) {
-        system_status.val("Pending")
-    } else if (0 == message.status) {
-        system_status.val("OK")
-        led.css("background-color", "#ABFF00");
-        led.css("box-shadow", "rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px");
-    } else {
-        system_status.val("Error")
-        led.css("background-color", "#F00");
-        led.css("box-shadow", "rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px");
-
-    }
+    change_system_status(message.status, system_status, led)
 
     progress_bar_text.text(message.checks_cycle_completion + '%')
     progress_bar_percentage.width(message.checks_cycle_completion + '%')
 
-    var i, failing_tests_list;
-    failing_tests_list = ""
-    for (i = 0; i < message.test_statuses.length; i++) {
-        if (!message.test_statuses[i].result) {
-            failing_tests_list += message.test_statuses[i].test_name + "\n";
-            if (0 == message.status) {
-                led.css("background-color", "#FF0");
-                led.css("box-shadow", "rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #FF0 0 2px 12px");
+    handle_failing_tests_list(message, failing_tests_textbox, led)
+    handle_watchdog_logs(message, logs_textbox)
+});
+
+// HELPER METHODS
+
+function getElementIdByNameFromDiv(div_id, element_name){
+    var div_elements = document.getElementById(div_id).querySelectorAll('*');
+    for (var i = 0; i<div_elements.length; i++) {
+        if (div_elements[i].getAttribute("name") == element_name){
+            return div_elements[i].id
+        }
+    }
+}
+
+function change_led_color(led_id, color){
+    if (led_color.GREEN == color){
+        led_id.css("background-color", "#ABFF00");
+        led_id.css("box-shadow", "rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px");
+    } else if (led_color.RED == color){
+        led_id.css("background-color", "#F00");
+        led_id.css("box-shadow", "rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px");
+    } else if (led_color.YELLOW == color){
+        led.css("background-color", "#FF0");
+        led.css("box-shadow", "rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #FF0 0 2px 12px");
+    } else{
+        throw "Unsupported led color"
+    }
+}
+
+function change_system_status(status_value, system_status_label, system_status_led){
+    if (system_status_code.PENDING == status_value) {
+        system_status_label.val("Pending")
+    } else if (system_status_code.OK == status_value) {
+        system_status_label.val("OK")
+        change_led_color(system_status_led, led_color.GREEN)
+    } else if (system_status_code.ERROR == status_value){
+        system_status_label.val("Error")
+        change_led_color(system_status_led, led_color.RED)
+    } else {
+        throw "Unsupported system status code"
+    }
+}
+
+function handle_failing_tests_list(tests_message, failing_tests_textbox, status_led){
+    var failing_tests_list = "";
+    for (var i = 0; i < tests_message.test_statuses.length; i++) {
+        if (!tests_message.test_statuses[i].result) {
+            failing_tests_list += tests_message.test_statuses[i].test_name + "\n";
+            if (0 == tests_message.status) {
+                change_led_color(status_led, led_color.YELLOW)
             }
         }
     }
@@ -72,29 +115,20 @@ listener.subscribe(function(message) {
         failing_tests_textbox.css("visibility", "visible");
         failing_tests_textbox.text(failing_tests_list)
     }
+}
 
-    var log_list;
-    log_list = ""
-    for (i = 0; i < message.logs.length; i++) {
-        if (0 == message.logs[i].type){
-            log_list += message.logs[i].msg + "<br>";
-        } else if (1 == message.logs[i].type){
-            log_list += "<font color='red'>" + message.logs[i].msg + "</font><br>";
+function handle_watchdog_logs(tests_message, log_list_textbox){
+    var log_list = ""
+    for (var i = 0; i < tests_message.logs.length; i++) {
+        if (log_type_code.INFO == tests_message.logs[i].type){
+            log_list += tests_message.logs[i].msg + "<br>";
+        } else if (log_type_code.ERROR == tests_message.logs[i].type){
+            log_list += "<font color='red'>" + tests_message.logs[i].msg + "</font><br>";
+        } else if(log_type_code.WARN) {
+            log_list += "<font color='orange'>" + tests_message.logs[i].msg + "</font><br>";
         } else {
-            log_list += "<font color='orange'>" + message.logs[i].msg + "</font><br>";
+            throw "Unsupported log type code"
         }
     }
-
-    logs_textbox.html(log_list)
-
-
-});
-
-function getElementIdByNameFromDiv(div_id, element_name){
-    var div_elements = document.getElementById(div_id).querySelectorAll('*');
-    for (var i = 0; i<div_elements.length; i++) {
-        if (div_elements[i].getAttribute("name") == element_name){
-            return div_elements[i].id
-        }
-    }
+    log_list_textbox.html(log_list)
 }

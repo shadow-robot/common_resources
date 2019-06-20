@@ -29,7 +29,7 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif}
 
   <div class="sr-padding-large" style="margin-bottom:32px">
         <div id="watchdog" style="width:fit-content; float:left">
-                <div id="left side_watchdog" style="float:left; padding-right: 300px; padding-top: 20px">
+                <div id="left_side_watchdog" style="float:left; width: 500px; padding-right: 300px; padding-top: 30px">
                     <label style="padding-right:20px; padding-top: 20px">System name</label>
                     <input name="system_name_text" type="text" id="system_name" maxlength="10" size="10" style="text-align:center" value="" readonly>
                     <br><br>
@@ -37,17 +37,16 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif}
                     <input name="system_status_text" type="text" id="system_status" maxlength=c"10" size="10" style="text-align:center" value="" readonly><tab_medium></tab_medium>
                     <span style="position: relative; top:6px; display:inline-block"><div name="status_led" id="status_led_watchdog" class="sr-status-led"></div></span>
                     <br><br>
-                    <div class="webnots-information webnots-notification-box" name="failing_tests_textbox" id="failing_tests_textbox"></div>
+                    <div class="webnots-information webnots-notification-box" style="white-space: pre;" name="failing_tests_textbox" id="failing_tests_textbox"></div>
                 </div>
-                <div id="right side_watchdog" style="float:right; padding-top: 8px">
+                <div id="right side_watchdog" style="float:right; padding-top: 30px">
+                    <div class="webnots-information webnots-notification-box" style="background-color: #dadada; padding: 10px 14px 10px 14px; height: 600px; width: 600px" name="logs_textbox" id="logs_textbox"></div>
                     <label style="padding-right:20px">Current cycle completion</label>
                     <span style="position: relative; top:10px; display:inline-block">
                         <div id="progress-bar" class="all-rounded">
                             <div id="progress-bar-percentage" name="progress_bar_percentage" class="all-rounded" style="width: 0%"><span name="progress_bar_text" id="progress_bar_text">0%</span></div>
                         </div>
                     </span>
-                    <br><br>
-                    <div class="webnots-information webnots-notification-box" style="background-color: #dadada; padding: 10px 14px 10px 14px; height: 600px; width: 600px" name="logs_textbox" id="logs_textbox"></div>
                 </div>
         </div>
         <div class="sr-footer">

@@ -6,5 +6,5 @@ byte WARN=0
 byte ERROR=1
 
 string test_name
-string test_type # change this!!!
+byte test_type
 bool result
