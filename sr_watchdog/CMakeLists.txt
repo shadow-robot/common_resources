@@ -47,6 +47,7 @@ add_message_files(
   FILES
   SystemStatus.msg
   TestStatus.msg
+  SystemLog.msg
 )
 
 ## Generate services in the 'srv' folder

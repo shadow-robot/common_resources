@@ -10,4 +10,4 @@ string system_name
 byte status
 int32 checks_cycle_completion
 TestStatus[] test_statuses
-string[] logs
+SystemLog[] logs

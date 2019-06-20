@@ -18,7 +18,7 @@ import sys
 import rospy
 import psutil
 from threading import Thread, Lock
-from sr_watchdog.msg import TestStatus, SystemStatus
+from sr_watchdog.msg import TestStatus, SystemStatus, SystemLog
 
 
 # TODO: Change to decided convention of enum and put inside of class
@@ -65,7 +65,17 @@ class SrWatchdog(object):
         if 10 < len(self.node_logs):
             del self.node_logs[0]
 
-        system_status.logs = [log[0] for log in self.node_logs]
+        for log in self.node_logs:
+            new_log = SystemLog()
+            if "info" == log[1]:
+                new_log.type = SystemLog.INFO
+            elif "warn" == log[1]:
+                new_log.type = SystemLog.WARN
+            if "err" == log[1]:
+                new_log.type = SystemLog.ERROR
+            new_log.msg = log[0]
+            system_status.logs.append(new_log)
+
         self.watchdog_publisher.publish(system_status)
         rate.sleep()
 
@@ -92,6 +102,7 @@ class SrWatchdog(object):
                 new_test.test_type = msg_type
                 new_test.result = True
                 self.check_results.append(new_test)
+
             method_to_call = getattr(self.checks_class, check)
             try:
                 return_value = method_to_call()
@@ -112,7 +123,13 @@ class SrWatchdog(object):
                                        "Need either a bool or (bool, string) tuple!".format(check), 'warn'))
                 continue
 
-            if result != [check_result.result for check_result in self.check_results if check == check_result.test_name]:
+            current_check_result = None
+            for check_result in self.check_results:
+                if check == check_result.test_name:
+                    current_check_result = check_result.result
+                    break
+
+            if result != current_check_result:
                 if not result:
                     if error_msg is None:
                         error_log = ("[{}] Check \'{}\' failed!".format(msg_type, check), check_type)
@@ -132,8 +149,8 @@ class SrWatchdog(object):
 
             self.checks_done_in_current_cycle += 1
 
-        if False not in [check_result.result for check_result in self.check_results if 'ERROR' == check_result.test_type]:
-            self.demo_status = Status.OK
+            if False not in [check_result.result for check_result in self.check_results if 'ERROR' == check_result.test_type]:
+                self.demo_status = Status.OK
 
     def run_error_checks(self):
         self.run_status_checks('err')
@@ -147,7 +164,7 @@ class TestChecksClass(object):
         self.tmp = [0, 0, 0]
 
     def mock_check_robot_clear_from_collision(self):
-        rospy.sleep(2)
+        rospy.sleep(8)
         if self.tmp[0] != 1:
             self.tmp[0] = 1
             return False
@@ -156,7 +173,7 @@ class TestChecksClass(object):
             return True
 
     def mock_check_if_arm_running(self):
-        rospy.sleep(3)
+        rospy.sleep(12)
         if self.tmp[1] != 0:
             self.tmp[1] = 0
             return False
@@ -165,10 +182,13 @@ class TestChecksClass(object):
             return True
 
     def mock_check_if_hand_running(self):
-        rospy.sleep(1)
+        rospy.sleep(4)
         self.tmp[2] += 1
         if self.tmp[2] > 5 and self.tmp[2] < 10:
             return (False, "Hand not running!")
+        elif 36 == self.tmp[2]:
+            self.tmp[2] = 0
+            return True
         else:
             return True
 
