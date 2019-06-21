@@ -20,7 +20,7 @@ var system_name = $("#" + getElementIdByNameFromDiv("watchdog", "system_name_tex
 var system_status = $("#" + getElementIdByNameFromDiv("watchdog", "system_status_text"))
 var progress_bar_text = $("#" + getElementIdByNameFromDiv("watchdog", "progress_bar_text"))
 var progress_bar_percentage = $("#" + getElementIdByNameFromDiv("watchdog", "progress_bar_percentage"))
-var failing_tests_textbox = $("#" + getElementIdByNameFromDiv("watchdog", "failing_tests_textbox"))
+var failing_checks_textbox = $("#" + getElementIdByNameFromDiv("watchdog", "failing_checks_textbox"))
 var logs_textbox = $("#" + getElementIdByNameFromDiv("watchdog", "logs_textbox"))
 var led = $("#" + getElementIdByNameFromDiv("watchdog", "status_led"))
 
@@ -55,7 +55,7 @@ listener.subscribe(function(message) {
     progress_bar_text.text(message.checks_cycle_completion + '%')
     progress_bar_percentage.width(message.checks_cycle_completion + '%')
 
-    handle_failing_tests_list(message, failing_tests_textbox, led)
+    handle_failing_checks_list(message, failing_checks_textbox, led)
     handle_watchdog_logs(message, logs_textbox)
 });
 
@@ -99,33 +99,33 @@ function change_system_status(status_value, system_status_label, system_status_l
     }
 }
 
-function handle_failing_tests_list(tests_message, failing_tests_textbox, status_led){
-    var failing_tests_list = "";
-    for (var i = 0; i < tests_message.check_statuses.length; i++) {
-        if (!tests_message.check_statuses[i].result) {
-            failing_tests_list += tests_message.check_statuses[i].check_name + "\n";
-            if (0 == tests_message.status) {
+function handle_failing_checks_list(watchdog_message, failing_checks_textbox, status_led){
+    var failing_checks_list = "";
+    for (var i = 0; i < watchdog_message.check_statuses.length; i++) {
+        if (!watchdog_message.check_statuses[i].result) {
+            failing_checks_list += watchdog_message.check_statuses[i].check_name + "\n";
+            if (0 == watchdog_message.status) {
                 change_led_color(status_led, led_color.YELLOW)
             }
         }
     }
-    if (!failing_tests_list) {
-        failing_tests_textbox.css("visibility", "hidden");
+    if (!failing_checks_list) {
+        failing_checks_textbox.css("visibility", "hidden");
     } else {
-        failing_tests_textbox.css("visibility", "visible");
-        failing_tests_textbox.text(failing_tests_list)
+        failing_checks_textbox.css("visibility", "visible");
+        failing_checks_textbox.text(failing_checks_list)
     }
 }
 
-function handle_watchdog_logs(tests_message, log_list_textbox){
+function handle_watchdog_logs(watchdog_message, log_list_textbox){
     var log_list = ""
-    for (var i = 0; i < tests_message.logs.length; i++) {
-        if (log_type_code.INFO == tests_message.logs[i].type){
-            log_list += tests_message.logs[i].msg + "<br>";
-        } else if (log_type_code.ERROR == tests_message.logs[i].type){
-            log_list += "<font color='red'>" + tests_message.logs[i].msg + "</font><br>";
+    for (var i = 0; i < watchdog_message.logs.length; i++) {
+        if (log_type_code.INFO == watchdog_message.logs[i].type){
+            log_list += watchdog_message.logs[i].msg + "<br>";
+        } else if (log_type_code.ERROR == watchdog_message.logs[i].type){
+            log_list += "<font color='red'>" + watchdog_message.logs[i].msg + "</font><br>";
         } else if(log_type_code.WARN) {
-            log_list += "<font color='orange'>" + tests_message.logs[i].msg + "</font><br>";
+            log_list += "<font color='orange'>" + watchdog_message.logs[i].msg + "</font><br>";
         } else {
             throw "Unsupported log type code"
         }
