@@ -17,6 +17,7 @@
 import rospy
 from sr_watchdog.watchdog import SrWatchdog
 
+
 class TestChecksClass(object):
     def __init__(self):
         self.tmp = [0, 0, 0]

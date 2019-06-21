@@ -20,14 +20,18 @@ import psutil
 from threading import Thread, Lock
 from sr_watchdog.msg import CheckStatus, SystemStatus, SystemLog
 
+
 class SrWatchdogExceptions(Exception):
     pass
+
 
 class CheckThrowingException(SrWatchdogExceptions):
     pass
 
+
 class CheckResultWrongFormat(SrWatchdogExceptions):
     pass
+
 
 class SrWatchdog(object):
     def __init__(self, tested_system_name="tested system", checks_class=None,
@@ -71,7 +75,7 @@ class SrWatchdog(object):
             new_log.msg = log[0]
             new_log.type = log[1]
             system_status.logs.append(new_log)
-        
+
         if 10 < len(self.watchdog_logs):
             del self.watchdog_logs[0]
 
@@ -98,7 +102,7 @@ class SrWatchdog(object):
         except Exception as ex:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'."
                                        " Skipping and blacklisting this check..."
-                                        .format(check_name, type(ex).__name__), SystemLog.WARN))
+                                       .format(check_name, type(ex).__name__), SystemLog.WARN))
             raise CheckThrowingException
 
         if isinstance(return_value, bool):
@@ -137,7 +141,8 @@ class SrWatchdog(object):
                 return
 
     def _refresh_system_status(self):
-        if False not in [check_result.result for check_result in self.checks_list if CheckStatus.ERROR == check_result.check_type]:
+        if False not in [check_result.result for check_result in self.checks_list \
+                         if CheckStatus.ERROR == check_result.check_type]:
             self.demo_status = SystemStatus.OK
         else:
             self.demo_status = SystemStatus.ERROR
@@ -148,10 +153,13 @@ class SrWatchdog(object):
             if not new_result:
                 if error_msg is None:
                     error_log = ("[{}] Check \'{}\' failed!"
-                                    .format("WARN" if SystemLog.WARN == log_type else "ERROR", check.check_name), log_type)
+                                 .format("WARN" if SystemLog.WARN == log_type else "ERROR",
+                                 check.check_name), log_type)
                 else:
                     error_log = ("[{}] Check \'{}\' failed with message: {}"
-                                    .format("WARN" if SystemLog.WARN == log_type else "ERROR", check.check_name, error_msg), log_type)
+                                 .format("WARN" if SystemLog.WARN == log_type else "ERROR",
+                                 check.check_name,
+                                 error_msg), log_type)
                 self.watchdog_logs.append(error_log)
             else:
                 self.watchdog_logs.append(("[INFO] Check \'{}\' passing now!".format(check.check_name), SystemLog.INFO))
