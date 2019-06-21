@@ -103,7 +103,7 @@ function handle_failing_tests_list(tests_message, failing_tests_textbox, status_
     var failing_tests_list = "";
     for (var i = 0; i < tests_message.check_statuses.length; i++) {
         if (!tests_message.check_statuses[i].result) {
-            failing_tests_list += tests_message.check_statuses[i].test_name + "\n";
+            failing_tests_list += tests_message.check_statuses[i].check_name + "\n";
             if (0 == tests_message.status) {
                 change_led_color(status_led, led_color.YELLOW)
             }
