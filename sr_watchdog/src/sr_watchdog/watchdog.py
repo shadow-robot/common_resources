@@ -153,13 +153,12 @@ class SrWatchdog(object):
             if not new_result:
                 if error_msg is None:
                     error_log = ("[{}] Check \'{}\' failed!"
-                                 .format("WARN" if SystemLog.WARN == log_type else "ERROR",
-                                  check.check_name), log_type)
+                                 .format("WARN" if SystemLog.WARN == log_type else "ERROR", check.check_name),
+                                 log_type)
                 else:
                     error_log = ("[{}] Check \'{}\' failed with message: {}"
-                                 .format("WARN" if SystemLog.WARN == log_type else "ERROR",
-                                  check.check_name,
-                                  error_msg), log_type)
+                                 .format("WARN" if SystemLog.WARN == log_type else "ERROR", check.check_name, error_msg),
+                                 log_type)
                 self.watchdog_logs.append(error_log)
             else:
                 self.watchdog_logs.append(("[INFO] Check \'{}\' passing now!".format(check.check_name), SystemLog.INFO))
