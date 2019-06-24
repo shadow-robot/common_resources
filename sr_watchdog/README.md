@@ -1,6 +1,10 @@
 # Watchdog
 A watchdog class that continuously runs specified check methods and informs the user about any undesired behaviours.
 
+<p align="center">
+  <img src="./doc/watchdog_gui.png" alt="demo setup"/>
+</p>
+
 An example of how to properly use the class can be seen in the code snipper below:
 ```python
 #!/usr/bin/python
