@@ -50,6 +50,8 @@ if __name__ == '__main__':
 
 All the check methods are defined in a separate class. There are two types of checks supported. Error checks, which will change general status to `error` and throw an error message, and warning checks, which do not affect the reported status but inform the user that something has happened. In order to classify a check as error or warning check, their method name needs to be put in a proper list that is further passed to the `SrWatchdog` class constructor, together with the checks class object.
 
+If all checks pass, the watchdog reports the `OK` status for the demo. This status is maintained every iteration of the checking cycle if the checks keep passing. In any iteration, if one of the error checks fails, the status of the demo will be changed to `Error` and the led light will turn red. If a warning check fails, the `OK` status will be maintained, however, led will turn yellow. All failing checks will be displayed in the red textbox below the status label. Finally, if any of the checks starts passing again, it will be removed from the box and if all error checks start passing again, demo status will go back to `OK`.
+
 The check methods are required to return either `True` (for passed check) or `False` (for failed check) values. Alternatively, in case of failure, error checks can return a tuple of `(False, <error message>)` where `<error message>` is additional, user-defined error message.
 
 By default, the watchdog class publishes result to the `sr_watchdog` topic. However, a GUI is available to visualize the system status and logs. In order to run the GUI, after starting your watchdog, run
