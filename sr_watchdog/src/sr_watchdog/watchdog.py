@@ -141,7 +141,7 @@ class SrWatchdog(object):
                 return
 
     def _refresh_system_status(self):
-        if False not in [check_result.result for check_result in self.checks_list \
+        if False not in [check_result.result for check_result in self.checks_list
                          if CheckStatus.ERROR == check_result.check_type]:
             self.demo_status = SystemStatus.OK
         else:
@@ -154,12 +154,12 @@ class SrWatchdog(object):
                 if error_msg is None:
                     error_log = ("[{}] Check \'{}\' failed!"
                                  .format("WARN" if SystemLog.WARN == log_type else "ERROR",
-                                 check.check_name), log_type)
+                                  check.check_name), log_type)
                 else:
                     error_log = ("[{}] Check \'{}\' failed with message: {}"
                                  .format("WARN" if SystemLog.WARN == log_type else "ERROR",
-                                 check.check_name,
-                                 error_msg), log_type)
+                                  check.check_name,
+                                  error_msg), log_type)
                 self.watchdog_logs.append(error_log)
             else:
                 self.watchdog_logs.append(("[INFO] Check \'{}\' passing now!".format(check.check_name), SystemLog.INFO))
