@@ -103,7 +103,7 @@ function handle_failing_checks_list(watchdog_message, failing_checks_textbox, st
     var failing_checks_list = "";
     for (var i = 0; i < watchdog_message.check_statuses.length; i++) {
         if (!watchdog_message.check_statuses[i].result) {
-            failing_checks_list += watchdog_message.check_statuses[i].check_name + "\n";
+            failing_checks_list += "&rarr; " + watchdog_message.check_statuses[i].check_name + "\n";
             if (0 == watchdog_message.status) {
                 change_led_color(status_led, led_color.YELLOW)
             }
@@ -113,7 +113,7 @@ function handle_failing_checks_list(watchdog_message, failing_checks_textbox, st
         failing_checks_textbox.css("visibility", "hidden");
     } else {
         failing_checks_textbox.css("visibility", "visible");
-        failing_checks_textbox.text(failing_checks_list)
+        failing_checks_textbox.html(failing_checks_list)
     }
 }
 
