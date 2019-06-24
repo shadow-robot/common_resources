@@ -187,5 +187,4 @@ class SrWatchdog(object):
         for check_name in checks_blacklist:
             self.checks_done_in_current_cycle -= 1
             self._blacklist_single_check(check_name)
-
         rospy.sleep(1)
