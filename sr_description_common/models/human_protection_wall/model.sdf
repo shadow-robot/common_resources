@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
-  <model name="bimanual_secondary_table">
+  <model name="human_protection_wall">
     <static>true</static>
     <link name="link">
       <inertial>
@@ -10,7 +10,7 @@
         <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://bimanual_secondary_table/meshes/bimanual_secondary_table.stl</uri>
+            <uri>model://human_protection_wall/meshes/human_protection_wall.stl</uri>
           </mesh>
         </geometry>
       </collision>
@@ -18,7 +18,7 @@
         <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://bimanual_secondary_table/meshes/bimanual_secondary_table.stl</uri>
+            <uri>model://human_protection_wall/meshes/human_protection_wall.stl</uri>
           </mesh>
         </geometry>
       </visual>

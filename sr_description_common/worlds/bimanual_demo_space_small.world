@@ -19,22 +19,10 @@
       <cast_shadows>1</cast_shadows>
     </light>
     <include>
-      <uri>model://bare_metal_table</uri>
+      <uri>model://bimanual_combined_table</uri>
       <static>true</static>
-      <name>bare_metal_table_1</name>
-      <pose>0.0 0.0 0.755 0 0 0</pose>
-    </include>
-    <include>
-      <uri>model://bare_metal_table</uri>
-      <static>true</static>
-      <name>bare_metal_table_2</name>
-      <pose>0.0 1.5 0.755 0 0 0</pose>
-    </include>
-    <include>
-      <uri>model://bimanual_secondary_table</uri>
-      <static>true</static>
-      <name>bimanual_secondary_table</name>
-      <pose>1.20 0.70 0.755 0 0 0</pose>
+      <name>bimanual_combined_table</name>
+      <pose>0.5 0.75 0.755 0 0 0</pose>
     </include>
     <!-- Rear wall -->
     <include>
