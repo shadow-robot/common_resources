@@ -34,24 +34,24 @@
           args='-o $(arg log_location) --lz4 --split --max-splits=$(arg log_max_splits) --size $(arg log_split_size) $(arg log_topics) ' name="$(arg node_name)"/>
   </group>
 
-  <node if="$(arg clear_old_sessions)" pkg="sr_logging_common" type="bag_rotate.py" name="bag_rotate">
+  <node if="$(arg clear_old_sessions)" pkg="sr_logging_common" type="bag_rotate.py" name="$(anon bag_rotate)">
     <param name="bag_files_num" value="$(arg log_max_splits)"/>
     <param name="bag_files_path" value="$(arg log_directory)"/>
   </node>
 
-  <node if="$(arg save_params)" pkg="sr_logging_common" type="record_params.py" name="param_dump">
+  <node if="$(arg save_params)" pkg="sr_logging_common" type="record_params.py" name="$(anon param_dump)">
     <param name="log_directory" value="$(arg log_directory)" />
   </node>
 
-  <node if="$(arg diff_ws)" pkg="sr_logging_common" type="ws_diff.py" name="ws_diff">
+  <node if="$(arg diff_ws)" pkg="sr_logging_common" type="ws_diff.py" name="$(anon ws_diff)">
     <param name="log_directory" value="$(arg log_directory)"/>
   </node>
   
-  <node if="$(arg dump_limit)" pkg="sr_logging_common" type="core_dump_limit.py" name="core_dump_limit">
+  <node if="$(arg dump_limit)" pkg="sr_logging_common" type="core_dump_limit.py" name="$(anon core_dump_limit)">
     <param name="core_dump_path" value="$(arg core_dump_path)"/>
     <param name="desired_folder_size" value="$(arg desired_folder_size)"/>
   </node>
 
-  <node if="$(arg journalctl_log)" pkg="sr_logging_common" type="journalctl_pub.py" name="journalctl_pub"/>
+  <node if="$(arg journalctl_log)" pkg="sr_logging_common" type="journalctl_pub.py" name="$(anon journalctl_pub)"/>
 
 </launch>
