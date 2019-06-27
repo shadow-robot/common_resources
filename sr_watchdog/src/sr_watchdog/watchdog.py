@@ -17,7 +17,9 @@
 import sys
 import rospy
 import psutil
+import inspect
 from threading import Thread, Lock
+from optparse import OptionParser
 from sr_watchdog.msg import CheckStatus, SystemStatus, SystemLog
 
 
@@ -34,12 +36,9 @@ class CheckResultWrongFormat(SrWatchdogExceptions):
 
 
 class SrWatchdog(object):
-    def __init__(self, tested_system_name="tested system", checks_class=None,
-                 error_check_names_list=[], warning_check_names_list=[]):
+    def __init__(self, tested_system_name="tested system", checks_classes_list=[]):
         self.tested_system_name = tested_system_name
-        self.checks_class = checks_class
-        self.error_check_names_list = error_check_names_list
-        self.warning_check_names_list = warning_check_names_list
+        self.checks_classes_list = checks_classes_list
 
         self.watchdog_publisher = rospy.Publisher('sr_watchdog', SystemStatus, queue_size=10)
         self.demo_status = SystemStatus.PENDING
@@ -82,42 +81,42 @@ class SrWatchdog(object):
         self.watchdog_publisher.publish(system_status)
         rate.sleep()
 
-    def _create_new_check_object(self, check_name, check_type, initial_check_result=True):
+    def _create_new_check_object(self, check_name, component, check_type, initial_check_result=True):
         new_test = CheckStatus()
         new_test.check_name = check_name
+        new_test.component = component
         new_test.check_type = check_type
         new_test.result = True
         return new_test
 
     def _parse_checks(self):
-        for error_check_name in self.error_check_names_list:
-            self.checks_list.append(self._create_new_check_object(error_check_name, CheckStatus.ERROR))
-        for warn_check_name in self.warning_check_names_list:
-            self.checks_list.append(self._create_new_check_object(warn_check_name, CheckStatus.WARN))
+        for checks_class in self.checks_classes_list:
+            component = checks_class.component
+            for watchdog_check_name in checks_class._get_all_watchdog_check_names():
+                check_type = getattr(checks_class, watchdog_check_name).__dict__['check_type']
+                self.checks_list.append(self._create_new_check_object(watchdog_check_name, component, check_type))
 
-    def _run_single_check(self, check_name):
-        method_to_call = getattr(self.checks_class, check_name)
+    def _run_single_check(self, check_name, component):
+        for checks_class in self.checks_classes_list:
+            if component == checks_class.component:
+                used_class = checks_class
+                break
+
+        method_to_call = getattr(used_class, check_name)
         try:
-            return_value = method_to_call()
+            result = method_to_call()
+        except CheckResultWrongFormat:
+            self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
+                            "Need either a bool or (bool, string) tuple!"
+                            " Skipping and blacklisting this check..."
+                            .format(check_name), SystemLog.WARN))
+            raise CheckResultWrongFormat
         except Exception as ex:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'."
                                        " Skipping and blacklisting this check..."
                                        .format(check_name, type(ex).__name__), SystemLog.WARN))
             raise CheckThrowingException
-
-        if isinstance(return_value, bool):
-            result = return_value
-            error_msg = None
-        elif isinstance(return_value, tuple) and 2 == len(return_value):
-            result = return_value[0]
-            error_msg = return_value[1]
-        else:
-            self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
-                                       "Need either a bool or (bool, string) tuple!"
-                                       " Skipping and blacklisting this check..."
-                                       .format(check_name), SystemLog.WARN))
-            raise CheckResultWrongFormat
-        return (result, error_msg)
+        return (result['result'], result['error_msg'])
 
     def _update_check_result(self, check_name, new_result):
         for i in range(len(self.checks_list)):
@@ -170,7 +169,7 @@ class SrWatchdog(object):
         self.checks_done_in_current_cycle = 0
         for check in self.checks_list:
             try:
-                result, error_msg = self._run_single_check(check.check_name)
+                result, error_msg = self._run_single_check(check.check_name, check.component)
             except (CheckThrowingException, CheckResultWrongFormat):
                 self.checks_done_in_current_cycle += 1
                 checks_blacklist.append(check.check_name)
@@ -188,3 +187,45 @@ class SrWatchdog(object):
             self.checks_done_in_current_cycle -= 1
             self._blacklist_single_check(check_name)
         rospy.sleep(1)
+
+class SrWatchdogCheck(object):
+    def __init__(self, component=None):
+        self.component = component
+
+    def _get_all_class_method_names(self):
+       return [member[0] for member in inspect.getmembers(self, predicate=inspect.ismethod)]
+
+    def _check_if_method_is_a_watchdog_check(self, method_name):
+        method = getattr(self, method_name)
+        metadata = method.__dict__
+        if 'decorated' in metadata:
+            if metadata['decorated']:
+                return True
+        return False
+
+    def _get_all_watchdog_check_names(self):
+        watchdog_check_names = []
+        all_method_names = self._get_all_class_method_names()
+        for method_name in all_method_names:
+            if self._check_if_method_is_a_watchdog_check(method_name):
+                watchdog_check_names.append(method_name)
+        return watchdog_check_names
+
+    @staticmethod
+    def watchdog_check(check_type):
+        def watchdog_check_decorator(function):
+            def wrapper(self):
+                return_value = function(self)
+                if isinstance(return_value, bool):
+                    result = return_value
+                    error_msg = None
+                elif isinstance(return_value, tuple) and 2 == len(return_value):
+                    result = return_value[0]
+                    error_msg = return_value[1]
+                else:
+                    raise CheckResultWrongFormat
+                return {"result": result, "error_msg": error_msg}
+            wrapper.decorated = True
+            wrapper.check_type = check_type
+            return wrapper
+        return watchdog_check_decorator
