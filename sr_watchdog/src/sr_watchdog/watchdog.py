@@ -92,16 +92,17 @@ class SrWatchdog(object):
     def _parse_checks(self):
         for checks_class in self.checks_classes_list:
             component = checks_class.component
-            for watchdog_check_name in checks_class._get_all_watchdog_check_names():
+            for watchdog_check_name in checks_class.get_all_watchdog_check_names():
                 check_type = getattr(checks_class, watchdog_check_name).__dict__['check_type']
                 self.checks_list.append(self._create_new_check_object(watchdog_check_name, component, check_type))
 
-    def _run_single_check(self, check_name, component):
+    def _find_class_corresponding_to_component(self, component):
         for checks_class in self.checks_classes_list:
             if component == checks_class.component:
-                used_class = checks_class
-                break
+                return checks_class
 
+    def _run_single_check(self, check_name, component):
+        used_class = self._find_class_corresponding_to_component(component)
         method_to_call = getattr(used_class, check_name)
         try:
             result = method_to_call()
@@ -116,7 +117,7 @@ class SrWatchdog(object):
                                        " Skipping and blacklisting this check..."
                                        .format(check_name, type(ex).__name__), SystemLog.WARN))
             raise CheckThrowingException
-        return (result['result'], result['error_msg'])
+        return result
 
     def _update_check_result(self, check_name, new_result):
         for i in range(len(self.checks_list)):
@@ -169,15 +170,15 @@ class SrWatchdog(object):
         self.checks_done_in_current_cycle = 0
         for check in self.checks_list:
             try:
-                result, error_msg = self._run_single_check(check.check_name, check.component)
+                result = self._run_single_check(check.check_name, check.component)
             except (CheckThrowingException, CheckResultWrongFormat):
                 self.checks_done_in_current_cycle += 1
                 checks_blacklist.append(check.check_name)
                 continue
 
-            if result != check.result:
-                self._add_system_log_on_check_result_change(check, result, error_msg)
-                self._update_check_result(check.check_name, result)
+            if result['result'] != check.result:
+                self._add_system_log_on_check_result_change(check, result['result'], result['error_msg'])
+                self._update_check_result(check.check_name, result['result'])
 
             self._refresh_system_status()
 
@@ -203,7 +204,7 @@ class SrWatchdogCheck(object):
                 return True
         return False
 
-    def _get_all_watchdog_check_names(self):
+    def get_all_watchdog_check_names(self):
         watchdog_check_names = []
         all_method_names = self._get_all_class_method_names()
         for method_name in all_method_names:
