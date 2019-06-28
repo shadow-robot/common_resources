@@ -7,18 +7,18 @@ A watchdog class that continuously runs specified check methods and informs the 
 
 An example of how to properly use the class can be seen in the code snipper below:
 ```python
-#!/usr/bin/python
-
 import rospy
-from sr_utilities_common.shutdown_handler import ShutdownHandler
-from sr_utilities_common.watchdog import SrWatchdog
+from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
+from sr_watchdog.msg import CheckStatus
 
-class TestChecksClass(object):
+class TestChecksClass(SrWatchdogChecks):
     def __init__(self):
-        self.tmp = [0, 0]
+        SrWatchdogChecks.__init__(self, "default")
+        self.tmp = [0, 0, 0]
 
+    @SrWatchdogChecks.watchdog_check(CheckStatus.WARN)
     def mock_check_robot_clear_from_collision(self):
-        rospy.sleep(4)
+        rospy.sleep(6)
         if self.tmp[0] != 1:
             self.tmp[0] = 1
             return False
@@ -26,29 +26,26 @@ class TestChecksClass(object):
             self.tmp[0] = 0
             return True
 
+    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
     def mock_check_if_arm_running(self):
-        rospy.sleep(5)
+        rospy.sleep(10)
         if self.tmp[1] != 0:
             self.tmp[1] = 0
-            return (False, "Something went wrong!")
+            return False
         else:
             self.tmp[1] = 1
             return True
-
 
 if __name__ == '__main__':
     rospy.init_node('mock_sr_teleop_watchdog')
 
     test_class = TestChecksClass()
-    error_checks_list = ['mock_check_if_arm_running']
-    warning_checks_list = ['mock_check_robot_clear_from_collision']
-
-    teleop_watchdog = SrWatchdog(test_class, error_checks_list, warning_checks_list)
-    teleop_watchdog.run()
+    mock_watchdog = SrWatchdog("mock system", [test_class])
+    mock_watchdog.run()
     rospy.spin()
 ```
 
-All the check methods are defined in a separate class. There are two types of checks supported. Error checks, which will change general status to `error` and throw an error message, and warning checks, which do not affect the reported status but inform the user that something has happened. In order to classify a check as error or warning check, their method name needs to be put in a proper list that is further passed to the `SrWatchdog` class constructor, together with the checks class object.
+All the check methods are defined in a separate class. There are two types of checks supported. Error checks, which will change general status to `error` and throw an error message, and warning checks, which do not affect the reported status but inform the user that something has happened. In order to classify a method as a watchdog check a `@SrWatchdogChecks.watchdog_check(arg)` decorator must be used, where `arg` is either `CheckStatus.WARN` or `CheckStatus.ERROR`, which specify whether a check is of an `warn` or `error` type. In order for a class to be handled by a watchdog, a `SrWatchdog` object needs to be created and the checks class passed to it as an argument. Multiple classes can be parsed simultaneously by the watchdog, therefore a list of classes (even if only one is used) need to by passed to the constructor.
 
 If all checks pass, the watchdog reports the `OK` status for the demo. This status is maintained every iteration of the checking cycle if the checks keep passing. In any iteration, if one of the error checks fails, the status of the demo will be changed to `Error` and the led light will turn red. If a warning check fails, the `OK` status will be maintained, however, led will turn yellow. All failing checks will be displayed in the red textbox below the status label. Finally, if any of the checks starts passing again, it will be removed from the box and if all error checks start passing again, demo status will go back to `OK`.
 
