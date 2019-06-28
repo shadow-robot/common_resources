@@ -108,9 +108,9 @@ class SrWatchdog(object):
             result = method_to_call()
         except CheckResultWrongFormat:
             self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
-                            "Need either a bool or (bool, string) tuple!"
-                            " Skipping and blacklisting this check..."
-                            .format(check_name), SystemLog.WARN))
+                                       "Need either a bool or (bool, string) tuple!"
+                                       " Skipping and blacklisting this check..."
+                                       .format(check_name), SystemLog.WARN))
             raise CheckResultWrongFormat
         except Exception as ex:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}: {}\'."
@@ -190,12 +190,13 @@ class SrWatchdog(object):
             self._blacklist_single_check(check_name)
         rospy.sleep(1)
 
+
 class SrWatchdogChecks(object):
     def __init__(self, component=None):
         self.component = component
 
     def _get_all_class_method_names(self):
-       return [member[0] for member in inspect.getmembers(self, predicate=inspect.ismethod)]
+        return [member[0] for member in inspect.getmembers(self, predicate=inspect.ismethod)]
 
     def _check_if_method_is_a_watchdog_check(self, method_name):
         method = getattr(self, method_name)
