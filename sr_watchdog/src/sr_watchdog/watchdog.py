@@ -190,7 +190,7 @@ class SrWatchdog(object):
             self._blacklist_single_check(check_name)
         rospy.sleep(1)
 
-class SrWatchdogCheck(object):
+class SrWatchdogChecks(object):
     def __init__(self, component=None):
         self.component = component
 

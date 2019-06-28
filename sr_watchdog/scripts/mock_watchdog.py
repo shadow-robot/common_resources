@@ -15,16 +15,16 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-from sr_watchdog.watchdog import SrWatchdog, SrWatchdogCheck
+from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
 from sr_watchdog.msg import CheckStatus
 
 
-class TestChecksClass(SrWatchdogCheck):
+class TestChecksClass(SrWatchdogChecks):
     def __init__(self):
-        SrWatchdogCheck.__init__(self, "default")
+        SrWatchdogChecks.__init__(self, "default")
         self.tmp = [0, 0, 0]
 
-    @SrWatchdogCheck.watchdog_check(CheckStatus.WARN)
+    @SrWatchdogChecks.watchdog_check(CheckStatus.WARN)
     def mock_check_robot_clear_from_collision(self):
         rospy.sleep(6)
         if self.tmp[0] != 1:
@@ -34,7 +34,7 @@ class TestChecksClass(SrWatchdogCheck):
             self.tmp[0] = 0
             return True
 
-    @SrWatchdogCheck.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
     def mock_check_if_arm_running(self):
         rospy.sleep(10)
         if self.tmp[1] != 0:
@@ -44,7 +44,7 @@ class TestChecksClass(SrWatchdogCheck):
             self.tmp[1] = 1
             return True
 
-    @SrWatchdogCheck.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
     def mock_check_if_hand_running(self):
         rospy.sleep(3)
         self.tmp[2] += 1
@@ -56,12 +56,12 @@ class TestChecksClass(SrWatchdogCheck):
         else:
             return True
 
-    @SrWatchdogCheck.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
     def mock_check_returning_wrong_format(self):
         rospy.sleep(2)
         return None
 
-    @SrWatchdogCheck.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
     def mock_check_throwing_exception(self):
         rospy.sleep(2)
         raise ValueError
