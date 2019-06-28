@@ -113,9 +113,9 @@ class SrWatchdog(object):
                             .format(check_name), SystemLog.WARN))
             raise CheckResultWrongFormat
         except Exception as ex:
-            self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}\'."
+            self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}: {}\'."
                                        " Skipping and blacklisting this check..."
-                                       .format(check_name, type(ex).__name__), SystemLog.WARN))
+                                       .format(check_name, type(ex).__name__, str(ex)), SystemLog.WARN))
             raise CheckThrowingException
         return result
 
@@ -170,15 +170,16 @@ class SrWatchdog(object):
         self.checks_done_in_current_cycle = 0
         for check in self.checks_list:
             try:
-                result = self._run_single_check(check.check_name, check.component)
+                check_return_value = self._run_single_check(check.check_name, check.component)
             except (CheckThrowingException, CheckResultWrongFormat):
                 self.checks_done_in_current_cycle += 1
                 checks_blacklist.append(check.check_name)
                 continue
 
-            if result['result'] != check.result:
-                self._add_system_log_on_check_result_change(check, result['result'], result['error_msg'])
-                self._update_check_result(check.check_name, result['result'])
+            if check_return_value['result'] != check.result:
+                self._add_system_log_on_check_result_change(check, check_return_value['result'],
+                                                            check_return_value['error_msg'])
+                self._update_check_result(check.check_name, check_return_value['result'])
 
             self._refresh_system_status()
 
