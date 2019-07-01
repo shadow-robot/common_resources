@@ -42,7 +42,10 @@ class TestChecksClass(SrWatchdogChecks):
     @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
     def test_check_error_type(self):
         rospy.sleep(2)
-        return self.error_check_pass_flag
+        if not self.error_check_pass_flag:
+            return (False, "Test message!")
+        else:
+            return True
 
     @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
     def test_check_wrong_return_format(self):
