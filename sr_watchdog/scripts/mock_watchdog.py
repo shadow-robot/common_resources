@@ -56,21 +56,11 @@ class TestChecksClass(SrWatchdogChecks):
         else:
             return True
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
-    def mock_check_returning_wrong_format(self):
-        rospy.sleep(2)
-        return None
-
-    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
-    def mock_check_throwing_exception(self):
-        rospy.sleep(2)
-        raise ValueError
-
 
 if __name__ == '__main__':
     rospy.init_node('mock_sr_teleop_watchdog')
 
-    test_class = TestChecksClass()
-    mock_watchdog = SrWatchdog("mock system", [test_class])
+    mock_class = MockChecksClass()
+    mock_watchdog = SrWatchdog("mock system", [mock_class])
     mock_watchdog.run()
     rospy.spin()
