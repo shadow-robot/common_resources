@@ -22,9 +22,9 @@ from sr_utilities_common.manual_test_suite import ManualTestSuite
 class TestWatchdogClient(object):
     def __init__(self):
         self.check_warn_publisher = rospy.Publisher('/watchdog_test/set_warning_check_result',
-                                               Bool, queue_size=10)
+                                                    Bool, queue_size=10)
         self.check_error_publisher = rospy.Publisher('/watchdog_test/set_error_check_result',
-                                               Bool, queue_size=10)
+                                                     Bool, queue_size=10)
 
     def fail_test_check_warn_type(self):
         bool_false = Bool()
