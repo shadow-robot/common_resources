@@ -39,6 +39,7 @@ class SrWatchdog(object):
     def __init__(self, tested_system_name="tested system", checks_classes_list=[]):
         self.tested_system_name = tested_system_name
         self.checks_classes_list = checks_classes_list
+        self.logs_remembered = rospy.get_param('~logs_remembered', 10)
 
         self.watchdog_publisher = rospy.Publisher('sr_watchdog', SystemStatus, queue_size=10)
         self.demo_status = SystemStatus.PENDING
@@ -75,7 +76,7 @@ class SrWatchdog(object):
             new_log.type = log[1]
             system_status.logs.append(new_log)
 
-        if 10 < len(self.watchdog_logs):
+        if self.logs_remembered < len(self.watchdog_logs):
             del self.watchdog_logs[0]
 
         self.watchdog_publisher.publish(system_status)
