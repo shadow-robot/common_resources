@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<title>Shadow Watchdog</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="gui/css/style.css">
+<link rel="stylesheet" type="text/css" href="gui/css/fonts_raleway.css">
+<link rel="stylesheet" type="text/css" href="gui/css/fonts_source_code_pro.css">
+<link rel="stylesheet" type="text/css" href="gui/css/font-awesome.min.css">
+<link rel="shortcut icon" type="image/x-icon" href="gui/favicon.ico" />
+<link rel="stylesheet" type="text/css" href="gui/css/prettify.css" />
+<script type="text/javascript" src="gui/prettify.js"></script>
+<script type="text/javascript" src="gui/jquery.min.js"></script>
+<script src="gui/eventemitter2.min.js"></script>
+<script src="gui/roslib.min.js"></script>
+<script src="gui/main.js" defer></script>
+
+<style> 
+body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif}
+</style>
+
+<body class="sr-light-grey sr-content" style="max-width:1800px" onload="prettyPrint()">
+<div class="sr-main">
+  <header id="api">
+    <div class="sr-container sr-bottombar">
+      <h1><b>Shadow Watchdog</b></h1>
+    </div>
+  </header>
+
+  <div class="sr-padding-large" style="margin-bottom:32px">
+        <div id="watchdog" style="width:fit-content; float:left">
+                <div id="left_side_watchdog" style="float:left; width: 500px; padding-right: 250px; padding-top: 30px">
+                    <label style="padding-right:20px; padding-top: 20px">System name</label>
+                    <input name="system_name_text" type="text" id="system_name" maxlength="10" size="10" style="text-align:center" value="" readonly>
+                    <br><br>
+                    <label style="padding-right:20px; padding-top: 20px">System status</label>
+                    <input name="system_status_text" type="text" id="system_status" maxlength=c"10" size="10" style="text-align:center" value="" readonly><tab_medium></tab_medium>
+                    <span style="position: relative; top:6px; display:inline-block"><div name="status_led" id="status_led_watchdog" class="sr-status-led"></div></span>
+                    <br><br>
+                    <div class="webnots-information webnots-notification-box" style="white-space: pre; visibility: hidden; display: inline-block;" name="failing_checks_textbox" id="failing_checks_textbox"></div>
+                </div>
+                <div id="right side_watchdog" style="float:right; padding-top: 30px">
+                    <div class="webnots-information webnots-notification-box" style="background-color: #dadada; padding: 10px 14px 10px 14px; height: 600px; width: 600px" name="logs_textbox" id="logs_textbox"></div>
+                    <label style="padding-right:20px">Current cycle completion</label>
+                    <span style="position: relative; top:10px; display:inline-block">
+                        <div id="progress-bar" class="all-rounded">
+                            <div id="progress-bar-percentage" name="progress_bar_percentage" class="all-rounded" style="width: 0%"><span name="progress_bar_text" id="progress_bar_text">0%</span></div>
+                        </div>
+                    </span>
+                </div>
+        </div>
+        <div class="sr-footer">
+                <p>Product by <a href="https://www.shadowrobot.com" target="_blank" class="sr-hover-opacity sr-text-white">www.shadowrobot.com</a></p>
+        </div>
+</div>
+</div>
+
+</body>
+</html>
