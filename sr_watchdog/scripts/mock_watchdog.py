@@ -19,7 +19,7 @@ from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
 from sr_watchdog.msg import CheckStatus
 
 
-class TestChecksClass(SrWatchdogChecks):
+class MockChecksClass(SrWatchdogChecks):
     def __init__(self):
         SrWatchdogChecks.__init__(self, "default")
         self.tmp = [0, 0, 0]
