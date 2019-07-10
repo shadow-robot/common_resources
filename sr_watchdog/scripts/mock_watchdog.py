@@ -16,7 +16,6 @@
 
 import rospy
 from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
-from sr_watchdog.msg import CheckStatus
 
 
 class MockChecksClass(SrWatchdogChecks):
@@ -24,7 +23,7 @@ class MockChecksClass(SrWatchdogChecks):
         SrWatchdogChecks.__init__(self, "default")
         self.tmp = [0, 0, 0]
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.WARN)
+    @SrWatchdogChecks.watchdog_warning_check
     def mock_check_robot_clear_from_collision(self):
         rospy.sleep(6)
         if self.tmp[0] != 1:
@@ -34,7 +33,7 @@ class MockChecksClass(SrWatchdogChecks):
             self.tmp[0] = 0
             return True
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_error_check
     def mock_check_if_arm_running(self):
         rospy.sleep(10)
         if self.tmp[1] != 0:
@@ -44,7 +43,7 @@ class MockChecksClass(SrWatchdogChecks):
             self.tmp[1] = 1
             return True
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_error_check
     def mock_check_if_hand_running(self):
         rospy.sleep(3)
         self.tmp[2] += 1
