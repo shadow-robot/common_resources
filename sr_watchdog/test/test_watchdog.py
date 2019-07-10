@@ -16,7 +16,6 @@
 
 import rospy
 from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
-from sr_watchdog.msg import CheckStatus
 from std_msgs.msg import Bool
 
 
@@ -34,12 +33,12 @@ class TestChecksClass(SrWatchdogChecks):
     def set_error_check(self, result):
         self.error_check_pass_flag = result.data
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.WARN)
+    @SrWatchdogChecks.watchdog_warning_check
     def test_check_warn_type(self):
         rospy.sleep(2)
         return self.warn_check_pass_flag
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_error_check
     def test_check_error_type(self):
         rospy.sleep(2)
         if not self.error_check_pass_flag:
@@ -47,12 +46,12 @@ class TestChecksClass(SrWatchdogChecks):
         else:
             return True
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_error_check
     def test_check_wrong_return_format(self):
         rospy.sleep(2)
         return None
 
-    @SrWatchdogChecks.watchdog_check(CheckStatus.ERROR)
+    @SrWatchdogChecks.watchdog_error_check
     def test_check_throwing_exception(self):
         rospy.sleep(2)
         raise ValueError
