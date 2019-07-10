@@ -236,7 +236,7 @@ class SrWatchdogChecks(object):
                 result = return_value
                 error_msg = None
             elif isinstance(return_value, tuple) and \
-                 CONST_RETURN_TUPLE_EXPECTED_SIZE == len(return_value):
+                    CONST_RETURN_TUPLE_EXPECTED_SIZE == len(return_value):
                 result = return_value[0]
                 error_msg = return_value[1]
             else:
