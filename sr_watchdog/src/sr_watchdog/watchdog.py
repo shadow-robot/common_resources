@@ -216,20 +216,31 @@ class SrWatchdogChecks(object):
         return watchdog_check_names
 
     @staticmethod
-    def watchdog_check(check_type):
-        def watchdog_check_decorator(function):
-            def wrapper(self):
-                return_value = function(self)
-                if isinstance(return_value, bool):
-                    result = return_value
-                    error_msg = None
-                elif isinstance(return_value, tuple) and 2 == len(return_value):
-                    result = return_value[0]
-                    error_msg = return_value[1]
-                else:
-                    raise CheckResultWrongFormat
-                return {"result": result, "error_msg": error_msg}
-            wrapper.decorated = True
-            wrapper.check_type = check_type
-            return wrapper
-        return watchdog_check_decorator
+    def watchdog_error_check(function):
+        wrapper = SrWatchdogChecks.watchdog_check_decorator(function)
+        wrapper.check_type = CheckStatus.ERROR
+        return wrapper
+
+    @staticmethod
+    def watchdog_warning_check(function):
+        wrapper = SrWatchdogChecks.watchdog_check_decorator(function)
+        wrapper.check_type = CheckStatus.WARN
+        return wrapper
+
+    @staticmethod
+    def watchdog_check_decorator(function):
+        def wrapper(self):
+            CONST_RETURN_TUPLE_EXPECTED_SIZE = 2
+            return_value = function(self)
+            if isinstance(return_value, bool):
+                result = return_value
+                error_msg = None
+            elif isinstance(return_value, tuple) and \
+                    CONST_RETURN_TUPLE_EXPECTED_SIZE == len(return_value):
+                result = return_value[0]
+                error_msg = return_value[1]
+            else:
+                raise CheckResultWrongFormat
+            return {"result": result, "error_msg": error_msg}
+        wrapper.decorated = True
+        return wrapper
