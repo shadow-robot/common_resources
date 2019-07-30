@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find sr_watchdog)/launch/watchdog_web_gui.launch" />
+    <node name="mock_watchdog" pkg="sr_watchdog" type="mock_watchdog.py" output="screen" />
+</launch>

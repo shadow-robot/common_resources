@@ -1,0 +1,23 @@
+.webnots-notification-box {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    color: #ffffff;
+    font-family: verdana, 'open sans', sans-serif;
+    margin-bottom: 25px;
+    padding: 10px 14px 10px 14px;
+    position: relative;
+    box-shadow: 0px 1px 5px #999;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    }
+    .webnots-notification-box:before {
+    font-family: FontAwesome;
+    font-size: 21px;
+    left: 10px;
+    position: absolute;
+    line-break: break-all;
+    }
+    .webnots-information {
+    background-color: #db3434;
+    }
