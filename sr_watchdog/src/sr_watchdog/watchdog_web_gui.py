@@ -81,7 +81,7 @@ class SgsRequestHandler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     rospy.init_node("watchdog_webserver")
 
-    port = rospy.get_param('~port', 8080)
+    port = rospy.get_param('~port', 8081)
     address = ("", port)
     server = ThreadedHTTPServer(address, SgsRequestHandler)
 
