@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<sdf version="1.4">
+<model name="stand">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision_stand">
+        <geometry>
+          <box>
+            <size>0.59 0.39 0.74</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual_base_stand">
+        <geometry>
+          <box>
+            <size>0.59 0.39 0.74</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
