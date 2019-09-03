@@ -1,8 +1,9 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <world name="default">
+    <!-- Floor -->
     <include>
-      <uri>model://ground_plane</uri>
+      <uri>model://ground</uri>
       <pose>-0.20 0.60 0.0 0 0 0</pose>
     </include>
     <light type="directional" name="light">
@@ -59,7 +60,7 @@
     </physics>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>0.6991 3.5905 0.992 0.0 0.235 -1.57</pose>
+        <pose frame=''>4.24267 0.755984 1.72821 0 0.239 -3.13</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
