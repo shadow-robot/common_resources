@@ -1,5 +1,5 @@
 <launch>
-    <arg name="port" default="8080"/>
+    <arg name="port" default="8081"/>
     <node name="sr_watchdog_web_gui" pkg="sr_watchdog" type="watchdog_web_gui.py" output="screen">
         <param name='port' value="$(arg port)" />
     </node>
