@@ -1,19 +1,19 @@
 <?xml version='1.0'?>
 <sdf version="1.4">
-<model name="big_table">
+<model name="human">
     <static>true</static>
     <link name="link">
-      <collision name="collision_big_table">
+      <collision name="collision_human">
         <geometry>
           <box>
-            <size>3.4 2.5 0.713</size>
+            <size>1 0.75 0.75</size>
           </box>
         </geometry>
       </collision>
-      <visual name="visual_big_table">
+      <visual name="visual_human">
         <geometry>
           <box>
-            <size>3.4 2.5 0.713</size>
+            <size>1 0.75 0.75</size>
           </box>
         </geometry>
         <material>

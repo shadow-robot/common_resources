@@ -6,6 +6,11 @@
       <uri>model://ground</uri>
       <pose>-0.20 0.60 0.0 0 0 0</pose>
     </include>
+    <include>
+      <uri>model://ground</uri>
+      <pose>-0.20 0.60 2.0 0 0 0</pose>
+      <name>ceiling</name>
+    </include>
     <light type="directional" name="lab_light">
       <pose>0.86 1.96 2.5 -1.55 0 0</pose>
       <diffuse>.8 .8 .8 1</diffuse>
@@ -26,10 +31,28 @@
       <pose>0 0 0.37 0.0 0 1.57079632679</pose>
     </include>
     <include>
+      <uri>model://stand</uri>
+      <static>true</static>
+      <name>stand_1</name>
+      <pose>0 1.5 0.37 0.0 0 1.57079632679</pose>
+    </include>
+    <include>
       <uri>model://base_plate</uri>
       <static>true</static>
       <name>base_plate</name>
       <pose>0.0 0.0 0.7481 0.0 0.0 1.57079632679</pose>
+    </include>
+    <include>
+      <uri>model://base_plate</uri>
+      <static>true</static>
+      <name>base_plate_1</name>
+      <pose>0.0 1.5 0.7481 0.0 0.0 1.57079632679</pose>
+    </include>
+    <include>
+      <uri>model://human</uri>
+      <static>true</static>
+      <name>base_plate_1</name>
+      <pose>-0.65 0.75 1.15 3.145 1.57079632679 3.1451</pose>
     </include>
     <include>
       <uri>model://big_table</uri>
