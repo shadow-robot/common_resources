@@ -10,6 +10,7 @@
       <uri>model://ground</uri>
       <pose>-0.20 0.60 2.0 0 0 0</pose>
       <name>ceiling</name>
+      <static>true</static>
     </include>
     <light type="directional" name="lab_light">
       <pose>0.86 1.96 2.5 -1.55 0 0</pose>
