@@ -50,7 +50,7 @@
     <include>
       <uri>model://human</uri>
       <static>true</static>
-      <name>base_plate_1</name>
+      <name>human</name>
       <pose>-0.65 0.75 1.15 3.145 1.57079632679 3.1451</pose>
     </include>
     <include>
