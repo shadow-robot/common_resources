@@ -39,13 +39,13 @@
       <uri>model://base_plate</uri>
       <static>true</static>
       <name>base_plate</name>
-      <pose>0.0 0.0 0.7481 0.0 0.0 1.57079632679</pose>
+      <pose>0.0 0.0 0.7411 0.0 0.0 1.57079632679</pose>
     </include>
     <include>
       <uri>model://base_plate</uri>
       <static>true</static>
       <name>base_plate_1</name>
-      <pose>0.0 1.5 0.7481 0.0 0.0 1.57079632679</pose>
+      <pose>0.0 1.5 0.7411 0.0 0.0 1.57079632679</pose>
     </include>
     <include>
       <uri>model://human</uri>
