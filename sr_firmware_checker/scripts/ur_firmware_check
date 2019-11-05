@@ -1,14 +1,22 @@
-#!/bin/bash
+#!/bin/bash -e
 timeout 5 echo "polyscopeversion" | nc -w2 $1 $2 | 
 while read -r cmd; do
-  while read firmware; do
-    if [[ ${firmware}* -eq $cmd ]]; then
-      echo "UR version $cmd is supported by Shadow"; kill $$;;
-    fi
-  done <../config/known_good_firmware.txt
-  echo "UR version $cmd is NOT supported by Shadow. Use our software at your own risk"; kill $$
+  if [[ $cmd =~ "URSoftware" ]]; then
+    while read firmware; do
+      if [[ $firmware != "" ]]; then
+        if [[ $cmd =~ $firmware ]]; then
+          echo "UR version $cmd is supported by Shadow"
+          kill $$ 2>/dev/null
+          exit;
+        fi
+      fi
+    done <../config/known_good_firmware.txt
+    echo "UR version $cmd is NOT supported by Shadow. Use our software at your own risk"; kill $$ 2>/dev/null; exit
+  fi
 done
 echo "UR robot did not respond"
+
+
 
 
 
