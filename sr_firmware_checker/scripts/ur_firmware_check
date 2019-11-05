@@ -1,20 +1,38 @@
 #!/bin/bash -e
-timeout 5 echo "polyscopeversion" | nc -w2 $1 $2 | 
-while read -r cmd; do
-  if [[ $cmd =~ "URSoftware" ]]; then
-    while read firmware; do
-      if [[ $firmware != "" ]]; then
-        if [[ $cmd =~ $firmware ]]; then
-          echo "UR version $cmd is supported by Shadow"
-          kill $$ 2>/dev/null
-          exit;
+
+
+check_firmware_from_ip(){
+  timeout 5 echo "polyscopeversion" | nc -w2 $1 29999 | 
+  while read -r cmd; do
+    if [[ $cmd =~ "URSoftware" ]]; then
+      while read firmware; do
+        if [[ $firmware != "" ]]; then
+          if [[ $cmd =~ $firmware ]]; then
+            echo "UR version $cmd is supported by Shadow"
+            return 0
+#            kill $$ 2>/dev/null
+#            exit;
+          fi
         fi
-      fi
-    done <../config/known_good_firmware.txt
-    echo "UR version $cmd is NOT supported by Shadow. Use our software at your own risk"; kill $$ 2>/dev/null; exit
-  fi
+      done <../config/known_good_firmware.txt
+      echo "UR version $cmd is NOT supported by Shadow. Use our software at your own risk"; return 0 # kill $$ 2>/dev/null; exit
+    fi
+  done
+  echo "UR robot did not respond"
+}
+
+source /opt/ros/kinetic/setup.bash
+source ~/projects/shadow_robot/base/devel/setup.bash 
+source ~/projects/shadow_robot/base_deps/devel/setup.bash 
+
+arm_config_files=$(rosls sr_ur_arm_config/config/ | grep robot_hw.yaml)
+arm_ips=()
+for arm in $arm_config_files ; do 
+  arm_ip=$(roscat sr_ur_arm_config $arm | grep robot_ip_address | sed -r 's/robot_ip_address: //g')
+  echo "Checking arm: $arm_ip"
+  check_firmware_from_ip $arm_ip
 done
-echo "UR robot did not respond"
+
 
 
 
