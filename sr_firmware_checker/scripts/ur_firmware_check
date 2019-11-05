@@ -36,7 +36,3 @@ for arm in $arm_config_files ; do
   check_firmware_from_ip $arm_ip
 done
 
-
-
-
-
