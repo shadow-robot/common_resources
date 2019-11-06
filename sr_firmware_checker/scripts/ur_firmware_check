@@ -32,7 +32,6 @@ source ~/projects/shadow_robot/base/devel/setup.bash
 source ~/projects/shadow_robot/base_deps/devel/setup.bash 
 
 arm_config_files=$(rosls sr_ur_arm_config/config/ | grep robot_hw.yaml)
-arm_ips=()
 for arm in $arm_config_files ; do 
   arm_ip=$(roscat sr_ur_arm_config $arm | grep robot_ip_address | sed -r 's/robot_ip_address: //g')
   echo "Checking firmware of arm at: $arm_ip"
