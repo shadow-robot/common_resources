@@ -11,19 +11,19 @@ check_firmware_from_ip(){
       while read firmware; do
         if [[ $firmware != "" ]]; then
           if [[ $cmd =~ $firmware ]]; then
-            echo "UR version $cmd is supported by Shadow"
+            echo -e "\e[32mUR version $cmd is supported by Shadow\e[0m"
             responded=true
             break 2
           fi
         fi
       done <../config/known_good_firmware.txt
-      echo "UR version $cmd is NOT supported by Shadow. Use our software at your own risk"
+      echo -e "\e[33mUR version $cmd is NOT supported by Shadow. Use our software at your own risk\e[0m"
       responded=true
       break
     fi
   done < <(timeout 5 bash -c "request_firmware_version $1")
   if [[ $responded == false ]]; then
-    echo "UR robot did not respond"
+    echo "\e[31mUR robot did not respond\e[0m"
   fi
 }
 
