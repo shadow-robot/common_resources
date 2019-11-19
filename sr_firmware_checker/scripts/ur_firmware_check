@@ -7,6 +7,8 @@ request_firmware_version(){
 check_firmware_from_ip(){
   responded=false
   export -f request_firmware_version
+  current_dir=$(dirname "$0")
+  good_firmware="${current_dir}/../config/known_good_firmware.txt"
   while read -r cmd; do
     if [[ $cmd =~ "URSoftware" ]]; then
       while read firmware; do
@@ -17,7 +19,7 @@ check_firmware_from_ip(){
             break 2
           fi
         fi
-      done <../config/known_good_firmware.txt
+      done <$good_firmware
       echo -e "\e[33mUR version $cmd is NOT supported by Shadow. Use our software at your own risk\e[0m"
       responded=true
       break
