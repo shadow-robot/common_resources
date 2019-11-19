@@ -6,6 +6,7 @@ request_firmware_version(){
 
 check_firmware_from_ip(){
   responded=false
+  export -f request_firmware_version
   while read -r cmd; do
     if [[ $cmd =~ "URSoftware" ]]; then
       while read firmware; do
