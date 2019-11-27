@@ -24,7 +24,7 @@ check_firmware_from_ip(){
       responded=true
       break
     fi
-  done < <(timeout 5 bash -c "request_firmware_version $1")
+  done < <(timeout 2 bash -c "request_firmware_version $1")
   if [[ $responded == false ]]; then
     echo -e "\e[31mUR robot at $1 did not respond\e[0m"
   fi
