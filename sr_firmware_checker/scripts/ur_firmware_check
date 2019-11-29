@@ -30,9 +30,7 @@ check_firmware_from_ip(){
   fi
 }
 
-source /opt/ros/kinetic/setup.bash
 source ~/projects/shadow_robot/base/devel/setup.bash 
-source ~/projects/shadow_robot/base_deps/devel/setup.bash 
 
 arm_config_files=$(rosls sr_ur_arm_config/config/ | grep robot_hw.yaml)
 for arm in $arm_config_files ; do 
