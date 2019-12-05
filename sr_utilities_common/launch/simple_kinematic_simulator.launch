@@ -1,0 +1,21 @@
+<launch>
+  <arg name="robot_description" default="'$(find sr_description)/robots/shadowhand_motor_plus.urdf.xacro'"/>
+
+  <param name="robot_description" command="xacro --inorder $(arg robot_description)"/>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen" >
+    <rosparam>
+      source_list:
+        - remapped_joint_states
+    </rosparam>
+  </node>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="200.0" />
+    <param name="tf_prefix" type="string" value="" />
+  </node>
+
+  <node name="trajectory_republisher" pkg="sr_utilities_common" type="republish_trajectory_as_joint_states.py">
+
+  </node>
+</launch>
