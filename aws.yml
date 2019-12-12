@@ -36,7 +36,7 @@ trunks:
         release: melodic
       docker:
         image: shadowrobot/build-tools
-        tag: bionic-devel
+        tag: bionic-melodic
     jobs:
       - name: code_coverage
       - name: style_check
