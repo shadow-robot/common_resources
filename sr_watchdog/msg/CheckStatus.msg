@@ -9,3 +9,4 @@ string check_name
 string component
 byte check_type
 bool result
+int64 index
