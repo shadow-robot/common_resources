@@ -82,25 +82,30 @@ class SrWatchdog(object):
         self.watchdog_publisher.publish(system_status)
         rate.sleep()
 
-    def _create_new_check_object(self, check_name, component, check_type, index=0):
+    def _create_new_check_object(self, check_name, component, check_type, check_class_name):
         new_test = CheckStatus()
         new_test.check_name = check_name
         new_test.component = component
         new_test.check_type = check_type
         new_test.result = True
-        new_test.index = index
+        new_test.check_class_name = check_class_name
         return new_test
 
     def _parse_checks(self):
-        for idx, checks_class in enumerate(self.checks_classes_list):
+        for checks_class in self.checks_classes_list:
             component = checks_class.component
             for watchdog_check_name in checks_class.get_all_watchdog_check_names():
                 check_type = getattr(checks_class, watchdog_check_name).__dict__['check_type']
-                self.checks_list.append(self._create_new_check_object(watchdog_check_name, component, check_type, idx))
+                self.checks_list.append(self._create_new_check_object(watchdog_check_name,
+                                                                      component,
+                                                                      check_type,
+                                                                      checks_class.__class__.__name__))
+        for check in self.checks_list:
+            rospy.logwarn("{}, {}".format(check.check_name, check.check_class_name))
 
     def _find_class_corresponding_to_check(self, check):
-        for idx, checks_class in enumerate(self.checks_classes_list):
-            if idx == check.index:
+        for checks_class in self.checks_classes_list:
+            if checks_class.__class__.__name__ == check.check_class_name:
                 return checks_class
 
     def _run_single_check(self, check):
