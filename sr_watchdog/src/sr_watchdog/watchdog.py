@@ -82,12 +82,13 @@ class SrWatchdog(object):
         self.watchdog_publisher.publish(system_status)
         rate.sleep()
 
-    def _create_new_check_object(self, check_name, component, check_type, initial_check_result=True):
+    def _create_new_check_object(self, check_name, component, check_type, check_class_name):
         new_test = CheckStatus()
         new_test.check_name = check_name
         new_test.component = component
         new_test.check_type = check_type
         new_test.result = True
+        new_test.check_class_name = check_class_name
         return new_test
 
     def _parse_checks(self):
@@ -95,28 +96,33 @@ class SrWatchdog(object):
             component = checks_class.component
             for watchdog_check_name in checks_class.get_all_watchdog_check_names():
                 check_type = getattr(checks_class, watchdog_check_name).__dict__['check_type']
-                self.checks_list.append(self._create_new_check_object(watchdog_check_name, component, check_type))
+                self.checks_list.append(self._create_new_check_object(watchdog_check_name,
+                                                                      component,
+                                                                      check_type,
+                                                                      checks_class.__class__.__name__))
+        for check in self.checks_list:
+            rospy.logwarn("{}, {}".format(check.check_name, check.check_class_name))
 
-    def _find_class_corresponding_to_component(self, component):
+    def _find_class_corresponding_to_check(self, check):
         for checks_class in self.checks_classes_list:
-            if component == checks_class.component:
+            if checks_class.__class__.__name__ == check.check_class_name:
                 return checks_class
 
-    def _run_single_check(self, check_name, component):
-        used_class = self._find_class_corresponding_to_component(component)
-        method_to_call = getattr(used_class, check_name)
+    def _run_single_check(self, check):
+        used_class = self._find_class_corresponding_to_check(check)
+        method_to_call = getattr(used_class, check.check_name)
         try:
             result = method_to_call()
         except CheckResultWrongFormat:
             self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
                                        "Need either a bool or (bool, string) tuple!"
                                        " Skipping and blacklisting this check..."
-                                       .format(check_name), SystemLog.WARN))
+                                       .format(check.check_name), SystemLog.WARN))
             raise CheckResultWrongFormat
         except Exception as ex:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}: {}\'."
                                        " Skipping and blacklisting this check..."
-                                       .format(check_name, type(ex).__name__, str(ex)), SystemLog.WARN))
+                                       .format(check.check_name, type(ex).__name__, str(ex)), SystemLog.WARN))
             raise CheckThrowingException
         return result
 
@@ -171,7 +177,7 @@ class SrWatchdog(object):
         self.checks_done_in_current_cycle = 0
         for check in self.checks_list:
             try:
-                check_return_value = self._run_single_check(check.check_name, check.component)
+                check_return_value = self._run_single_check(check)
             except (CheckThrowingException, CheckResultWrongFormat):
                 self.checks_done_in_current_cycle += 1
                 checks_blacklist.append(check.check_name)
