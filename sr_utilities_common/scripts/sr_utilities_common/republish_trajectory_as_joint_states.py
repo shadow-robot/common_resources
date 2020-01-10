@@ -41,8 +41,8 @@ class RePubTrajectoryAsJointStates(object):
                                             self._traj_cb,
                                             tcp_nodelay=True)
         self._joint_states_pub = rospy.Publisher(joint_states_pub_topic,
-                                         JointState,
-                                         queue_size=10)
+                                                 JointState,
+                                                 queue_size=10)
         self._joints_to_move = joints_to_move
         self._right_hand_prefix = "rh_"
         self._left_hand_prefix = "lh_"
@@ -76,5 +76,6 @@ if __name__ == "__main__":
                       "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
                       "rh_WRJ1", "rh_WRJ2"]
 
-    pub_traj = RePubTrajectoryAsJointStates(joints_to_move, left_hand=left_hand, joint_states_pub_topic=joint_states_pub_topic)
+    pub_traj = RePubTrajectoryAsJointStates(joints_to_move, left_hand=left_hand,
+                                            joint_states_pub_topic=joint_states_pub_topic)
     rospy.spin()
