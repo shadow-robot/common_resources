@@ -15,18 +15,15 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 # WHEN TO USE:
-# Use this script when you have a rosbag and wand to play the trajectory data to a hand
-# or when you are using a right glove (i.e. cyberglove) and you are using a left shadow hand.
+# Use this script when you want to simulate (visualize) a robot that executes the trajectory commands
+# it receives. Only the first trajectory point will be considered. This is useful for teleoperation,
+# where we send a continuous stream of single point trajectories.
 #
 # HOW TO USE:
 # To use the trajectory republisher, select if you are using a left hand.
 # Then, select which joints you want to move (don't change the prefix).
-# Run your publisher and then start your rosbag by remapping your topic for instance
-# by adding the following line in the end of your rosbag command
+# Run your publisher and remap topic names if necessary.
 #
-# /rh_trajectory_controller/command:=/rh_trajectory_controller/command_remapped
-#
-# Your hand should be start moving.
 
 import rospy
 from sensor_msgs.msg import JointState
