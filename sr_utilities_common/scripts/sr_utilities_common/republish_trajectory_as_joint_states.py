@@ -33,10 +33,10 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 class RePubTrajectoryAsJointStates(object):
     def __init__(self,
                  joints_to_move,
-                 left_hand=False,
-                 remapped_trajectory_sub_topic="/rh_trajectory_controller/command",
+                 robot_side="",
+                 trajectory_cmd_topic="/rh_trajectory_controller/command",
                  joint_states_pub_topic="/remapped_joint_states"):
-        self._bag_tf_sub = rospy.Subscriber(remapped_trajectory_sub_topic,
+        self._bag_tf_sub = rospy.Subscriber(trajectory_cmd_topic,
                                             JointTrajectory,
                                             self._traj_cb,
                                             tcp_nodelay=True)
@@ -46,15 +46,21 @@ class RePubTrajectoryAsJointStates(object):
         self._joints_to_move = joints_to_move
         self._right_hand_prefix = "rh_"
         self._left_hand_prefix = "lh_"
-        self._left_hand = left_hand
+        self._right_arm_prefix = "rh_"
+        self._left_arm_prefix = "lh_"
+        self._robot_side = robot_side
 
     def _traj_cb(self, data):
         new_traj = JointState()
         new_traj.header = data.header
         for index, joint_name in enumerate(data.joint_names):
-            if joint_name in self._joints_to_move:
-                if self._left_hand:
+            if (joint_name in self._joints_to_move) or (not self._joints_to_move):
+                if self._robot_side == "left":
                     joint_name = joint_name.replace(self._right_hand_prefix, self._left_hand_prefix)
+                    joint_name = joint_name.replace(self._right_arm_prefix, self._left_arm_prefix)
+                elif self._robot_side == "right":
+                    joint_name = joint_name.replace(self._left_hand_prefix, self._right_hand_prefix)
+                    joint_name = joint_name.replace(self._left_arm_prefix, self._right_arm_prefix)
                 new_traj.name.append(joint_name)
                 new_traj.position.append(data.points[0].positions[index])
         new_traj.header.stamp = rospy.Time.now()
@@ -64,18 +70,17 @@ class RePubTrajectoryAsJointStates(object):
 if __name__ == "__main__":
     rospy.init_node("republish_trajectory")
 
-    # Select if left hand is used
-    left_hand = False
+    # Select we want to translate a right side robot command to control a left side robot or vice versa
+    robot_side = rospy.get_param("~robot_side", "")
+    joint_states_pub_topic = rospy.get_param("~remapped_joint_states_topic_name", "/remapped_joint_states")
+    trajectory_cmd_topic = rospy.get_param("~trajectory_cmd_topic_name", "/rh_trajectory_controller/command")
+    joints_to_move = rospy.get_param("~joints_to_move", ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
+                                                        "rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4",
+                                                        "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4",
+                                                        "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5",
+                                                        "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
+                                                        "rh_WRJ1", "rh_WRJ2"])
 
-    joint_states_pub_topic = "/remapped_joint_states"
-
-    joints_to_move = ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
-                      "rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4",
-                      "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4",
-                      "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5",
-                      "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
-                      "rh_WRJ1", "rh_WRJ2"]
-
-    pub_traj = RePubTrajectoryAsJointStates(joints_to_move, left_hand=left_hand,
+    pub_traj = RePubTrajectoryAsJointStates(joints_to_move, robot_side=robot_side,
                                             joint_states_pub_topic=joint_states_pub_topic)
     rospy.spin()
