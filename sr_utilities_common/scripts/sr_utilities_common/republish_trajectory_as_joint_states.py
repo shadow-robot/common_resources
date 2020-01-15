@@ -82,5 +82,6 @@ if __name__ == "__main__":
                                                          "rh_WRJ1", "rh_WRJ2"])
 
     pub_traj = RePubTrajectoryAsJointStates(joints_to_move, robot_side=robot_side,
+                                            trajectory_cmd_topic=trajectory_cmd_topic,
                                             joint_states_pub_topic=joint_states_pub_topic)
     rospy.spin()
