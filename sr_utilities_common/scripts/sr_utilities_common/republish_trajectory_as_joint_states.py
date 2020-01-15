@@ -75,11 +75,11 @@ if __name__ == "__main__":
     joint_states_pub_topic = rospy.get_param("~remapped_joint_states_topic_name", "/remapped_joint_states")
     trajectory_cmd_topic = rospy.get_param("~trajectory_cmd_topic_name", "/rh_trajectory_controller/command")
     joints_to_move = rospy.get_param("~joints_to_move", ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
-                                                        "rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4",
-                                                        "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4",
-                                                        "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5",
-                                                        "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
-                                                        "rh_WRJ1", "rh_WRJ2"])
+                                                         "rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4",
+                                                         "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4",
+                                                         "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5",
+                                                         "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
+                                                         "rh_WRJ1", "rh_WRJ2"])
 
     pub_traj = RePubTrajectoryAsJointStates(joints_to_move, robot_side=robot_side,
                                             joint_states_pub_topic=joint_states_pub_topic)
