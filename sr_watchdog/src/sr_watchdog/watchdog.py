@@ -100,8 +100,6 @@ class SrWatchdog(object):
                                                                       component,
                                                                       check_type,
                                                                       checks_class.__class__.__name__))
-        for check in self.checks_list:
-            rospy.logwarn("{}, {}".format(check.check_name, check.check_class_name))
 
     def _find_class_corresponding_to_check(self, check):
         for checks_class in self.checks_classes_list:
