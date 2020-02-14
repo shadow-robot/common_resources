@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
 The above code will be executing an infinite loop until shutdown for the node is initiated. Then, before the node dies, the `clean_up` method will be executed. 
 
-## Real tine tf republisher
+## Real time tf republisher
 This tool allows to republish tfs from a rosbag in real time, i.e. each tf from bag file will be intercepted and republished with current time instead of it's bagging time. Usage:
 
 ```sh
