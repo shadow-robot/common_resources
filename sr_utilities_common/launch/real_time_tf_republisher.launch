@@ -1,0 +1,9 @@
+<launch>
+  <arg name="rosbag_path" />
+  <arg name="remapped_tf_topic_name" default="tf_bag" />
+
+  <node pkg="rosbag" type="play" name="rosbag_mocap_tf" args="$(arg rosbag_path) --topics /tf tf:=$(arg remapped_tf_topic_name) -l" output="screen" />
+  <node pkg="sr_utilities_common" type="real_time_tf_republisher.py" name="real_time_tf_republisher" output="screen">
+    <param name="bag_tf_topic_name" value="$(arg remapped_tf_topic_name)" />
+  </node>
+</launch>
