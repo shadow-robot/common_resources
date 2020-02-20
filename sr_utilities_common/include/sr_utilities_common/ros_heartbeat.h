@@ -6,17 +6,21 @@
 #ifndef ROS_HEARTBEAT_ROS_HEARTBEAT_H
 #define ROS_HEARTBEAT_ROS_HEARTBEAT_H
 
-#include "ros/ros.h"
+#include <ros/ros.h>
+#include <std_msgs/Bool.h>
 
 class RosHeartbeat
 {
   public:
-    RosHeartbeat(std::string input_topic_name);
+    RosHeartbeat(std::string heartbeat_topic_name);
     ~RosHeartbeat();
-    std::string tmp;
+    bool enable;
 
   private:
-    std::string input_topic_name_;
+    ros::NodeHandle nh_ = ros::NodeHandle();
+    ros::Subscriber heartbeat_topic_subscriber_;
+
+    void on_heartbeat_message_cb(const std_msgs::Bool&); 
 };
 
 #endif  //  ROS_HEARTBEAT_ROS_HEARTBEAT_H

@@ -8,6 +8,9 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "ros_heartbeat_example");
-  RosHeartbeat ros_heartbeat("test");
+  RosHeartbeat ros_heartbeat("test_heartbeat");
+  ros::AsyncSpinner spinner(2);  // Use 2 threads, to allow moveit callback within callback
+  spinner.start();
+  ros::waitForShutdown();
   return 0;
 }

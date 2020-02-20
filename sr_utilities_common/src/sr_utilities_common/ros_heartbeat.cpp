@@ -3,16 +3,22 @@
 * Unauthorized copying of the content in this file, via any medium is strictly prohibited.
 */
 
-#include "sr_utilities_common/ros_heartbeat.h"
+#include <sr_utilities_common/ros_heartbeat.h>
 
 
-RosHeartbeat::RosHeartbeat(std::string input_topic_name)
+RosHeartbeat::RosHeartbeat(std::string heartbeat_topic_name):
+  heartbeat_topic_subscriber_(nh_.subscribe(heartbeat_topic_name, 1,
+                             &RosHeartbeat::on_heartbeat_message_cb, this))
 {
   ROS_INFO("Initializing heartbeat...");
-  input_topic_name_ = input_topic_name;
-  tmp = input_topic_name;
 }
 
 RosHeartbeat::~RosHeartbeat()
 {
+}
+
+void RosHeartbeat::on_heartbeat_message_cb(const std_msgs::Bool& heartbeat)
+{
+  bool result = heartbeat.data;
+  ROS_INFO_STREAM(result);
 }
