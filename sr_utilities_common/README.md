@@ -37,3 +37,16 @@ roslaunch sr_utilities_common real_time_tf_republisher.launch rosbag_path:=<rosb
 where:
 - `<rosbag_path>` - path to the rosbag you want to replay tf topic from (required)
 - `<remapped_tf_topic_name>` - topic name to which `tf` topic from the bag will be remapped to (default: `tf_bag`)
+
+## Ros Heartbeat
+A generic ros hearbeat class has been added allowing users to enable and disable processes using a hearbeat method. In order to use it, within your node create a RosHeartbeat object:
+
+```c++
+RosHeartbeat ros_heartbeat("example_heartbeat", 0.1);
+```
+and use the `enabled` public variable to toggle the node. The enabled variable can be set using a publisher that is running with frequency higher then the one set in the object contructor (`10Hz` above). For example, using bash console:
+
+```sh
+rostopic pub /example_heartbeat std_msgs/Bool "data: true" -r 20
+```
+will set the value to `true`. The value is `true` or `false` depending on the value within the publisher's message. If the heartbeat object doesn't hear anything within it's set timeframe (`0.1c` above), user will be warned and `enabled` will be set to `false`.

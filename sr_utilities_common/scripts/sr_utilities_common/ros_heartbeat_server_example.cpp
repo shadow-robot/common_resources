@@ -8,7 +8,7 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "ros_heartbeat_example");
-  RosHeartbeat ros_heartbeat("test_heartbeat", 0.1);
+  RosHeartbeat ros_heartbeat("example_heartbeat", 0.1);
   ros::spin();
   return 0;
 }
