@@ -8,9 +8,7 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "ros_heartbeat_example");
-  RosHeartbeat ros_heartbeat("test_heartbeat");
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-  ros::waitForShutdown();
+  RosHeartbeat ros_heartbeat("test_heartbeat", 0.1);
+  ros::spin();
   return 0;
 }

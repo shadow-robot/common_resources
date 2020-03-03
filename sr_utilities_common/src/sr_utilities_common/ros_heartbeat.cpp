@@ -5,13 +5,14 @@
 
 #include <sr_utilities_common/ros_heartbeat.h>
 
-
-RosHeartbeat::RosHeartbeat(std::string heartbeat_topic_name):
-  heartbeat_topic_subscriber_(nh_.subscribe(heartbeat_topic_name, 1,
-                             &RosHeartbeat::on_heartbeat_message_cb, this)),
-  heartbeat_timer_(nh_.createTimer(ros::Duration(0.1), &RosHeartbeat::on_heartbeat_absent, this))
+RosHeartbeat::RosHeartbeat(std::string heartbeat_topic_name, float heartbeat_timer_duration):
+  heartbeat_timer_duration_(heartbeat_timer_duration)
 {
-  ROS_INFO("Initializing heartbeat...");
+  ROS_INFO_STREAM(ros::this_node::getName() << ": initializing heartbeat...");
+  heartbeat_topic_subscriber_ = nh_.subscribe(heartbeat_topic_name, 1,
+                                              &RosHeartbeat::on_heartbeat_message_cb, this);
+  ros::Duration(1).sleep(); // let subscriber sort itself before starting the timer
+  heartbeat_timer_ = nh_.createTimer(heartbeat_timer_duration_, &RosHeartbeat::on_heartbeat_absent, this);
 }
 
 RosHeartbeat::~RosHeartbeat()
@@ -20,15 +21,19 @@ RosHeartbeat::~RosHeartbeat()
 
 void RosHeartbeat::on_heartbeat_message_cb(const std_msgs::Bool& heartbeat)
 {
-  heartbeat_timer_.setPeriod(ros::Duration(0.1), true);
+  if (!heartbeat_detected_){
+    ROS_INFO_STREAM(ros::this_node::getName() << ": heartbeat detected again!");
+    heartbeat_detected_ = true;
+  }
+  heartbeat_timer_.setPeriod(heartbeat_timer_duration_, true);
   heartbeat_timer_.start();
-  enable = heartbeat.data;
-  ROS_INFO_STREAM(enable);
+  enabled = heartbeat.data;
 }
 
 void RosHeartbeat::on_heartbeat_absent(const ros::TimerEvent&)
 {
-    ROS_WARN("timer");
-    enable = false;
+    ROS_WARN_STREAM(ros::this_node::getName() << ": heartbeat not detected!");
     heartbeat_timer_.stop();
+    heartbeat_detected_ = false;
+    enabled = false;
 }

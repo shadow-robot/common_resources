@@ -12,11 +12,13 @@
 class RosHeartbeat
 {
   public:
-    RosHeartbeat(std::string heartbeat_topic_name);
+    RosHeartbeat(std::string, float);
     ~RosHeartbeat();
-    bool enable;
+    bool enabled;
 
   private:
+    bool heartbeat_detected_= true;
+    ros::Duration heartbeat_timer_duration_;
     ros::NodeHandle nh_ = ros::NodeHandle();
     ros::Subscriber heartbeat_topic_subscriber_;
     ros::Timer heartbeat_timer_;
