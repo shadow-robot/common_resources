@@ -19,8 +19,10 @@ class RosHeartbeat
   private:
     ros::NodeHandle nh_ = ros::NodeHandle();
     ros::Subscriber heartbeat_topic_subscriber_;
+    ros::Timer heartbeat_timer_;
 
-    void on_heartbeat_message_cb(const std_msgs::Bool&); 
+    void on_heartbeat_message_cb(const std_msgs::Bool&);
+    void on_heartbeat_absent(const ros::TimerEvent&);
 };
 
 #endif  //  ROS_HEARTBEAT_ROS_HEARTBEAT_H
