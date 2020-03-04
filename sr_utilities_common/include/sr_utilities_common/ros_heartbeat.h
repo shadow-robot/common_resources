@@ -8,6 +8,7 @@
 
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+#include <string>
 
 class RosHeartbeat
 {
@@ -17,7 +18,7 @@ class RosHeartbeat
     bool enabled;
 
   private:
-    bool heartbeat_detected_= true;
+    bool heartbeat_detected_ = true;
     ros::Duration heartbeat_timer_duration_;
     ros::NodeHandle nh_ = ros::NodeHandle();
     ros::Subscriber heartbeat_topic_subscriber_;
