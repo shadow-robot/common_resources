@@ -15,8 +15,8 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ROS_HEARTBEAT_ROS_HEARTBEAT_H
-#define ROS_HEARTBEAT_ROS_HEARTBEAT_H
+#ifndef SR_UTILITIES_COMMON_ROS_HEARTBEAT_H
+#define SR_UTILITIES_COMMON_ROS_HEARTBEAT_H
 
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -40,4 +40,4 @@ class RosHeartbeat
     void on_heartbeat_absent(const ros::TimerEvent&);
 };
 
-#endif  //  ROS_HEARTBEAT_ROS_HEARTBEAT_H
+#endif  //  SR_UTILITIES_COMMON_ROS_HEARTBEAT_H
