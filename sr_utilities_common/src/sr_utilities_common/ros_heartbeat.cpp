@@ -35,7 +35,7 @@ void RosHeartbeat::on_heartbeat_message_cb(const std_msgs::Bool& heartbeat)
 {
   if (!heartbeat_detected_)
   {
-    ROS_INFO_STREAM(ros::this_node::getName() << ": heartbeat detected again!");
+    ROS_INFO_STREAM(ros::this_node::getName() << ": heartbeat detected.");
     heartbeat_detected_ = true;
   }
   heartbeat_timer_.setPeriod(heartbeat_timer_duration_, true);
