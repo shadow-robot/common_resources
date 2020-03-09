@@ -125,6 +125,7 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/ros_heartbeat.cpp
 )
+target_link_libraries(sr_utilities_common ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
