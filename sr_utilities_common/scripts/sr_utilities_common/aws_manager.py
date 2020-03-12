@@ -30,16 +30,16 @@ if __name__ == "__main__":
     download_param = rospy.get_param("~download")
     upload_param = rospy.get_param("~upload")
     bucket_name = rospy.get_param("~bucket_name")
-    files_base_path = rospy.get_param("~file_path")
-    files_folder_path = rospy.get_param("~folder_path")
-    file_names = rospy.get_param("~files_names")
+    files_base_path = rospy.get_param("~files_base_path")
+    files_folder_path = rospy.get_param("~files_folder_path")
+    file_names = rospy.get_param("~file_names")
 
     file_full_paths = []
     aws_paths = []
 
     for file_name in file_names:
         file_full_paths.append("{}/{}/{}".format(files_base_path, files_folder_path, file_name))
-        aws_paths.append("{}/{}".format(folder_path, report_file_name))
+        aws_paths.append("{}/{}".format(files_folder_path, file_name))
 
     try:
         with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     if upload_param is True:
         for file_full_path, aws_path in zip(file_full_paths, aws_paths):
-            rospy.loginfo("Uploading {} file..".format(file_path))
+            rospy.loginfo("Uploading {} file..".format(file_full_path))
             client.upload_file(file_full_path, bucket_name, aws_path)
             rospy.loginfo("Completed file upload.")
 
