@@ -24,7 +24,5 @@
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
-  <run_depend>boto3</run_depend>
-  <run_depend>requests</run_depend>
 
 </package>
