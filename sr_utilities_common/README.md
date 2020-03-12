@@ -72,10 +72,10 @@ During installation you will be prompted for a AWS customer key. This key can be
 
 If you can't open the link contact the software team at software@shadowrobot.com.
 
-If you already have a container installed which does not contain an AWS key, retrieve one of the keys from the link above and within your container run the following command:
+**If you already have a container installed which does not contain an AWS key**, retrieve one of the keys from the link above and within your container run the following command:
 
 ```sh
-echo "your_aws_customer_key" | sudo tee /usr/local/bin/customer_key.key
+echo "<your_aws_customer_key>" | sudo tee /usr/local/bin/customer.key
 ```
 
 If you have doubts about this process, contact the software team at software@shadowrobot.com.
