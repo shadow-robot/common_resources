@@ -79,8 +79,8 @@
 #include <netpacket/packet.h>
 #include <pthread.h>
 
-#include "oshw.h"
-#include "osal.h"
+#include "sr_hand_detector/soem/oshw.h"
+#include "sr_hand_detector/soem/osal.h"
 
 /** Redundancy modes */
 enum

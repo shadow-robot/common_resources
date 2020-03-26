@@ -23,7 +23,6 @@
 #include <iostream>
 #include "sr_hand_detector/sr_hand_detector.h"
 
-
 #define _GNU_SOURCE     /* To get defns of NI_MAXSERV and NI_MAXHOST */
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -90,6 +89,28 @@ void SrHandDetector::add_port_name(char* port_name)
     strcpy(port_names_[num_ports_], port_name);
     num_ports_++;
 }
+
+int SrHandDetector::count_slaves(int port)
+{
+    int  w;
+
+    if (port >= num_ports_)
+	{
+        return 0;
+	}
+
+    printf("Checking port %s\n", port_names_[port]);
+
+    if (ec_init(port_names_[port]))
+    {
+       return ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
+    }
+    else
+    {
+        return 0;
+    }   
+}
+
 }
 // #define MAXBUF 32768
 // #define STDBUF 2048

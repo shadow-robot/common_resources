@@ -15,6 +15,7 @@ int main(int argc, char** argv)
   for (int i=0; i<sr_hand_detector.num_ports_; i++)
   {
       ROS_INFO_STREAM(sr_hand_detector.port_names_[i] << std::endl);
+      ROS_INFO_STREAM(sr_hand_detector.count_slaves(i) << std::endl);
   }
   return 0;
 }

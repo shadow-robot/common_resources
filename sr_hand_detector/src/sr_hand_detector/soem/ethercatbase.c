@@ -51,10 +51,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "oshw.h"
-#include "osal.h"
-#include "ethercattype.h"
-#include "ethercatbase.h"
+#include "sr_hand_detector/soem/oshw.h"
+#include "sr_hand_detector/soem/osal.h"
+#include "sr_hand_detector/soem/ethercattype.h"
+#include "sr_hand_detector/soem/ethercatbase.h"
 
 
 /** Generate and set EtherCAT datagram in a standard ethernet frame.

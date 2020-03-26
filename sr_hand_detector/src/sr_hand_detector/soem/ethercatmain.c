@@ -52,11 +52,11 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "osal.h"
-#include "oshw.h"
-#include "ethercattype.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
+#include "sr_hand_detector/soem/osal.h"
+#include "sr_hand_detector/soem/oshw.h"
+#include "sr_hand_detector/soem/ethercattype.h"
+#include "sr_hand_detector/soem/ethercatbase.h"
+#include "sr_hand_detector/soem/ethercatmain.h"
 
 
 /** delay in us for eeprom ready loop */

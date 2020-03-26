@@ -30,7 +30,7 @@ class SrHandDetector
     ~SrHandDetector();
     void find_slaves();
     void get_port_names();
-    void count_slaves();
+    int count_slaves(int);
     void add_port_name(char*);
 
     char* port_names_[MAX_PORTS];
