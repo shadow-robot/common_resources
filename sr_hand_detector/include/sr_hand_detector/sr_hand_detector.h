@@ -17,14 +17,24 @@
 #include "soem/ethercatmain.h"
 #include "soem/ethercatcoe.h"
 
+#define MAX_PORTS 8
 
 namespace sr_hand_detector
 {
 class SrHandDetector
 {
+//   private:
+
   public:
     SrHandDetector();
     ~SrHandDetector();
+    void find_slaves();
+    void get_port_names();
+    void count_slaves();
+    void add_port_name(char*);
+
+    char* port_names_[MAX_PORTS];
+    int num_ports_ = 0;
 };
 
 }  // namespace sr_hand_detector
