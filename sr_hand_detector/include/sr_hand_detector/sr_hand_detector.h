@@ -8,6 +8,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <time.h>
+#include "soem/ethercattype.h"
+#include "soem/ethercatbase.h"
+#include "soem/ethercatmain.h"
+#include "soem/ethercatcoe.h"
 
 
 namespace sr_hand_detector
