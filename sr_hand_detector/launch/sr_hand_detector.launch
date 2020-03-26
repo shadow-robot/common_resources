@@ -1,0 +1,4 @@
+<launch>
+  <arg name="LD_LIBRARY_PATH" default="$(optenv LD_LIBRARY_PATH /opt/ros/melodic/lib/)"/>
+  <node pkg="sr_hand_detector" type="sr_hand_detector_node" name="sr_hand_detector" launch-prefix="sudo -E env LD_LIBRARY_PATH=$(arg LD_LIBRARY_PATH)" output="screen"/>
+</launch>
