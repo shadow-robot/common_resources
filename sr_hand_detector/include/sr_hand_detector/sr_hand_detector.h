@@ -32,9 +32,12 @@ class SrHandDetector
     void get_port_names();
     int count_slaves(int);
     void add_port_name(char*);
+    void detect_hand_ports();
 
-    char* port_names_[MAX_PORTS];
+    char* available_port_names_[MAX_PORTS];
+    char* hand_port_names_[MAX_PORTS];
     int num_ports_ = 0;
+    int num_hands_= 0;
 };
 
 }  // namespace sr_hand_detector

@@ -34,7 +34,7 @@ namespace sr_hand_detector
 {
 SrHandDetector::SrHandDetector()
 {
-  std::cout << "Starting hand detector...";
+  std::cout << "Starting hand detector..." << std::endl;
 }
 
 SrHandDetector::~SrHandDetector()
@@ -50,8 +50,8 @@ void SrHandDetector::get_port_names()
 
     for (i=0; i<MAX_PORTS; i++)
     {
-        port_names_[i] = (char*)malloc(10);
-        port_names_[i][0] = 0;
+        available_port_names_[i] = (char*)malloc(10);
+        available_port_names_[i][0] = 0;
     }
 
     if (getifaddrs(&ifaddr) == -1)
@@ -81,12 +81,12 @@ void SrHandDetector::add_port_name(char* port_name)
 {
     for (int i=0; i<num_ports_; i++)
     {
-        if (strncmp(port_names_[i], port_name, strlen(port_name)) == 0)
+        if (strncmp(available_port_names_[i], port_name, strlen(port_name)) == 0)
         {
             return;
         }
     }
-    strcpy(port_names_[num_ports_], port_name);
+    strcpy(available_port_names_[num_ports_], port_name);
     num_ports_++;
 }
 
@@ -99,9 +99,9 @@ int SrHandDetector::count_slaves(int port)
         return 0;
 	}
 
-    printf("Checking port %s\n", port_names_[port]);
+    printf("Checking port %s\n", available_port_names_[port]);
 
-    if (ec_init(port_names_[port]))
+    if (ec_init(available_port_names_[port]))
     {
        return ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
     }
@@ -109,6 +109,19 @@ int SrHandDetector::count_slaves(int port)
     {
         return 0;
     }   
+}
+
+void SrHandDetector::detect_hand_ports()
+{
+    for (int i=0; i<num_ports_; i++)
+    {
+      if (-1 == count_slaves(i))
+      {
+        // strcpy(hand_port_names_[num_hands_], available_port_names_[i]);
+        std::cout << available_port_names_[i] << std::endl;
+        num_hands_++;
+      }
+    }
 }
 
 }
