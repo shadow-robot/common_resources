@@ -97,7 +97,7 @@ int SrHandDetector::get_hand_serial(std::string port_name)
   {
     read_eeprom(SLAVE_WITH_HAND_SERIAL_, 0x0000, 128);
 
-    wbuf = reinterpret_cast<uint16 *>&ebuf_[0];
+    wbuf = reinterpret_cast<uint16 *>(&ebuf_[0]);
     hand_serial = *reinterpret_cast<uint32 *>(wbuf + 0x0E);
 
     ec_close();
