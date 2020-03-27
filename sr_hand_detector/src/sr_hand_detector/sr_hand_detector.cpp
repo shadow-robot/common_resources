@@ -15,7 +15,8 @@
 */
 
 #include <ros/ros.h>
-#include <string.h>
+#include <string>
+#include <utility>
 #include <ifaddrs.h>
 #include "sr_hand_detector/sr_hand_detector.h"
 
@@ -63,7 +64,7 @@ void SrHandDetector::get_available_port_names()
 
 void SrHandDetector::get_hands_ports_and_serials()
 {
-  for(auto const& port_name: available_port_names_)
+  for (auto const& port_name : available_port_names_)
   {
     if (NUM_OF_SLAVES_EXPECTED_FOR_HAND_ == count_slaves_on_port(port_name))
     {
@@ -84,7 +85,7 @@ int SrHandDetector::count_slaves_on_port(std::string port_name)
   else
   {
     return 0;
-  }   
+  }
 }
 
 int SrHandDetector::get_hand_serial(std::string port_name)
@@ -93,11 +94,11 @@ int SrHandDetector::get_hand_serial(std::string port_name)
   int hand_serial;
   char *port_name_c_str = &port_name[0];
   if (ec_init(port_name_c_str))
-  {   
+  {
     read_eeprom(SLAVE_WITH_HAND_SERIAL_, 0x0000, 128);
 
-    wbuf = (uint16 *)&ebuf_[0];
-    hand_serial = *(uint32 *)(wbuf + 0x0E);
+    wbuf = reinterpret_cast<uint16 *>&ebuf_[0];
+    hand_serial = *reinterpret_cast<uint32 *>(wbuf + 0x0E);
 
     ec_close();
     return hand_serial;
@@ -160,4 +161,4 @@ int SrHandDetector::read_eeprom(int slave, int start, int length)
 
   return 1;
 }
-} // namespace sr_hand_detector
+}  // namespace sr_hand_detector

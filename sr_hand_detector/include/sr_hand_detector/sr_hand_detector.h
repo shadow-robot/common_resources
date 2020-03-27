@@ -52,4 +52,4 @@ class SrHandDetector
 
 }  // namespace sr_hand_detector
 
-#endif  //  SR_HAND_DETECTOR_SR_HAND_DETECTOR_H
+#endif  // SR_HAND_DETECTOR_SR_HAND_DETECTOR_H
