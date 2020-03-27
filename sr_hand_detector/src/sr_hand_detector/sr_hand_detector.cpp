@@ -73,7 +73,6 @@ int SrHandDetector::count_slaves_on_port(std::string port_name)
 
 int SrHandDetector::get_hand_serial(std::string port_name)
 {
-  int rc = 0;
   uint16 *wbuf;
   int hand_serial;
   char *port_name_c_str = &port_name[0];

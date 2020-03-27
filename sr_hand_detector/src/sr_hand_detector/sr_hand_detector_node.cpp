@@ -19,5 +19,7 @@ int main(int argc, char** argv)
     ROS_INFO_STREAM("Hand's serial number: " << x.second);
   }
 
+  ros::param::set("/sr_hand_detector", sr_hand_detector.hand_port_and_serial_map_);
+
   return 0;
 }
