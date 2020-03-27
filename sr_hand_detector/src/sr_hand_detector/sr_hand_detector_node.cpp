@@ -12,12 +12,13 @@ int main(int argc, char** argv)
 
   sr_hand_detector::SrHandDetector sr_hand_detector;
   sr_hand_detector.get_available_port_names();
-  sr_hand_detector.detect_hand_ports();
-  for (int i=0; i<sr_hand_detector.hand_port_names_.size(); i++)
+  sr_hand_detector.get_hands_ports_and_serials();
+
+  for (auto const& x : sr_hand_detector.hand_port_and_serial_map_)
   {
-    // std::cout << sr_hand_detector.available_ports_names_[i] << std::endl;
-    ROS_INFO_STREAM("Detected hand on port: " << sr_hand_detector.hand_port_names_[i]);
-    ROS_INFO_STREAM("Hand's serial number: " << sr_hand_detector.get_hand_serial(sr_hand_detector.hand_port_names_[i]));
+    ROS_INFO_STREAM("Detected hand on port: " << x.first);
+    ROS_INFO_STREAM("Hand's serial number: " << x.second);
   }
+
   return 0;
 }

@@ -62,13 +62,14 @@ int SrHandDetector::count_slaves_on_port(std::string port_name)
     }   
 }
 
-void SrHandDetector::detect_hand_ports()
+void SrHandDetector::get_hands_ports_and_serials()
 {
     for(auto const& available_port_name: available_port_names_)
     {
       if (number_of_slaves_expected_for_hand_ == count_slaves_on_port(available_port_name))
       {
-        hand_port_names_.push_back(available_port_name);
+        int hand_serial = get_hand_serial(available_port_name);
+        hand_port_and_serial_map_.insert(std::pair<std::string, int>(available_port_name, hand_serial));
       }
     }
 }

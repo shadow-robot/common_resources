@@ -33,12 +33,13 @@ class SrHandDetector
     ~SrHandDetector();
     void get_available_port_names();
     void detect_hand_ports();
-    void find_slaves();
+    void get_hands_ports_and_serials();
     int count_slaves_on_port(std::string);
     int get_hand_serial(std::string);
     int read_eeprom(int, int, int);
 
     std::vector<std::string> available_port_names_;
+    std::map<std::string, int> hand_port_and_serial_map_;
     std::vector<std::string> hand_port_names_;
     uint8 ebuf[MAXBUF];
     const int slave_with_hand_serial_ = 2;
