@@ -15,7 +15,7 @@ int main(int argc, char** argv)
   sr_hand_detector.detect_hand_ports();
   for (int i=0; i<sr_hand_detector.num_hands_; i++)
   {
-      ROS_INFO_STREAM(sr_hand_detector.hand_port_names_[i] << std::endl);
+      ROS_INFO_STREAM(sr_hand_detector.get_hand_serial(sr_hand_detector.hand_port_names_[i]) << std::endl);
   }
 
   return 0;
