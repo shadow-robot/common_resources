@@ -18,6 +18,7 @@
 #include "soem/ethercatcoe.h"
 
 #define MAX_PORTS 8
+#define MAXBUF 32768
 
 namespace sr_hand_detector
 {
@@ -33,9 +34,12 @@ class SrHandDetector
     int count_slaves(int);
     void add_port_name(char*);
     void detect_hand_ports();
+    int get_hand_serial(char*);
+    int read_eeprom(int, int, int);
 
     char* available_port_names_[MAX_PORTS];
     char* hand_port_names_[MAX_PORTS];
+    uint8 ebuf[MAXBUF];
     int num_ports_ = 0;
     int num_hands_= 0;
 };

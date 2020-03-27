@@ -52,6 +52,8 @@ void SrHandDetector::get_port_names()
     {
         available_port_names_[i] = (char*)malloc(10);
         available_port_names_[i][0] = 0;
+        hand_port_names_[i] = (char*)malloc(10);
+        hand_port_names_[i][0] = 0;
     }
 
     if (getifaddrs(&ifaddr) == -1)
@@ -115,13 +117,88 @@ void SrHandDetector::detect_hand_ports()
 {
     for (int i=0; i<num_ports_; i++)
     {
-      if (-1 == count_slaves(i))
+      if (2 == count_slaves(i))
       {
-        // strcpy(hand_port_names_[num_hands_], available_port_names_[i]);
-        std::cout << available_port_names_[i] << std::endl;
+        strcpy(hand_port_names_[num_hands_], available_port_names_[i]);
         num_hands_++;
       }
     }
+}
+
+int SrHandDetector::get_hand_serial(char* port_name)
+{
+   struct timeval tstart;
+   int rc = 0, slave = 2;
+   uint16 *wbuf;
+   if (ec_init(port_name))
+   {   
+        rc =  gettimeofday(&tstart, NULL);
+        read_eeprom(slave, 0x0000, 128); // read first 128 bytes
+
+        wbuf = (uint16 *)&ebuf[0];
+        printf(" Serial Number    : %8.8X (decimal = %u)\n",*(uint32 *)(wbuf + 0x0E),*(uint32 *)(wbuf + 0x0E));
+
+      /* stop SOEM, close socket */
+      ec_close();
+   }
+   else
+   {
+      printf("No socket connection on %s\nExcecute as root\n", port_name);
+   }
+}
+
+int SrHandDetector::read_eeprom(int slave, int start, int length)
+{
+   int i, wkc, ainc = 4;
+   uint16 estat, aiadr;
+   uint32 b4;
+   uint64 b8;
+   uint8 eepctl;
+   
+   if((ec_slavecount >= slave) && (slave > 0) && ((start + length) <= MAXBUF))
+   {
+      aiadr = 1 - slave;
+      eepctl = 2;
+      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+      eepctl = 0;
+      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+
+      estat = 0x0000;
+      aiadr = 1 - slave;
+      wkc=ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
+      estat = etohs(estat);
+      if (estat & EC_ESTAT_R64)
+      {
+         ainc = 8;
+         for (i = start ; i < (start + length) ; i+=ainc)
+         {
+            b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
+            ebuf[i] = b8;
+            ebuf[i+1] = b8 >> 8;
+            ebuf[i+2] = b8 >> 16;
+            ebuf[i+3] = b8 >> 24;
+            ebuf[i+4] = b8 >> 32;
+            ebuf[i+5] = b8 >> 40;
+            ebuf[i+6] = b8 >> 48;
+            ebuf[i+7] = b8 >> 56;
+         }
+      }
+      else
+      {
+         for (i = start ; i < (start + length) ; i+=ainc)
+         {
+            b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
+            ebuf[i] = b4;
+            ebuf[i+1] = b4 >> 8;
+            ebuf[i+2] = b4 >> 16;
+            ebuf[i+3] = b4 >> 24;
+         }
+      }
+      
+      return 1;
+   }
+   
+   return 0;
 }
 
 }
