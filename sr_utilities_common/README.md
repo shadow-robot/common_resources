@@ -50,3 +50,58 @@ and use the `enabled` public variable to toggle the node. The enabled variable c
 rostopic pub /example_heartbeat std_msgs/Bool "data: true" -r 20
 ```
 will set the value to `true`. The value is `true` or `false` depending on the value within the publisher's message. If the heartbeat object doesn't hear anything within it's set timeframe (`0.1c` above), user will be warned and `enabled` will be set to `false`.
+
+## AWS manager
+
+### Getting AWS key
+
+`aws_manager.py` is a script allowing files to be uploaded to and download from AWS. 
+
+In order for the script to work, you first need to get the AWS Access Key. To do that, you need to install your container by running the following command: 
+**N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
+
+```sh
+bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
+```
+
+Where:
+- <ethercat_port> is the port to which the hand is connected, e.g. enp5s0.
+- <demohand_serial> is the configuration branch of the hand, e.g. demohand_D
+
+During installation you will be prompted for a AWS customer key. This key can be retrieved from [here](http://10.5.1.13/mediawiki/index.php/Customer_Keys_for_uploading_ROS_Logs), copy and paste one from the Table of Customer Keys.
+
+If you can't open the link contact the software team at software@shadowrobot.com.
+
+**If you already have a container installed which does not contain an AWS key**, retrieve one of the keys from the link above and within your container run the following command:
+
+```sh
+echo "<your_aws_customer_key>" | sudo tee /usr/local/bin/customer.key
+```
+
+If you have doubts about this process, contact the software team at software@shadowrobot.com.
+
+### Uploading and downloading files
+
+An example launch file using this script could look like the one below:
+
+```xml
+<launch>
+  <arg name="download" default="true"/>
+  <arg name="upload" default="false"/>
+  <arg name="bucket_name" default="shadowrobot.example-bucket"/>
+
+  <arg name="files_base_path" default="$(find example_package)"/>
+  <arg name="files_folder_path" default="/example_folder_within_package"/>
+  <arg name="file_names" default="[example_file_0, example_file_1]"/>
+
+  <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
+    <rosparam param="download" subst_value="True">$(arg download)</rosparam>
+    <rosparam param="upload" subst_value="True">$(arg upload)</rosparam>
+    <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
+    <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
+    <rosparam param="bucket_name" subst_value="True">$(arg bucket_name)</rosparam>
+    <rosparam param="file_names" subst_value="True">$(arg file_names)</rosparam>
+  </node>
+```
+
+Launching the above file would upload files `example_file_0` and `example_file_1` located in package `example_package` within folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
