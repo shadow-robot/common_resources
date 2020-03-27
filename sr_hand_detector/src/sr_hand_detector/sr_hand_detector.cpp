@@ -130,11 +130,10 @@ void SrHandDetector::detect_hand_ports()
 
 int SrHandDetector::get_hand_serial(char* ifname)
 {
-   int w, rc = 0, estart, esize;
+   int w, estart, esize;
    int slave = 2;
    uint16 *wbuf;
    int mode = MODE_INFO;
-   struct timeval tstart,tend, tdif;
    
    /* initialise SOEM, bind socket to ifname */
    if (ec_init(ifname))
@@ -142,7 +141,6 @@ int SrHandDetector::get_hand_serial(char* ifname)
       printf("ec_init on %s succeeded.\n",ifname);
             if (mode == MODE_INFO)
             {
-               rc =  gettimeofday(&tstart, NULL);
                read_eeprom(slave, 0x0000, MINBUF); // read first 128 bytes
 
                wbuf = (uint16 *)&ebuf[0];
@@ -185,50 +183,45 @@ int SrHandDetector::read_eeprom(int slave, int start, int length)
    uint64 b8;
    uint8 eepctl;
    
-   if((ec_slavecount >= slave) && (slave > 0) && ((start + length) <= MAXBUF))
-   {
-      aiadr = 1 - slave;
-      eepctl = 2;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
-      eepctl = 0;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+    aiadr = 1 - slave;
+    eepctl = 2;
+    wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+    eepctl = 0;
+    wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
 
-      estat = 0x0000;
-      aiadr = 1 - slave;
-      wkc=ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
-      estat = etohs(estat);
-      if (estat & EC_ESTAT_R64)
-      {
-         ainc = 8;
-         for (i = start ; i < (start + length) ; i+=ainc)
-         {
-            b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-            ebuf[i] = b8;
-            ebuf[i+1] = b8 >> 8;
-            ebuf[i+2] = b8 >> 16;
-            ebuf[i+3] = b8 >> 24;
-            ebuf[i+4] = b8 >> 32;
-            ebuf[i+5] = b8 >> 40;
-            ebuf[i+6] = b8 >> 48;
-            ebuf[i+7] = b8 >> 56;
-         }
-      }
-      else
-      {
-         for (i = start ; i < (start + length) ; i+=ainc)
-         {
-            b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-            ebuf[i] = b4;
-            ebuf[i+1] = b4 >> 8;
-            ebuf[i+2] = b4 >> 16;
-            ebuf[i+3] = b4 >> 24;
-         }
-      }
-      
-      return 1;
-   }
-   
-   return 0;
+    estat = 0x0000;
+    aiadr = 1 - slave;
+    wkc=ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
+    estat = etohs(estat);
+    if (estat & EC_ESTAT_R64)
+    {
+        ainc = 8;
+        for (i = start ; i < (start + length) ; i+=ainc)
+        {
+        b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
+        ebuf[i] = b8;
+        ebuf[i+1] = b8 >> 8;
+        ebuf[i+2] = b8 >> 16;
+        ebuf[i+3] = b8 >> 24;
+        ebuf[i+4] = b8 >> 32;
+        ebuf[i+5] = b8 >> 40;
+        ebuf[i+6] = b8 >> 48;
+        ebuf[i+7] = b8 >> 56;
+        }
+    }
+    else
+    {
+        for (i = start ; i < (start + length) ; i+=ainc)
+        {
+        b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
+        ebuf[i] = b4;
+        ebuf[i+1] = b4 >> 8;
+        ebuf[i+2] = b4 >> 16;
+        ebuf[i+3] = b4 >> 24;
+        }
+    }
+    
+    return 1;
 }
 
 }
