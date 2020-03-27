@@ -21,9 +21,9 @@
 #include <unistd.h>
 #include <time.h>
 #include <iostream>
+#include <algorithm>
 #include "sr_hand_detector/sr_hand_detector.h"
 
-#define _GNU_SOURCE     /* To get defns of NI_MAXSERV and NI_MAXHOST */
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -44,11 +44,9 @@ SrHandDetector::~SrHandDetector()
 void SrHandDetector::get_port_names()
 {
     struct ifaddrs *ifaddr, *ifa;
-    int family, s, n;
-    char host[NI_MAXHOST];
-    int i;
+    int n;
 
-    for (i=0; i<MAX_PORTS; i++)
+    for (int i = 0; i<MAX_PORTS; i++)
     {
         available_port_names_[i] = (char*)malloc(10);
         available_port_names_[i][0] = 0;
@@ -62,17 +60,13 @@ void SrHandDetector::get_port_names()
         exit(EXIT_FAILURE);
     }
 
-    // Walk through linked list, maintaining head pointer so we
-    // can free list later
-
     for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
     {
-        if (ifa->ifa_addr == NULL)
+        if (ifa->ifa_addr == NULL || std::count(available_ports_names_.begin(), available_ports_names_.end(), ifa->ifa_name))
         {
             continue;
         }
-
-        family = ifa->ifa_addr->sa_family;
+        available_ports_names_.push_back(ifa->ifa_name);
         add_port_name(ifa->ifa_name);
     }
 
@@ -101,9 +95,10 @@ int SrHandDetector::count_slaves(int port)
         return 0;
 	}
 
-    printf("Checking port %s\n", available_port_names_[port]);
+    std::cout << "Checking port: " <<  available_ports_names_[port] << std::endl;
 
-    if (ec_init(available_port_names_[port]))
+    char *available_port_name_c_str = &available_ports_names_[port][0];
+    if (ec_init(available_port_name_c_str))
     {
        return ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
     }
@@ -119,7 +114,8 @@ void SrHandDetector::detect_hand_ports()
     {
       if (2 == count_slaves(i))
       {
-        strcpy(hand_port_names_[num_hands_], available_port_names_[i]);
+          char *available_port_name_c_str = &available_ports_names_[i][0];
+        strcpy(hand_port_names_[num_hands_], available_port_name_c_str);
         num_hands_++;
       }
     }
@@ -194,7 +190,8 @@ int SrHandDetector::read_eeprom(int slave, int start, int length)
     return 1;
 }
 
-}
+} // namespace sr_hand_detector
+
 // #define MAXBUF 32768
 // #define STDBUF 2048
 // #define MINBUF 128

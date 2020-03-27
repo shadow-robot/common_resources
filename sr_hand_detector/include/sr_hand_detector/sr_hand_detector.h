@@ -12,6 +12,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <time.h>
+#include <vector>
+#include <map>
+#include <string>
 #include "soem/ethercattype.h"
 #include "soem/ethercatbase.h"
 #include "soem/ethercatmain.h"
@@ -37,6 +40,7 @@ class SrHandDetector
     int get_hand_serial(char*);
     int read_eeprom(int, int, int);
 
+    std::vector<std::string> available_ports_names_;
     char* available_port_names_[MAX_PORTS];
     char* hand_port_names_[MAX_PORTS];
     uint8 ebuf[MAXBUF];
