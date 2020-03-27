@@ -9,6 +9,7 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "sr_hand_detector");
+  ros::NodeHandle nh;
 
   sr_hand_detector::SrHandDetector sr_hand_detector;
   sr_hand_detector.run();
@@ -19,7 +20,7 @@ int main(int argc, char** argv)
     ROS_INFO_STREAM("Hand's serial number: " << x.second);
   }
 
-  ros::param::set("/sr_hand_detector", sr_hand_detector.hand_port_and_serial_map_);
+  nh.setParam("sr_hand_detector", sr_hand_detector.hand_port_and_serial_map_);
 
   return 0;
 }
