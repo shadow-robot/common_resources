@@ -33,124 +33,127 @@ void SrHandDetector::run()
 
 void SrHandDetector::get_available_port_names()
 {
-    struct ifaddrs *ifaddr, *ifa;
-    int n;
+  struct ifaddrs *ifaddr, *ifa;
+  int n;
 
-    if (-1 == getifaddrs(&ifaddr))
+  if (-1 == getifaddrs(&ifaddr))
+  {
+    perror("getifaddrs");
+    exit(EXIT_FAILURE);
+  }
+
+  for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
+  {
+    if (ifa->ifa_addr == NULL || std::count(available_port_names_.begin(),
+                                            available_port_names_.end(),
+                                            ifa->ifa_name))
     {
-        perror("getifaddrs");
-        exit(EXIT_FAILURE);
+      continue;
     }
+  available_port_names_.push_back(ifa->ifa_name);
+  }
 
-    for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
-    {
-        if (ifa->ifa_addr == NULL || std::count(available_port_names_.begin(), available_port_names_.end(), ifa->ifa_name))
-        {
-            continue;
-        }
-        available_port_names_.push_back(ifa->ifa_name);
-    }
-
-    freeifaddrs(ifaddr);
-}
-
-int SrHandDetector::count_slaves_on_port(std::string port_name)
-{
-    int  w;
-    char *port_name_c_str = &port_name[0];
-    if (ec_init(port_name_c_str))
-    {
-       return ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
-    }
-    else
-    {
-        return 0;
-    }   
+  freeifaddrs(ifaddr);
 }
 
 void SrHandDetector::get_hands_ports_and_serials()
 {
-    for(auto const& available_port_name: available_port_names_)
+  for(auto const& port_name: available_port_names_)
+  {
+    if (NUM_OF_SLAVES_EXPECTED_FOR_HAND_ == count_slaves_on_port(port_name))
     {
-      if (number_of_slaves_expected_for_hand_ == count_slaves_on_port(available_port_name))
-      {
-        int hand_serial = get_hand_serial(available_port_name);
-        hand_port_and_serial_map_.insert(std::pair<std::string, int>(available_port_name, hand_serial));
-      }
+      int hand_serial = get_hand_serial(port_name);
+      hand_port_and_serial_map_.insert(std::pair<std::string, int>(port_name, hand_serial));
     }
+  }
+}
+
+int SrHandDetector::count_slaves_on_port(std::string port_name)
+{
+  int  w;
+  char *port_name_c_str = &port_name[0];
+  if (ec_init(port_name_c_str))
+  {
+    return ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);
+  }
+  else
+  {
+    return 0;
+  }   
 }
 
 int SrHandDetector::get_hand_serial(std::string port_name)
 {
-   int rc = 0;
-   uint16 *wbuf;
-   int hand_serial;
-   char *port_name_c_str = &port_name[0];
-   if (ec_init(port_name_c_str))
-   {   
-        read_eeprom(slave_with_hand_serial_, 0x0000, 128); // read first 128 bytes
+  int rc = 0;
+  uint16 *wbuf;
+  int hand_serial;
+  char *port_name_c_str = &port_name[0];
+  if (ec_init(port_name_c_str))
+  {   
+    read_eeprom(SLAVE_WITH_HAND_SERIAL_, 0x0000, 128);
 
-        wbuf = (uint16 *)&ebuf_[0];
-        hand_serial = *(uint32 *)(wbuf + 0x0E);
+    wbuf = (uint16 *)&ebuf_[0];
+    hand_serial = *(uint32 *)(wbuf + 0x0E);
 
-      /* stop SOEM, close socket */
-      ec_close();
-      return hand_serial;
-   }
-   else
-   {
-      printf("No socket connection on %s\nExcecute as root\n", port_name_c_str);
-      return 0;
-   }
+    ec_close();
+    return hand_serial;
+  }
+  else
+  {
+    printf("No socket connection on %s\nExcecute as root\n", port_name_c_str);
+    return 0;
+  }
 }
 
 int SrHandDetector::read_eeprom(int slave, int start, int length)
 {
-   int i, wkc, ainc = 4;
-   uint16 estat, aiadr;
-   uint32 b4;
-   uint64 b8;
-   uint8 eepctl;
+  int i, wkc, ainc = 4;
+  uint16 estat, aiadr;
+  uint32 b4;
+  uint64 b8;
+  uint8 eepctl;
 
-    aiadr = 1 - slave;
-    eepctl = 2;
-    wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
-    eepctl = 0;
-    wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+  aiadr = 1 - slave;
+  eepctl = 2;
+  // force Eeprom from PDI
+  wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET);
+  eepctl = 0;
+  // set Eeprom to master
+  wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET);
 
-    estat = 0x0000;
-    aiadr = 1 - slave;
-    wkc=ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
-    estat = etohs(estat);
-    if (estat & EC_ESTAT_R64)
+  estat = 0x0000;
+  aiadr = 1 - slave;
+  // read eeprom status
+  wkc = ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET);
+  estat = etohs(estat);
+  if (estat & EC_ESTAT_R64)
+  {
+    ainc = 8;
+    for (i = start ; i < (start + length) ; i+=ainc)
     {
-        ainc = 8;
-        for (i = start ; i < (start + length) ; i+=ainc)
-        {
-        b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-        ebuf_[i] = b8;
-        ebuf_[i+1] = b8 >> 8;
-        ebuf_[i+2] = b8 >> 16;
-        ebuf_[i+3] = b8 >> 24;
-        ebuf_[i+4] = b8 >> 32;
-        ebuf_[i+5] = b8 >> 40;
-        ebuf_[i+6] = b8 >> 48;
-        ebuf_[i+7] = b8 >> 56;
-        }
+    b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
+    ebuf_[i] = b8;
+    ebuf_[i+1] = b8 >> 8;
+    ebuf_[i+2] = b8 >> 16;
+    ebuf_[i+3] = b8 >> 24;
+    ebuf_[i+4] = b8 >> 32;
+    ebuf_[i+5] = b8 >> 40;
+    ebuf_[i+6] = b8 >> 48;
+    ebuf_[i+7] = b8 >> 56;
     }
-    else
+  }
+  else
+  {
+    for (i = start ; i < (start + length) ; i+=ainc)
     {
-        for (i = start ; i < (start + length) ; i+=ainc)
-        {
-        b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-        ebuf_[i] = b4;
-        ebuf_[i+1] = b4 >> 8;
-        ebuf_[i+2] = b4 >> 16;
-        ebuf_[i+3] = b4 >> 24;
-        }
+    b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
+    ebuf_[i] = b4;
+    ebuf_[i+1] = b4 >> 8;
+    ebuf_[i+2] = b4 >> 16;
+    ebuf_[i+3] = b4 >> 24;
     }
-    
-    return 1;
+  }
+
+  return 1;
 }
-
 } // namespace sr_hand_detector
