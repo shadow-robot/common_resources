@@ -33,8 +33,8 @@ class SrHandDetector
     ~SrHandDetector();
     void find_slaves();
     void get_port_names();
-    int count_slaves_on_port(std::string);
     void detect_hand_ports();
+    int count_slaves_on_port(std::string);
     int get_hand_serial(std::string);
     int read_eeprom(int, int, int);
 

@@ -94,20 +94,23 @@ int SrHandDetector::get_hand_serial(std::string port_name)
 {
    int rc = 0, slave = 2;
    uint16 *wbuf;
+   int hand_serial;
    char *port_name_c_str = &port_name[0];
    if (ec_init(port_name_c_str))
    {   
         read_eeprom(slave, 0x0000, 128); // read first 128 bytes
 
         wbuf = (uint16 *)&ebuf[0];
-        printf(" Serial Number    : %8.8X (decimal = %u)\n",*(uint32 *)(wbuf + 0x0E),*(uint32 *)(wbuf + 0x0E));
+        hand_serial = *(uint32 *)(wbuf + 0x0E);
 
       /* stop SOEM, close socket */
       ec_close();
+      return hand_serial;
    }
    else
    {
       printf("No socket connection on %s\nExcecute as root\n", port_name_c_str);
+      return 0;
    }
 }
 
