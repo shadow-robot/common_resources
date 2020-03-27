@@ -30,9 +30,6 @@
 #include <ifaddrs.h>
 #include <linux/if_link.h>
 
-#define MINBUF 128
-#define MODE_INFO 6
-
 namespace sr_hand_detector
 {
 SrHandDetector::SrHandDetector()
@@ -128,50 +125,23 @@ void SrHandDetector::detect_hand_ports()
     }
 }
 
-int SrHandDetector::get_hand_serial(char* ifname)
+int SrHandDetector::get_hand_serial(char* port_name)
 {
-   int w, estart, esize;
-   int slave = 2;
+   int rc = 0, slave = 2;
    uint16 *wbuf;
-   int mode = MODE_INFO;
-   
-   /* initialise SOEM, bind socket to ifname */
-   if (ec_init(ifname))
+   if (ec_init(port_name))
    {   
-      printf("ec_init on %s succeeded.\n",ifname);
-            if (mode == MODE_INFO)
-            {
-               read_eeprom(slave, 0x0000, MINBUF); // read first 128 bytes
+        read_eeprom(slave, 0x0000, 128); // read first 128 bytes
 
-               wbuf = (uint16 *)&ebuf[0];
-               printf("Slave %d data\n", slave);
-               printf(" PDI Control      : %4.4X\n",*(wbuf + 0x00));
-               printf(" PDI Config       : %4.4X\n",*(wbuf + 0x01));
-               printf(" Config Alias     : %4.4X\n",*(wbuf + 0x04));
-               printf(" Checksum         : %4.4X\n",*(wbuf + 0x07));
-               //printf("   calculated     : %4.4X\n",SIIcrc(&ebuf[0])); 
-               printf(" Vendor ID        : %8.8X\n",*(uint32 *)(wbuf + 0x08));
-               printf(" Product Code     : %8.8X\n",*(uint32 *)(wbuf + 0x0A));
-               printf(" Revision Number  : %8.8X\n",*(uint32 *)(wbuf + 0x0C));
-               printf(" Serial Number    : %8.8X (decimal = %u)\n",*(uint32 *)(wbuf + 0x0E),*(uint32 *)(wbuf + 0x0E));
-               printf(" Mailbox Protocol : %4.4X\n",*(wbuf + 0x1C));
-               esize = (*(wbuf + 0x3E) + 1) * 128;
-               if (esize > MAXBUF) esize = MAXBUF;
-               printf(" Size             : %4.4X = %d bytes\n",*(wbuf + 0x3E), esize);
-               printf(" Version          : %4.4X\n",*(wbuf + 0x3F));
-            }
+        wbuf = (uint16 *)&ebuf[0];
+        printf(" Serial Number    : %8.8X (decimal = %u)\n",*(uint32 *)(wbuf + 0x0E),*(uint32 *)(wbuf + 0x0E));
 
-      else
-      {
-         printf("No slaves found!\n");
-      }
-      printf("End, close socket\n");
       /* stop SOEM, close socket */
       ec_close();
    }
    else
    {
-      printf("No socket connection on %s\nExcecute as root\n",ifname);
+      printf("No socket connection on %s\nExcecute as root\n", port_name);
    }
 }
 
@@ -182,7 +152,7 @@ int SrHandDetector::read_eeprom(int slave, int start, int length)
    uint32 b4;
    uint64 b8;
    uint8 eepctl;
-   
+
     aiadr = 1 - slave;
     eepctl = 2;
     wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
