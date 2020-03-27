@@ -46,14 +46,6 @@ void SrHandDetector::get_port_names()
     struct ifaddrs *ifaddr, *ifa;
     int n;
 
-    for (int i = 0; i<MAX_PORTS; i++)
-    {
-        available_port_names_[i] = (char*)malloc(10);
-        available_port_names_[i][0] = 0;
-        hand_port_names_[i] = (char*)malloc(10);
-        hand_port_names_[i][0] = 0;
-    }
-
     if (getifaddrs(&ifaddr) == -1)
     {
         perror("getifaddrs");
@@ -62,42 +54,23 @@ void SrHandDetector::get_port_names()
 
     for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
     {
-        if (ifa->ifa_addr == NULL || std::count(available_ports_names_.begin(), available_ports_names_.end(), ifa->ifa_name))
+        if (ifa->ifa_addr == NULL || std::count(available_port_names_.begin(), available_port_names_.end(), ifa->ifa_name))
         {
             continue;
         }
-        available_ports_names_.push_back(ifa->ifa_name);
-        add_port_name(ifa->ifa_name);
+        available_port_names_.push_back(ifa->ifa_name);
     }
 
     freeifaddrs(ifaddr);
-}
-
-void SrHandDetector::add_port_name(char* port_name)
-{
-    for (int i=0; i<num_ports_; i++)
-    {
-        if (strncmp(available_port_names_[i], port_name, strlen(port_name)) == 0)
-        {
-            return;
-        }
-    }
-    strcpy(available_port_names_[num_ports_], port_name);
-    num_ports_++;
 }
 
 int SrHandDetector::count_slaves(int port)
 {
     int  w;
 
-    if (port >= num_ports_)
-	{
-        return 0;
-	}
+    std::cout << "Checking port: " <<  available_port_names_[port] << std::endl;
 
-    std::cout << "Checking port: " <<  available_ports_names_[port] << std::endl;
-
-    char *available_port_name_c_str = &available_ports_names_[port][0];
+    char *available_port_name_c_str = &available_port_names_[port][0];
     if (ec_init(available_port_name_c_str))
     {
        return ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
@@ -110,22 +83,21 @@ int SrHandDetector::count_slaves(int port)
 
 void SrHandDetector::detect_hand_ports()
 {
-    for (int i=0; i<num_ports_; i++)
+    for (int i = 0; i < available_port_names_.size(); i++)
     {
       if (2 == count_slaves(i))
       {
-          char *available_port_name_c_str = &available_ports_names_[i][0];
-        strcpy(hand_port_names_[num_hands_], available_port_name_c_str);
-        num_hands_++;
+        hand_port_names_.push_back(available_port_names_[i]);
       }
     }
 }
 
-int SrHandDetector::get_hand_serial(char* port_name)
+int SrHandDetector::get_hand_serial(std::string port_name)
 {
    int rc = 0, slave = 2;
    uint16 *wbuf;
-   if (ec_init(port_name))
+   char *port_name_c_str = &port_name[0];
+   if (ec_init(port_name_c_str))
    {   
         read_eeprom(slave, 0x0000, 128); // read first 128 bytes
 
@@ -137,7 +109,7 @@ int SrHandDetector::get_hand_serial(char* port_name)
    }
    else
    {
-      printf("No socket connection on %s\nExcecute as root\n", port_name);
+      printf("No socket connection on %s\nExcecute as root\n", port_name_c_str);
    }
 }
 
