@@ -31,6 +31,7 @@ class SrHandDetector
   public:
     SrHandDetector();
     ~SrHandDetector();
+    void run();
     void get_available_port_names();
     void detect_hand_ports();
     void get_hands_ports_and_serials();
@@ -40,8 +41,7 @@ class SrHandDetector
 
     std::vector<std::string> available_port_names_;
     std::map<std::string, int> hand_port_and_serial_map_;
-    std::vector<std::string> hand_port_names_;
-    uint8 ebuf[MAXBUF];
+    uint8 ebuf_[MAXBUF];
     const int slave_with_hand_serial_ = 2;
     const int number_of_slaves_expected_for_hand_ = 2;
 };

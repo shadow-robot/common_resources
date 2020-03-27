@@ -25,6 +25,12 @@ SrHandDetector::~SrHandDetector()
 {
 }
 
+void SrHandDetector::run()
+{
+  get_available_port_names();
+  get_hands_ports_and_serials();
+}
+
 void SrHandDetector::get_available_port_names()
 {
     struct ifaddrs *ifaddr, *ifa;
@@ -84,7 +90,7 @@ int SrHandDetector::get_hand_serial(std::string port_name)
    {   
         read_eeprom(slave_with_hand_serial_, 0x0000, 128); // read first 128 bytes
 
-        wbuf = (uint16 *)&ebuf[0];
+        wbuf = (uint16 *)&ebuf_[0];
         hand_serial = *(uint32 *)(wbuf + 0x0E);
 
       /* stop SOEM, close socket */
@@ -122,14 +128,14 @@ int SrHandDetector::read_eeprom(int slave, int start, int length)
         for (i = start ; i < (start + length) ; i+=ainc)
         {
         b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-        ebuf[i] = b8;
-        ebuf[i+1] = b8 >> 8;
-        ebuf[i+2] = b8 >> 16;
-        ebuf[i+3] = b8 >> 24;
-        ebuf[i+4] = b8 >> 32;
-        ebuf[i+5] = b8 >> 40;
-        ebuf[i+6] = b8 >> 48;
-        ebuf[i+7] = b8 >> 56;
+        ebuf_[i] = b8;
+        ebuf_[i+1] = b8 >> 8;
+        ebuf_[i+2] = b8 >> 16;
+        ebuf_[i+3] = b8 >> 24;
+        ebuf_[i+4] = b8 >> 32;
+        ebuf_[i+5] = b8 >> 40;
+        ebuf_[i+6] = b8 >> 48;
+        ebuf_[i+7] = b8 >> 56;
         }
     }
     else
@@ -137,10 +143,10 @@ int SrHandDetector::read_eeprom(int slave, int start, int length)
         for (i = start ; i < (start + length) ; i+=ainc)
         {
         b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-        ebuf[i] = b4;
-        ebuf[i+1] = b4 >> 8;
-        ebuf[i+2] = b4 >> 16;
-        ebuf[i+3] = b4 >> 24;
+        ebuf_[i] = b4;
+        ebuf_[i+1] = b4 >> 8;
+        ebuf_[i+2] = b4 >> 16;
+        ebuf_[i+3] = b4 >> 24;
         }
     }
     
