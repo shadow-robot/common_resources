@@ -6,19 +6,12 @@
 #ifndef SR_HAND_DETECTOR_SR_HAND_DETECTOR_H
 #define SR_HAND_DETECTOR_SR_HAND_DETECTOR_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <time.h>
 #include <vector>
 #include <map>
 #include <string>
 #include "soem/ethercattype.h"
 #include "soem/ethercatbase.h"
 #include "soem/ethercatmain.h"
-#include "soem/ethercatcoe.h"
 
 #define MAXBUF 32768
 

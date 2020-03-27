@@ -1,24 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <ros/ros.h>
 #include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <time.h>
-#include <iostream>
-#include <algorithm>
-#include "sr_hand_detector/sr_hand_detector.h"
-
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include <ifaddrs.h>
-#include <linux/if_link.h>
+#include "sr_hand_detector/sr_hand_detector.h"
 
 namespace sr_hand_detector
 {
 SrHandDetector::SrHandDetector()
 {
-  std::cout << "Starting hand detector..." << std::endl;
+  ROS_INFO("Starting hand detector...");
 }
 
 SrHandDetector::~SrHandDetector()
@@ -100,7 +89,7 @@ int SrHandDetector::get_hand_serial(std::string port_name)
   }
   else
   {
-    printf("No socket connection on %s\nExcecute as root\n", port_name_c_str);
+    ROS_ERROR_STREAM("No socket connection on " << port_name_c_str << ". Excecute as root.");
     return 0;
   }
 }

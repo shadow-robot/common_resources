@@ -124,7 +124,6 @@ add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/sr_hand_detector.cpp
   src/${PROJECT_NAME}/soem/ethercatmain.c
   src/${PROJECT_NAME}/soem/ethercatbase.c
-  src/${PROJECT_NAME}/soem/ethercatcoe.c
   src/${PROJECT_NAME}/soem/oshw.c
   src/${PROJECT_NAME}/soem/nicdrv.c
   src/${PROJECT_NAME}/soem/osal.c
