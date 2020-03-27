@@ -33,7 +33,7 @@ class SrHandDetector
     ~SrHandDetector();
     void find_slaves();
     void get_port_names();
-    int count_slaves(int);
+    int count_slaves_on_port(std::string);
     void detect_hand_ports();
     int get_hand_serial(std::string);
     int read_eeprom(int, int, int);
@@ -41,7 +41,6 @@ class SrHandDetector
     std::vector<std::string> available_port_names_;
     std::vector<std::string> hand_port_names_;
     uint8 ebuf[MAXBUF];
-    int num_hands_= 0;
 };
 
 }  // namespace sr_hand_detector

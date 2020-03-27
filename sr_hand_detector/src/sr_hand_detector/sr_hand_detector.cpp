@@ -64,13 +64,10 @@ void SrHandDetector::get_port_names()
     freeifaddrs(ifaddr);
 }
 
-int SrHandDetector::count_slaves(int port)
+int SrHandDetector::count_slaves_on_port(std::string port_name)
 {
     int  w;
-
-    std::cout << "Checking port: " <<  available_port_names_[port] << std::endl;
-
-    char *available_port_name_c_str = &available_port_names_[port][0];
+    char *available_port_name_c_str = &port_name[0];
     if (ec_init(available_port_name_c_str))
     {
        return ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
@@ -83,12 +80,13 @@ int SrHandDetector::count_slaves(int port)
 
 void SrHandDetector::detect_hand_ports()
 {
-    for (int i = 0; i < available_port_names_.size(); i++)
+    for(auto const& available_port_name: available_port_names_)
     {
-      if (2 == count_slaves(i))
+      if (2 == count_slaves_on_port(available_port_name))
       {
-        hand_port_names_.push_back(available_port_names_[i]);
+        hand_port_names_.push_back(available_port_name);
       }
+
     }
 }
 
