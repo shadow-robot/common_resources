@@ -56,7 +56,7 @@ void SrHandDetector::get_available_port_names()
     {
       continue;
     }
-  available_port_names_.push_back(ifa->ifa_name);
+    available_port_names_.push_back(ifa->ifa_name);
   }
 
   freeifaddrs(ifaddr);
