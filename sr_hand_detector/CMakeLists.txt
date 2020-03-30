@@ -131,12 +131,38 @@ add_library(${PROJECT_NAME}
 
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+SET(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
+set (CMAKE_CXX_STANDARD 11)
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}/sr_hand_detector_node.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  /opt/ros/melodic/lib/libroscpp_serialization.so
+  -I/opt/ros/melodic/include -L/opt/ros/melodic/lib -lroscpp -lrostime -lrosconsole -lroscpp_serialization
 )
+
+# Set ${target} with RPATH built in so that we can install it suid
+set_target_properties(${PROJECT_NAME}_node PROPERTIES SKIP_BUILD_RPATH FALSE)
+
+# Set the install RPATH to the install path
+set(RPATH "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}")
+
+# If LD_LIBRARY_PATH is set, add it to the install RPATH
+#  this works in a normal catkin environment, but fails if the user unsets
+#  their LD_LIBRARY_PATH manually for some reason
+if(DEFINED ENV{LD_LIBRARY_PATH})
+  set(RPATH "${RPATH}:$ENV{LD_LIBRARY_PATH}")
+endif()
+
+message("Install RPATH for ${PROJECT_NAME}_node is ${RPATH}")
+
+# Apply our computed RPATH to the target
+set_target_properties(${PROJECT_NAME}_node PROPERTIES INSTALL_RPATH ${RPATH})
+
+# Don't use the final RPATH in devel space
+set_target_properties(${PROJECT_NAME}_node PROPERTIES BUILD_WITH_INSTALL_RPATH FALSE)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -173,8 +199,8 @@ target_link_libraries(${PROJECT_NAME}_node
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 # install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#  scripts/my_python_script
+#  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
 ## Mark executables for installation
