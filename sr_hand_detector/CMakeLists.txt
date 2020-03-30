@@ -139,11 +139,9 @@ add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}/sr_hand_detector_node.cp
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  /opt/ros/melodic/lib/libroscpp_serialization.so
-  -I/opt/ros/melodic/include -L/opt/ros/melodic/lib -lroscpp -lrostime -lrosconsole -lroscpp_serialization
 )
 
-# Set ${target} with RPATH built in so that we can install it suid
+# Set ${PROJECT_NAME}_nodewith RPATH built in so that we can install it suid
 set_target_properties(${PROJECT_NAME}_node PROPERTIES SKIP_BUILD_RPATH FALSE)
 
 # Set the install RPATH to the install path

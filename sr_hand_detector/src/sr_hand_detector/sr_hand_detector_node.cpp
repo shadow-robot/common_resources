@@ -25,6 +25,12 @@ int main(int argc, char** argv)
   sr_hand_detector::SrHandDetector sr_hand_detector;
   sr_hand_detector.run();
 
+  if (sr_hand_detector.hand_port_and_serial_map_.empty())
+  {
+    ROS_WARN_STREAM("No hand detected on any of the ports!");
+    return 1;
+  }
+
   for (auto const& x : sr_hand_detector.hand_port_and_serial_map_)
   {
     ROS_INFO_STREAM("Detected hand on port: " << x.first);
