@@ -21,10 +21,10 @@ from sr_robot_commander.sr_hand_commander import SrHandCommander
 
 
 class SrRunTrajectories(object):
-    def __init__(self, trajectories_file_path, arm=True, hand=True, arm_and_hand=True):
+    def __init__(self, trajectories_file_path, arm=True, hand=True):
         self.arm = arm
         self.hand = hand
-        self.arm_and_hand = arm_and_hand
+        self.arm_and_hand = arm and hand
 
         self._arm_trajectories = {}
         self._hand_trajectories = {}
