@@ -69,7 +69,7 @@ void SrHandDetector::get_hands_ports_and_serials()
     if (NUM_OF_SLAVES_EXPECTED_FOR_HAND_ == count_slaves_on_port(port_name))
     {
       int hand_serial = get_hand_serial(port_name);
-      hand_port_and_serial_map_.insert(std::pair<std::string, int>(port_name, hand_serial));
+      hand_serial_and_port_map_.insert(std::pair<int, std::string>(hand_serial, port_name));
     }
   }
 }

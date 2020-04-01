@@ -47,7 +47,7 @@ class SrHandDetector
     ~SrHandDetector();
     void run();
 
-    std::map<std::string, int> hand_port_and_serial_map_;
+    std::map<int, std::string> hand_serial_and_port_map_;
 };
 
 }  // namespace sr_hand_detector
