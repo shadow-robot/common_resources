@@ -16,6 +16,9 @@
 
 #include "ros/ros.h"
 #include "sr_hand_detector/sr_hand_detector.h"
+#include <string>
+#include <map>
+#include <utility>
 
 int main(int argc, char** argv)
 {
