@@ -23,13 +23,13 @@ get_serial_from_arm() {
   sshpass -p easybot ssh root@$1 cat /root/ur-serial
 }
 get_serial_from_file() {
-  if ! test -f "${arm_config_folder}/${1}_serial"; then
-    sudo touch "${arm_config_folder}/${1}_serial"
+  if ! test -f "${arm_config_folder}/arm_${1}_calibration_file"; then
+    sudo touch "${arm_config_folder}/arm_${1}_calibration_file"
   fi
-  cat "${arm_config_folder}/${1}_serial" | sed -r 's/\..*//g'
+  cat "${arm_config_folder}/arm_${1}_calibration_file" | sed -r 's/\..*//g'
 }
 write_serial_to_file() {
-  printf "${1}.yaml" | sudo tee "${arm_config_folder}/${2}_serial"
+  printf "${arm_calibrations_folder}/${1}.yaml" | sudo tee "${arm_config_folder}/arm_${2}_calibration_file"
 }
 save_mac_address(){
   mac_address=$(arp | grep $1 | awk '{print $3}')
@@ -70,6 +70,7 @@ generate_new_calibration_gui(){
   echo "80" ; sleep 1
   echo "# Finished" ; sleep 1
   echo "100" ; sleep 1
+  echo "# Please re-run the launch file to apply the calibration." 
   ) |
   zenity --progress \
     --title="Calibration extration" \
@@ -100,8 +101,9 @@ check_calibration_file_exists(){
   if [[ $1 == "" ]]; then
     serial="does_not_exist"
   else
-    serial=$1
+    serial=$(echo $1 | sed -r 's;.*/;;g')
   fi
+  
   if [[ $(ls $arm_calibrations_folder | grep $serial | wc -l) -eq 0 ]]; then
     echo "true"
   else 
@@ -109,21 +111,39 @@ check_calibration_file_exists(){
   fi
 }
 
-arm_ips=$(echo -e "192.168.1.1\n192.168.2.1")
+does_serial_file_exist() {
+  if test -f "${arm_config_folder}/arm_${1}_calibration_file"; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+check_path_in_serial_file(){
+  if [[ $(cat "$arm_config_folder/arm_$1_calibration_file" | sed 's;[^/]*$;;' | sed 's;/$;;') != $arm_calibrations_folder ]]; then
+    rm "${arm_config_folder}/arm_$1_calibration_file"
+  fi
+}
+
+#arm_ips=$(echo -e "192.168.1.1\n192.168.2.1")
+arm_ips=$(echo -e "192.168.1.1")
+i=1
 for arm_ip in $arm_ips; do
-  if [[ $(has_mac_address_changed $arm_ip) == "true" ]]; then
+  check_path_in_serial_file $i 
+  if [[ $(has_mac_address_changed $arm_ip) == "true" || $(does_serial_file_exist $i) == "false" ]]; then
     save_mac_address $arm_ip
     arm_serial=$(get_serial_from_arm $arm_ip)
-    if [[ $(get_serial_from_file $arm_ip) != "${arm_serial}" ]]; then
-      write_serial_to_file $arm_serial $arm_ip
+    if [[ $(get_serial_from_file $i) != "${arm_serial}" ]]; then
+      write_serial_to_file $arm_serial $i
     fi
   fi
-  serial_in_file=$(get_serial_from_file $arm_ip)
+  serial_in_file=$(get_serial_from_file $i)
+  echo "serial_in_file: $serial_in_file"
   if [[ $(check_calibration_file_exists $serial_in_file) == "true" ]]; then
     arm_serial=$(get_serial_from_arm $arm_ip)
-    if $(zenity --question --text="No arm calibration detected for $arm_ip, do you wish to generate one/?"); then 
+    if $(zenity --question --text="No arm calibration detected for $arm_ip, do you wish to generate one?"); then 
       generate_new_calibration_gui $arm_ip $arm_serial
     fi
   fi
-  sleep 5
+  i=$((i+1))
 done
