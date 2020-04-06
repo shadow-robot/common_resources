@@ -15,6 +15,9 @@ if ! test -d "$(rospack find sr_ur_calibration)/calibrations"; then
     fi
 fi
 
+if ! test -d $arm_config_folder; then
+  mkdir $arm_config_folder
+fi
 
 get_serial_from_arm() {
   sshpass -p easybot ssh root@$1 cat /root/ur-serial
