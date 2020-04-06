@@ -63,10 +63,10 @@ generate_new_calibration_gui(){
   echo "50" ; sleep 2
   echo "60" ; sleep 2
   echo "# Getting calibration extractor PID"
-  ur_calibration_pid=$(ps aux | grep "ros" | grep -v grep | awk '{print $2}')
+  # ur_calibration_pid=$(ps aux | grep "calibration_correction" | grep -v grep | awk '{print $2}')
   echo "70" ; sleep 1
   echo "# Killing calibration extractor" ; sleep 1
-  kill $ur_calibration_pid
+  # kill $ur_calibration_pid
   echo "80" ; sleep 1
   echo "# Finished" ; sleep 1
   echo "100" ; sleep 1
@@ -110,8 +110,7 @@ check_calibration_file_exists(){
 }
 
 arm_ips=$(echo -e "192.168.1.1\n192.168.2.1")
-for arm_ip in arm_ips; do 
-while true; do
+for arm_ip in $arm_ips; do
   if [[ $(has_mac_address_changed $arm_ip) == "true" ]]; then
     save_mac_address $arm_ip
     arm_serial=$(get_serial_from_arm $arm_ip)
@@ -122,7 +121,7 @@ while true; do
   serial_in_file=$(get_serial_from_file $arm_ip)
   if [[ $(check_calibration_file_exists $serial_in_file) == "true" ]]; then
     arm_serial=$(get_serial_from_arm $arm_ip)
-    if $(zenity --question --text="No arm calibration detected, do you wish to generate one/?"); then 
+    if $(zenity --question --text="No arm calibration detected for $arm_ip, do you wish to generate one/?"); then 
       generate_new_calibration_gui $arm_ip $arm_serial
     fi
   fi
