@@ -56,16 +56,16 @@ generate_new_calibration_gui(){
   source /opt/ros/melodic/setup.bash
   source /home/user/projects/shadow_robot/base/devel/setup.bash
   roslaunch ur_calibration calibration_correction.launch robot_ip:=$1 target_filename:="${arm_calibrations_folder}/$2.yaml" | grep -m 1 "Calibration correction done" &
-  echo "20" ; sleep 2
-  echo "30" ; sleep 2
+  echo "20" ; sleep 1
+  echo "30" ; sleep 1
   echo "# waiting"
-  echo "40" ; sleep 2
-  echo "50" ; sleep 2
-  echo "60" ; sleep 2
-  echo "# Getting calibration extractor PID"
+  echo "40" ; sleep 1
+  echo "50" ; sleep 1
+  echo "60" ; sleep 1
+  # echo "# Getting calibration extractor PID"
   # ur_calibration_pid=$(ps aux | grep "calibration_correction" | grep -v grep | awk '{print $2}')
   echo "70" ; sleep 1
-  echo "# Killing calibration extractor" ; sleep 1
+  # echo "# Killing calibration extractor" ; sleep 1
   # kill $ur_calibration_pid
   echo "80" ; sleep 1
   echo "# Finished" ; sleep 1
