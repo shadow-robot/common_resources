@@ -132,9 +132,9 @@ then
   echo "No arm variables set, exiting arm calibration loader"
   exit 0
 fi
-
+arm_ip_addresses=$(echo -e $ARM_IPS)
 i=1
-for arm_ip in $ARM_IPS; do
+for arm_ip in $arm_ip_addresses; do
   check_path_in_serial_file $i
   if [[ $(has_mac_address_changed $arm_ip) == "true" || $(does_serial_file_exist $i) == "false" ]]; then
     save_mac_address $arm_ip
