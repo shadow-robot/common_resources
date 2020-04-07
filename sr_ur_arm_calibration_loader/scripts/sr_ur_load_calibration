@@ -126,10 +126,16 @@ check_path_in_serial_file(){
 }
 
 #arm_ips=$(echo -e "192.168.1.1\n192.168.2.1")
-arm_ips=$(echo -e "192.168.1.1")
+
+if [ -z "$ARM_IPS" ]
+then
+  echo "No arm variables set, exiting arm calibration loader"
+  exit 0
+fi
+
 i=1
-for arm_ip in $arm_ips; do
-  check_path_in_serial_file $i 
+for arm_ip in $ARM_IPS; do
+  check_path_in_serial_file $i
   if [[ $(has_mac_address_changed $arm_ip) == "true" || $(does_serial_file_exist $i) == "false" ]]; then
     save_mac_address $arm_ip
     arm_serial=$(get_serial_from_arm $arm_ip)
