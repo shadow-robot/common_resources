@@ -1,6 +1,6 @@
 ## SR_CONTROLLER_TOOLS
 
-Package that contains modules tools for hand E controllers.
+Package that contains modules to switch, load and run hand E ROS controllers.
 
 ### [sr_controller_helper](https://github.com/shadow-robot/common_resources/blob/melodic-devel/sr_controllers_tools/src/sr_controllers_tools/sr_controller_helper.py)
 
@@ -19,15 +19,6 @@ Then ControllerHelper object needs to be initialised by passing:
 - a list of robot_joint_prefixes (e.g. rh_ or lh_)
 - the list of robot joint names
 
-
-#### Changing force control type
-The force control type which tells the driver which type of force control has to be sent to the motor, can be either PWM (sr_robot_msgs::ControlType::PWM) or torque demand (sr_robot_msgs::ControlType::FORCE). An example is shown in the code snippet below:
-
-```
-change_type_msg = ChangeControlType()
-change_type_msg.control_type = ControlType.PWM
-self.controller_helper.change_force_ctrl_type(change_type_msg)
-```
 
 #### Changing hand control type
 
