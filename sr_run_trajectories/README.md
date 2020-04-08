@@ -23,6 +23,11 @@ srt.run_trajectory('arm_and_hand', 'test_trajectory')
 
 An example node executing trajectories for each move group can be found [here](./scripts/run_trajectories_node.py)
 
+If you are running specific configuration of the robot (e.g. only arm or only hand), you can specify which robot commanders to initialize by using the class constructor,e.g.:
+```python
+srt = SrRunTrajectories(trajectories_file_path, arm=True, hand=False)
+```
+
 ## Getting joint angles
 
 In order to easily get joint angles in the correct order, [this script](./scripts/get_joint_angles.py) can be used. In order to run the script, run:
