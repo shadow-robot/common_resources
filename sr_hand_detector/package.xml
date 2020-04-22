@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sr_hand_detector</name>
+  <version>0.0.0</version>
+  <description>The sr_hand_detector package</description>
+  <maintainer email="software@shadowrobot.com">Shadow Robot's Software Team</maintainer>
+
+  <license>GPL</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>ethercat_grant</exec_depend>
+
+  <export>
+  </export>
+</package>
