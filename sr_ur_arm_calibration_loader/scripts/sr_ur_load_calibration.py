@@ -9,11 +9,14 @@ import roslaunch
 import rospkg
 import Tkinter as tk
 import tkSimpleDialog as simpledialog
-import tkMessageBox as messagebox
+import tkMessageBox as messageBox
+import paramiko
+import sys
+
 
 class SrUrLoadCalibration():
     def __init__(self):
-        os.environ['ARM_IPS'] = "192.168.1.1\n192.168.2.1" # Should be set by aurora, temporary for development
+        os.environ['ARM_IPS'] = "192.168.1.1\n192.168.2.1"  # Should be set by aurora, temporary for development
         self.ur_arm_ssh_username="root"
         self.ur_arm_ssh_password="easybot"
         self.rospack = rospkg.RosPack()
@@ -73,7 +76,7 @@ class SrUrLoadCalibration():
             root.withdraw()
             self.first_gui_instance = False
         question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
-        answer = messagebox.askokcancel("Question", question_string)
+        answer = messageBox.askokcancel("Question", question_string)
         if True == answer:
             self.start_calibration(arm_ip, arm_serial)
             self.set_calibration_file_to_serial(arm_ip, arm_serial)
