@@ -58,10 +58,6 @@ class SrUrLoadCalibration():
         f.close()
         return file_content
 
-    def check_calibration_pointer_file(self, arm_ip, arm_serial):
-        arm_serial_file = os.path.join(self.arm_pointer_folder, str(arm_ip) + '_serial')
-        print self.read_file(arm_serial_file)
-
     def check_arm_calibration_exists(self, arm_serial):
         arm_calibration_file = os.path.join(self.arm_calibrations_folder, arm_serial + '.yaml')
         print arm_calibration_file
@@ -70,7 +66,7 @@ class SrUrLoadCalibration():
         else:
             return False
 
-    def generate_new_calibration(self, arm_ip, arm_serial):
+    def generate_new_arm_calibration(self, arm_ip, arm_serial):
         if self.first_gui_instance:
             root = tk.Tk()
             root.withdraw()
@@ -79,7 +75,7 @@ class SrUrLoadCalibration():
         answer = messageBox.askokcancel("Question", question_string)
         if True == answer:
             self.start_calibration(arm_ip, arm_serial)
-            self.set_calibration_file_to_serial(arm_ip, arm_serial)
+            self.set_pointer_file_to_serial(arm_ip, arm_serial)
             return True
         else: 
             self.set_calibration_file_to_default(arm_ip)
@@ -90,7 +86,7 @@ class SrUrLoadCalibration():
         f.write(calibration_file_location)
         f.close
 
-    def set_calibration_file_to_serial(self, arm_ip, arm_serial):
+    def set_pointer_file_to_serial(self, arm_ip, arm_serial):
         pointer_file_location = os.path.join(self.arm_pointer_folder, arm_ip)
         calibration_file_location = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
         self.write_pointer_file(pointer_file_location, calibration_file_location)
