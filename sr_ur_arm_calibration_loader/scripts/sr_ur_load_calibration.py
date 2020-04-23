@@ -28,11 +28,10 @@ class SrUrLoadCalibration():
         self.first_gui_instance = True
         self.setup_folders()
         # self.check_arm_serial_in_file('192.168.1.1')
-        while not rospy.is_shutdown():
-            try:
-                self.run()
-            except rospy.ROSInterruptException:
-                rospy.loginfo("Shutting down %s", rospy.get_name())
+        try:
+            self.run()
+        except rospy.ROSInterruptException:
+            rospy.loginfo("Shutting down %s", rospy.get_name())
 
     def setup_folders(self):
         for folder in self.arm_pointer_folder, self.arm_calibrations_folder:
@@ -44,9 +43,10 @@ class SrUrLoadCalibration():
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(arm_ip, username=self.ur_arm_ssh_username, password=self.ur_arm_ssh_password)
         stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
+        arm_serial_number = stdout.readline()
         client.close()
-        for line in stdout:
-            arm_serial_number = line.strip('\n')
+        if arm_serial_number == '':
+            rospy.logwarn("Could not retrieve arm serial number via SSH")
         return arm_serial_number
 
     def read_file(self, file_path):
@@ -118,8 +118,8 @@ class SrUrLoadCalibration():
     def run(self):
         for arm_ip in self.arm_ips:
             calibration_generated = False
-            #arm_serial = self.get_serial_from_arm(arm_ip)
-            arm_serial = '1234567'
+            arm_serial = self.get_serial_from_arm(arm_ip)
+            #arm_serial = '1234567'
             if not self.check_arm_calibration_exists(arm_serial):
                 calibration_generated = self.generate_new_arm_calibration(arm_ip, arm_serial)
             if calibration_generated:

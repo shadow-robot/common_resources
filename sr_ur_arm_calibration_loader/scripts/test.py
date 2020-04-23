@@ -66,3 +66,20 @@ parent.start()
 rospy.sleep(8)
 # 3 seconds later
 parent.shutdown()
+
+import paramiko
+
+def get_serial_from_arm(arm_ip):
+import paramiko
+arm_ip = "192.168.1.1"
+ur_arm_ssh_username = "root"
+ur_arm_ssh_password = "easybot"
+client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+client.connect(arm_ip, username=ur_arm_ssh_username, password=ur_arm_ssh_password)
+stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
+print stdin, stdout, stderr
+    client.close()
+    for line in stdout:
+        arm_serial_number = line.strip('\n')
+    return arm_serial_number
