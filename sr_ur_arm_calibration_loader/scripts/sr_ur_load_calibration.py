@@ -94,7 +94,7 @@ class SrUrLoadCalibration():
         calibration_file_location = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
         self.write_pointer_file(pointer_file_location, calibration_file_location)
 
-    def set_calibration_file_to_default(self, arm_ip):
+    def set_pointer_file_to_default(self, arm_ip):
         pointer_file_location = os.path.join(self.arm_pointer_folder, arm_ip)
         self.write_pointer_file(pointer_file_location, self.default_kinematics_config)
 
@@ -123,9 +123,9 @@ class SrUrLoadCalibration():
             if not self.check_arm_calibration_exists(arm_serial):
                 calibration_generated = self.generate_new_arm_calibration(arm_ip, arm_serial)
             if calibration_generated:
-                self.update_arm_calibration_pointer_file(arm_ip, arm_serial)
+                self.set_pointer_file_to_serial(arm_ip, arm_serial)
             else:
-                self.set_calibration_file_to_default(arm_ip)
+                self.set_pointer_file_to_default(arm_ip)
 
 
 if __name__ == "__main__":
