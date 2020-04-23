@@ -5,6 +5,7 @@
 
 import os
 import rospy
+import roslaunch
 import rospkg
 import Tkinter as tk
 import tkSimpleDialog as simpledialog
@@ -15,16 +16,15 @@ class SrUrLoadCalibration():
         os.environ['ARM_IPS'] = "192.168.1.1\n192.168.2.1" # Should be set by aurora, temporary for development
         self.ur_arm_ssh_username="root"
         self.ur_arm_ssh_password="easybot"
-        rospack = rospkg.RosPack()
-        self.sr_ur_arm_calibration_root =  rospack.get_path('sr_ur_arm_calibration_loader')
+        self.rospack = rospkg.RosPack()
+        self.sr_ur_arm_calibration_root =  self.rospack.get_path('sr_ur_arm_calibration_loader')
         self.arm_pointer_folder = os.path.join(self.sr_ur_arm_calibration_root, 'config')
         self.arm_calibrations_folder = os.path.join(self.sr_ur_arm_calibration_root, 'calibrations')
-        self.default_kinematics_config = os.path.join(rospack.get_path('ur_description'), 'config', 'ur10_default.yaml')
+        self.default_kinematics_config = os.path.join(self.rospack.get_path('ur_description'), 'config', 'ur10_default.yaml')
         self.arm_ips = os.getenv('ARM_IPS').split('\n')
         self.first_gui_instance = True
         self.setup_folders()
-	# self.check_arm_serial_in_file('192.168.1.1')
-
+        # self.check_arm_serial_in_file('192.168.1.1')
         while not rospy.is_shutdown():
             try:
                 self.run()
@@ -48,7 +48,7 @@ class SrUrLoadCalibration():
 
     def read_file(self, file_path):
         f = open(file_path, "r")
-	try:
+        try:
             file_content = f.read()
         except:
             rospy.logerr("Unexpected error %s reading %s in node %s", sys.exc_info()[0], file_path, rospy.get_name())
@@ -67,48 +67,65 @@ class SrUrLoadCalibration():
         else:
             return False
 
-    def generate_new_calibration(arm_ip, arm_serial):
+    def generate_new_calibration(self, arm_ip, arm_serial):
         if self.first_gui_instance:
-            ROOT = tk.Tk()
-            ROOT.withdraw()
+            root = tk.Tk()
+            root.withdraw()
             self.first_gui_instance = False
         question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
         answer = messagebox.askokcancel("Question", question_string)
         if True == answer:
-           self.start_calibration(arm_ip, arm_serial)
-           self.set_calibration_file_to_serial(arm_ip, arm_serial)
+            self.start_calibration(arm_ip, arm_serial)
+            self.set_calibration_file_to_serial(arm_ip, arm_serial)
+            return True
         else: 
-           self.set_calibration_file_to_default(arm_ip)
+            self.set_calibration_file_to_default(arm_ip)
+            return False
 
-    def write_pointer_file(pointer_file, calibration_file_location):
+    def write_pointer_file(self, pointer_file, calibration_file_location):
         f = open(pointer_file, "w+")
         f.write(calibration_file_location)
         f.close
 
-    def set_calibration_file_to_serial(arm_ip, arm_serial):
+    def set_calibration_file_to_serial(self, arm_ip, arm_serial):
         pointer_file_location = os.path.join(self.arm_pointer_folder, arm_ip)
         calibration_file_location = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
         self.write_pointer_file(pointer_file_location, calibration_file_location)
 
-    def set_calibration_file_to_default(arm_ip):
+    def set_calibration_file_to_default(self, arm_ip):
         pointer_file_location = os.path.join(self.arm_pointer_folder, arm_ip)
         self.write_pointer_file(pointer_file_location, self.default_kinematics_config)
 
-    def start_calibration(arm_ip, arm_serial):
+    def start_calibration(self, arm_ip, arm_serial):
         output_file = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
-        command = "rosrun ur_calibration calibration_correction robot_ip:=" + arm_ip + " output_filename:=" + output_file
-        self.calibration_node = subprocess.Popen(command , stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+        pkg = 'ur_calibration'
+        launch_file_name = 'calibration_correction.launch'
+        roslaunch_file = os.path.join(self.rospack.get_path(pkg), 'launch', launch_file_name)
+        robot_ip_arg = 'robot_ip:=' + arm_ip
+        output_filename_arg = 'target_filename:=' + output_file
+        cli_args = [roslaunch_file, output_filename_arg, robot_ip_arg]
+        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        roslaunch.configure_logging(uuid)
+        roslaunch_args = cli_args[1:]
+        roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
+        parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+        parent.start()
+        rospy.sleep(8)
+        parent.shutdown()
 
     def run(self):
         for arm_ip in self.arm_ips:
+            calibration_generated = False
             #arm_serial = self.get_serial_from_arm(arm_ip)
             arm_serial = '1234567'
             if not self.check_arm_calibration_exists(arm_serial):
-                self.generate_new_arm_calibration(arm_ip, arm_serial)
-            self.update_arm_calibration_pointer_file(arm_ip, arm_serial)
+                calibration_generated = self.generate_new_arm_calibration(arm_ip, arm_serial)
+            if calibration_generated:
+                self.update_arm_calibration_pointer_file(arm_ip, arm_serial)
+            else:
+                self.set_calibration_file_to_default(arm_ip)
 
 
 if __name__ == "__main__":
     rospy.init_node("sr_ur_load_calibration")
     sr_ur_load_calibration = SrUrLoadCalibration()
-
