@@ -67,11 +67,14 @@ class SrUrLoadCalibration():
             return False
 
     def generate_new_arm_calibration(self, arm_ip, arm_serial):
-        if self.first_gui_instance:
-            root = tk.Tk()
-            root.withdraw()
-            self.first_gui_instance = False
-        question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
+        try:
+            if self.first_gui_instance:
+                root = tk.Tk()
+                root.withdraw()
+                self.first_gui_instance = False
+            question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
+        except:
+            print "Cannot create graphical prompt. If this is running over SSH, are SSH graphics enabled?"
         answer = messageBox.askokcancel("Question", question_string)
         if True == answer:
             self.start_calibration(arm_ip, arm_serial)
