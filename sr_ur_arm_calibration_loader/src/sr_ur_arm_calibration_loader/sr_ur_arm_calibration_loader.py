@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #
 # Copyright (C) 2020 Shadow Robot Company Ltd - All Rights Reserved. Proprietary and Confidential.
 # Unauthorized copying of the content in this file, via any medium is strictly prohibited.
@@ -14,9 +14,11 @@ import paramiko
 import sys
 
 
-class SrUrLoadCalibration():
-    def __init__(self):
-        os.environ['ARM_IPS'] = "192.168.1.1\n192.168.2.1"  # Should be set by aurora, temporary for development
+class SrUrLoadCalibration(object):
+    def __init__(self, arm_ip_list = []):
+        if [] == arm_ip_list:
+            rospy.logerr("No arm IPs specified, cannot find arm calibration")
+        self.arm_is = arm_ip_list
         self.ur_arm_ssh_username="root"
         self.ur_arm_ssh_password="easybot"
         self.rospack = rospkg.RosPack()
@@ -24,17 +26,11 @@ class SrUrLoadCalibration():
         self.arm_pointer_folder = os.path.join(self.sr_ur_arm_calibration_root, 'config')
         self.arm_calibrations_folder = os.path.join(self.sr_ur_arm_calibration_root, 'calibrations')
         self.default_kinematics_config = os.path.join(self.rospack.get_path('ur_description'), 'config', 'ur10_default.yaml')
-        self.arm_ips = os.getenv('ARM_IPS').split('\n')
         self.first_gui_instance = True
         self.setup_folders()
-        # self.check_arm_serial_in_file('192.168.1.1')
-        try:
-            self.run()
-        except rospy.ROSInterruptException:
-            rospy.loginfo("Shutting down %s", rospy.get_name())
 
     def setup_folders(self):
-        for folder in self.arm_pointer_folder, self.arm_calibrations_folder:
+        for folder in self.arm_calibrations_folder:
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
@@ -48,15 +44,6 @@ class SrUrLoadCalibration():
         if arm_serial_number == '':
             rospy.logwarn("Could not retrieve arm serial number via SSH")
         return arm_serial_number
-
-    def read_file(self, file_path):
-        f = open(file_path, "r")
-        try:
-            file_content = f.read()
-        except:
-            rospy.logerr("Unexpected error %s reading %s in node %s", sys.exc_info()[0], file_path, rospy.get_name())
-        f.close()
-        return file_content
 
     def check_arm_calibration_exists(self, arm_serial):
         arm_calibration_file = os.path.join(self.arm_calibrations_folder, arm_serial + '.yaml')
@@ -84,19 +71,6 @@ class SrUrLoadCalibration():
             self.set_calibration_file_to_default(arm_ip)
             return False
 
-    def write_pointer_file(self, pointer_file, calibration_file_location):
-        f = open(pointer_file, "w+")
-        f.write(calibration_file_location)
-        f.close
-
-    def set_pointer_file_to_serial(self, arm_ip, arm_serial):
-        pointer_file_location = os.path.join(self.arm_pointer_folder, arm_ip)
-        calibration_file_location = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
-        self.write_pointer_file(pointer_file_location, calibration_file_location)
-
-    def set_pointer_file_to_default(self, arm_ip):
-        pointer_file_location = os.path.join(self.arm_pointer_folder, arm_ip)
-        self.write_pointer_file(pointer_file_location, self.default_kinematics_config)
 
     def start_calibration(self, arm_ip, arm_serial):
         output_file = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
@@ -115,19 +89,18 @@ class SrUrLoadCalibration():
         rospy.sleep(8)
         parent.shutdown()
 
-    def run(self):
+    def get_calibration_files(self):
+        arm_calibration_info_list = []
         for arm_ip in self.arm_ips:
-            calibration_generated = False
             arm_serial = self.get_serial_from_arm(arm_ip)
-            #arm_serial = '1234567'
-            if not self.check_arm_calibration_exists(arm_serial):
-                calibration_generated = self.generate_new_arm_calibration(arm_ip, arm_serial)
-            if calibration_generated:
-                self.set_pointer_file_to_serial(arm_ip, arm_serial)
+            calibration_exists = self.check_arm_calibration_exists(arm_serial)
+            if not calibration_exists:
+                calibration_exists = self.generate_new_arm_calibration(arm_ip, arm_serial)
+            if calibration_exists:
+                calibration_file_location = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
             else:
-                self.set_pointer_file_to_default(arm_ip)
+                calibration_file_location = self.default_kinematics_config
+            arm_calibration_info_list.append((arm_ip, arm_serial, calibration_file_location))
+        return arm_calibration_info_list
 
 
-if __name__ == "__main__":
-    rospy.init_node("sr_ur_load_calibration")
-    sr_ur_load_calibration = SrUrLoadCalibration()
