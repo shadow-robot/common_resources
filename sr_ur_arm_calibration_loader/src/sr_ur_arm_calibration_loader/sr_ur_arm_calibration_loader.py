@@ -12,27 +12,31 @@ import tkSimpleDialog as simpledialog
 import tkMessageBox as messageBox
 import paramiko
 import sys
+import yaml
+from rosparam import upload_params
 
 
 class SrUrLoadCalibration(object):
-    def __init__(self, arm_ip_list = []):
-        if [] == arm_ip_list:
-            rospy.logerr("No arm IPs specified, cannot find arm calibration")
-        self.arm_is = arm_ip_list
+    def __init__(self, arm_info_in = []):
+        if [] == arm_info_in:
+            rospy.logerr("No arms specified, cannot find arm calibration")
+        self.arm_info_in = arm_info_in
+        rospy.init_node("test")
         self.ur_arm_ssh_username="root"
         self.ur_arm_ssh_password="easybot"
         self.rospack = rospkg.RosPack()
-        self.sr_ur_arm_calibration_root =  self.rospack.get_path('sr_ur_arm_calibration_loader')
-        self.arm_pointer_folder = os.path.join(self.sr_ur_arm_calibration_root, 'config')
+        if 'sr_ur_calibration' in self.rospack.list():
+            self.sr_ur_arm_calibration_root = self.rospack.get_path('sr_ur_calibration')
+        else:
+            self.sr_ur_arm_calibration_root = self.rospack.get_path('sr_ur_arm_calibration_loader')
         self.arm_calibrations_folder = os.path.join(self.sr_ur_arm_calibration_root, 'calibrations')
+        self.setup_folders()
         self.default_kinematics_config = os.path.join(self.rospack.get_path('ur_description'), 'config', 'ur10_default.yaml')
         self.first_gui_instance = True
-        self.setup_folders()
 
     def setup_folders(self):
-        for folder in self.arm_calibrations_folder:
-            if not os.path.exists(folder):
-                os.makedirs(folder)
+        if not os.path.exists(self.arm_calibrations_folder):
+            os.makedirs(self.arm_calibrations_folder)
 
     def get_serial_from_arm(self, arm_ip):
         client = paramiko.SSHClient()   
@@ -65,12 +69,15 @@ class SrUrLoadCalibration(object):
         answer = messageBox.askokcancel("Question", question_string)
         if True == answer:
             self.start_calibration(arm_ip, arm_serial)
-            self.set_pointer_file_to_serial(arm_ip, arm_serial)
             return True
         else: 
-            self.set_calibration_file_to_default(arm_ip)
             return False
 
+    def get_yaml(self, filename):
+        with open(filename) as f:
+            data = yaml.load(f)
+        print data
+        return data
 
     def start_calibration(self, arm_ip, arm_serial):
         output_file = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
@@ -91,7 +98,11 @@ class SrUrLoadCalibration(object):
 
     def get_calibration_files(self):
         arm_calibration_info_list = []
-        for arm_ip in self.arm_ips:
+        for arm_info in self.arm_info_in:
+            arm_ip = arm_info[1]
+            arm_side = arm_info[0]
+            rospy.loginfo('arm_ip: ' + arm_ip)
+            rospy.loginfo('arm_side: ' + arm_side)
             arm_serial = self.get_serial_from_arm(arm_ip)
             calibration_exists = self.check_arm_calibration_exists(arm_serial)
             if not calibration_exists:
@@ -100,7 +111,14 @@ class SrUrLoadCalibration(object):
                 calibration_file_location = os.path.join(self.arm_calibrations_folder, arm_serial + ".yaml")
             else:
                 calibration_file_location = self.default_kinematics_config
-            arm_calibration_info_list.append((arm_ip, arm_serial, calibration_file_location))
+            kinematics_config = self.get_yaml(calibration_file_location)
+            upload_params('/' + arm_side + '_sr_ur_robot_hw', kinematics_config)
+            arm_info = {}
+            arm_info['arm_side'] = arm_side
+            arm_info['arm_ip'] = arm_ip
+            arm_info['arm_serial'] = arm_serial
+            arm_info['kinematics_config'] = calibration_file_location
+            arm_calibration_info_list.append(arm_info)
         return arm_calibration_info_list
 
 
