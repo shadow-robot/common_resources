@@ -44,7 +44,7 @@ class SrUrLoadCalibration(object):
         stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
         arm_serial_number = stdout.readline()
         client.close()
-        if arm_serial_number == '':
+        if '' == arm_serial_number:
             rospy.logwarn("Could not retrieve arm serial number via SSH")
         return arm_serial_number
 
