@@ -1,26 +1,24 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(sr_utilities_common)
+project(sr_hand_detector)
 
-## Add support for C++11, supported in ROS Kinetic and newer
+## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    roslint    
-    std_msgs
+  roscpp
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-catkin_python_setup()
+# catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -32,10 +30,10 @@ catkin_python_setup()
 ##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
 ## * In the file package.xml:
 ##   * add a build_depend tag for "message_generation"
-##   * add a build_depend and a run_depend tag for each package in MSG_DEP_SET
+##   * add a build_depend and a exec_depend tag for each package in MSG_DEP_SET
 ##   * If MSG_DEP_SET isn't empty the following dependency has been pulled in
 ##     but can be declared for certainty nonetheless:
-##     * add a run_depend tag for "message_runtime"
+##     * add a exec_depend tag for "message_runtime"
 ## * In this file (CMakeLists.txt):
 ##   * add "message_generation" and every package in MSG_DEP_SET to
 ##     find_package(catkin REQUIRED COMPONENTS ...)
@@ -80,7 +78,7 @@ catkin_python_setup()
 ## To declare and build dynamic reconfigure parameters within this
 ## package, follow these steps:
 ## * In the file package.xml:
-##   * add a build_depend and a run_depend tag for "dynamic_reconfigure"
+##   * add a build_depend and a exec_depend tag for "dynamic_reconfigure"
 ## * In this file (CMakeLists.txt):
 ##   * add "dynamic_reconfigure" to
 ##     find_package(catkin REQUIRED COMPONENTS ...)
@@ -98,14 +96,14 @@ catkin_python_setup()
 ###################################
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
+## INCLUDE_DIRS: uncomment this if your package contains header files
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS
+ INCLUDE_DIRS include
+ LIBRARIES sr_hand_detector
+ CATKIN_DEPENDS
     roscpp
 #  DEPENDS system_lib
 )
@@ -123,19 +121,56 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-  src/${PROJECT_NAME}/ros_heartbeat.cpp
+  src/${PROJECT_NAME}/sr_hand_detector.cpp
+  src/${PROJECT_NAME}/soem/ethercatmain.c
+  src/${PROJECT_NAME}/soem/ethercatbase.c
+  src/${PROJECT_NAME}/soem/oshw.c
+  src/${PROJECT_NAME}/soem/nicdrv.c
+  src/${PROJECT_NAME}/soem/osal.c
 )
-target_link_libraries(sr_utilities_common ${catkin_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+SET(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
+set (CMAKE_CXX_STANDARD 11)
+add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}/sr_hand_detector_node.cpp)
+
+target_link_libraries(${PROJECT_NAME}_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+# Set ${PROJECT_NAME}_nodewith RPATH built in so that we can install it suid
+set_target_properties(${PROJECT_NAME}_node PROPERTIES SKIP_BUILD_RPATH FALSE)
+
+# Set the install RPATH to the install path
+set(RPATH "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}")
+
+# If LD_LIBRARY_PATH is set, add it to the install RPATH
+#  this works in a normal catkin environment, but fails if the user unsets
+#  their LD_LIBRARY_PATH manually for some reason
+if(DEFINED ENV{LD_LIBRARY_PATH})
+  set(RPATH "${RPATH}:$ENV{LD_LIBRARY_PATH}")
+endif()
+
+message("Install RPATH for ${PROJECT_NAME}_node is ${RPATH}")
+
+# Apply our computed RPATH to the target
+set_target_properties(${PROJECT_NAME}_node PROPERTIES INSTALL_RPATH ${RPATH})
+
+# Don't use the final RPATH in devel space
+set_target_properties(${PROJECT_NAME}_node PROPERTIES BUILD_WITH_INSTALL_RPATH FALSE)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(ros_heartbeat_server_example scripts/${PROJECT_NAME}/ros_heartbeat_server_example.cpp)
+# add_executable(${PROJECT_NAME}_node src/sr_hand_detector_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -148,10 +183,9 @@ add_executable(ros_heartbeat_server_example scripts/${PROJECT_NAME}/ros_heartbea
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ros_heartbeat_server_example
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(${PROJECT_NAME}_node
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -163,15 +197,22 @@ target_link_libraries(ros_heartbeat_server_example
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 # install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#  scripts/my_python_script
+#  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}
+## Mark executables for installation
+## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
+# install(TARGETS ${PROJECT_NAME}_node
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+## Mark libraries for installation
+## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
 ## Mark cpp header files for installation
@@ -180,6 +221,9 @@ install(DIRECTORY include/${PROJECT_NAME}/
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
 )
+
+install(DIRECTORY launch/
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
@@ -193,7 +237,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_common_description.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_sr_hand_detector.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

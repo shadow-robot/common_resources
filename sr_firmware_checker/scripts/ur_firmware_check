@@ -32,12 +32,9 @@ check_firmware_from_ip(){
 
 source ~/projects/shadow_robot/base/devel/setup.bash 
 
-arm_config_files=$(rosls sr_ur_arm_config/config/ | grep robot_hw.yaml)
-for arm in $arm_config_files ; do 
-  arm_ip=$(roscat sr_ur_arm_config $arm | grep robot_ip_address | sed -r 's/robot_ip_address: //g')
-  if [[ $(arp | grep $arm_ip | wc -l) -gt 0 ]]; then
+arm_ips=$(echo -e $arm_ips)
+for arm_ip in $arm_ips ; do 
     echo "Checking firmware of arm at: $arm_ip"
     check_firmware_from_ip $arm_ip
-  fi
 done
 
