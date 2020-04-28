@@ -39,7 +39,7 @@ class SrUrLoadCalibration():
                 os.makedirs(folder)
 
     def get_serial_from_arm(self, arm_ip):
-        client = paramiko.SSHClient()
+        client = paramiko.SSHClient()   
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(arm_ip, username=self.ur_arm_ssh_username, password=self.ur_arm_ssh_password)
         stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
