@@ -19,7 +19,6 @@ import rospy
 import roslaunch
 import rospkg
 import Tkinter as tk
-import tkSimpleDialog as simpledialog
 import tkMessageBox as messageBox
 import paramiko
 import sys
