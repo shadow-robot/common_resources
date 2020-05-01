@@ -105,3 +105,38 @@ An example launch file using this script could look like the one below:
 ```
 
 Launching the above file would upload files `example_file_0` and `example_file_1` located in package `example_package` within folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
+
+## Conditional Delayed Ros Tool
+
+This script allows to delay the launch of ros launch files and nodes. It checks on the roscore whether the required conditions have been correctly initialized until the timout exceeds.
+
+### Fields
+
+The node **requires** the following parameters:
+- package_name: the package in which the executable is stored
+- executable_name: could be the name of the roslaunch (without the .launch) or the name of the node
+- executable_type: this field has to be set to either **launch** or **node** and defines the type of executable that has to be run
+- timeout: after how long the script should give up waiting for the required conditions
+- launch_args_list: the list of arguments that has to be passed to the launch file or node
+
+The following are not mandatory and allows to define the conditions necessary to launch the wanted executable:
+- topics_list: the list of topics that should be available on roscore before launching
+- params_list: the list of parameters that should be available on roscore before launching
+- services_list: the list of services that should be advertised before launching
+
+You only need to specify the list you want. For instance, if there are no topics to wait for, you don't need to pass an empty list.
+
+### Real code example
+
+```xml
+<node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen">
+  <param name="package_name" value="sr_teleop_launch" />
+  <param name="executable_name" value="teleop_core_nodes.launch" />
+  <param name="executable_type" value="launch" />
+  <rosparam param="topics_list">[/rh_trajectory_controller/command, /ros_heartbeat]</rosparam>
+  <rosparam param="params_list">[/robot_description]</rosparam>
+  <rosparam param="services_list">[/get_planning_scene]</rosparam>
+  <param name="launch_args_list" value="sim:=$(arg sim) hand:=$(arg hand) vive:=$(arg vive) jog_arm:=$(arg jog_arm) moveit_arm:=$(arg moveit_arm) moley_arm:=$(arg moley_arm) tracker:=$(arg tracker) tracker_id:=$(arg tracker_id) wrist_wand_id:=$(arg wrist_wand_id) control_wand_id:=$(arg control_wand_id) soft_start_time:=$(arg soft_start_time) local_vive_prefix:=$(arg local_vive_prefix) user_root_tf_name:=$(arg user_root_tf_name) user_forearm_tf_name:=$(arg user_forearm_tf_name) user_wrist_tf_name:=$(arg user_wrist_tf_name) dataflow_handler_config_file_path:=$(arg dataflow_handler_config_file_path) log_topics:='$(arg log_topics)' log_bag_prefix:=$(arg log_bag_prefix) require_trigger:=$(arg require_trigger) require_pedal:=$(arg require_pedal) pedal:=$(arg pedal) side:=$(arg side) wrist_zero:=$(arg wrist_zero)" />
+  <param name="timeout" value="60.0" />
+</node>
+```

@@ -55,7 +55,8 @@ class RosElementsHandler(object):
                 rospy.loginfo("Found %s", element)
                 required_elements_list.remove(element)
 
-def wait_for_conditions(conditions_to_satisfy, timeout=None):
+
+def wait_for_conditions(conditions_to_satisfy, timeout):
     time = rospy.Time.now() + rospy.Duration(timeout)
     all_conditions_satisfied = False
 
@@ -71,7 +72,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout=None):
             except TimeoutException as e:
                 rospy.logerr("Timeout of {}s exceeded".format(e.timeout))
                 for condition_type, condition in conditions_to_satisfy.iteritems():
-                    if conditions_to_satisfy[condition_type] is not None:
+                    if condition.missing_elements:
                         rospy.logerr('Could not find the following {}s: {}'.format(condition_type, condition.missing_elements))
             break
     return all_conditions_satisfied
@@ -80,10 +81,11 @@ if __name__ == "__main__":
     rospy.init_node('conditional_delayed_roslaunch', anonymous=True)
 
     conditions_to_satisfy = {}
-
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
     executable_type = rospy.get_param("~executable_type")
+    arguments_list = rospy.get_param("~launch_args_list")
+    timeout = rospy.get_param("~timeout")
 
     if rospy.has_param('~topics_list'):
         topics_list = rospy.get_param("~topics_list")
@@ -94,9 +96,6 @@ if __name__ == "__main__":
     if rospy.has_param('~services_list'):
         services_list = rospy.get_param("~services_list")
         conditions_to_satisfy["service"] = RosElementsHandler("service", services_list)
-
-    arguments_list = rospy.get_param("~launch_args_list")
-    timeout = rospy.get_param("~timeout")
 
     all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
 
