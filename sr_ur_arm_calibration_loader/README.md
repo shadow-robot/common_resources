@@ -1,14 +1,15 @@
 # sr_ur_arm_calibration_loader
 A class that finds/generates a calibration file for whichever UR arms are currently connected.
 
-Calling `get_calibration_files()` will also push the retrieved calibration files to the parameter server
+Calling `get_calibration_files()` will also push the retrieved calibration files to the parameter server.
 
 
 ## How to use it
 
 ### Unimanual
 ```python
-arm1 = ('ra', '192.168.1.1')
+arm_type='UR10e'
+arm1 = ('ra', '192.168.1.1', arm_type)
 sr_ur_load_calibration = SrUrLoadCalibration([arm1])
 arm_info = sr_ur_load_calibration.get_calibration_files()
 
@@ -27,8 +28,9 @@ kinematics_config /home/user/projects/shadow_robot/base/src/common_resources/sr_
 
 ### Bimanual
 ```python
-arm1 = ('ra', '192.168.1.1')
-arm2 = ('la', '192.168.2.1')
+arm_type='UR10'
+arm1 = ('ra', '192.168.1.1', arm_type)
+arm2 = ('la', '192.168.2.1', arm_type)
 sr_ur_load_calibration = SrUrLoadCalibration([arm1, arm2])
 
 for arm in arms_info:
