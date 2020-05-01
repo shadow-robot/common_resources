@@ -55,48 +55,56 @@ class RosElementsHandler(object):
                 rospy.loginfo("Found %s", element)
                 required_elements_list.remove(element)
 
-
-if __name__ == "__main__":
-    rospy.init_node('conditional_delayed_roslaunch', anonymous=True)
-
-    package_name = rospy.get_param("~package_name")
-    executable_name = rospy.get_param("~executable_name")
-    executable_type = rospy.get_param("~executable_type")
-    topics_list = rospy.get_param("~topics_list")
-    params_list = rospy.get_param("~params_list")
-    services_list = rospy.get_param("~services_list")
-    arguments_list = rospy.get_param("~launch_args_list")
-    timeout = rospy.get_param("~timeout")
-
-    topic_handler = RosElementsHandler("topic", topics_list)
-    param_handler = RosElementsHandler("param", params_list)
-    service_handler = RosElementsHandler("service", services_list)
-
+def wait_for_conditions(conditions_to_satisfy, timeout=None):
     time = rospy.Time.now() + rospy.Duration(timeout)
     all_conditions_satisfied = False
+
     while not all_conditions_satisfied:
-        all_topics_available = topic_handler.execute()
-        all_params_available = param_handler.execute()
-        all_services_available = service_handler.execute()
-        if all_topics_available and all_params_available and all_services_available:
+        all_conditions_satisfied_list = []
+        for wait_for_condition in conditions_to_satisfy.values():
+            all_conditions_satisfied_list.append(wait_for_condition.execute())
+        if all(satisfied for satisfied in all_conditions_satisfied_list):
             all_conditions_satisfied = True
         if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
             try:
                 raise TimeoutException(timeout)
             except TimeoutException as e:
                 rospy.logerr("Timeout of {}s exceeded".format(e.timeout))
-                if topic_handler.missing_elements:
-                    rospy.logerr('Could not find the following topics: %s', topic_handler.missing_elements)
-                if param_handler.missing_elements:
-                    rospy.logerr('Could not find the following params: %s', param_handler.missing_elements)
-                if service_handler.missing_elements:
-                    rospy.logerr('Could not find the following sevices: %s', service_handler.missing_elements)
+                for condition_type, condition in conditions_to_satisfy.iteritems():
+                    if conditions_to_satisfy[condition_type] is not None:
+                        rospy.logerr('Could not find the following {}s: {}'.format(condition_type, condition.missing_elements))
             break
+    return all_conditions_satisfied
 
-    if all_conditions_satisfied:
+if __name__ == "__main__":
+    rospy.init_node('conditional_delayed_roslaunch', anonymous=True)
+
+    conditions_to_satisfy = {}
+
+    package_name = rospy.get_param("~package_name")
+    executable_name = rospy.get_param("~executable_name")
+    executable_type = rospy.get_param("~executable_type")
+
+    if rospy.has_param('~topics_list'):
+        topics_list = rospy.get_param("~topics_list")
+        conditions_to_satisfy["topic"] = RosElementsHandler("topic", topics_list)
+    if rospy.has_param('~params_list'):
+        params_list = rospy.get_param("~params_list")
+        conditions_to_satisfy["param"] = RosElementsHandler("param", params_list)
+    if rospy.has_param('~services_list'):
+        services_list = rospy.get_param("~services_list")
+        conditions_to_satisfy["service"] = RosElementsHandler("service", services_list)
+
+    arguments_list = rospy.get_param("~launch_args_list")
+    timeout = rospy.get_param("~timeout")
+
+    all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
+
+    if all_conditions_satisfied: 
         if executable_type == "node":
-            os.system("rosrun {} {}".format(package_name, executable_name, arguments_list))
+            os.system("rosrun {} {} {}".format(package_name, executable_name, arguments_list))
         elif executable_type == "launch":
             os.system("roslaunch {} {} {}".format(package_name, executable_name, arguments_list))
     else:
-        rospy.logerr("Could not launch {} {}, make sure all required conditions are met".format(package_name, executable_name))
+        rospy.logerr("Could not launch {} {}, make sure all required conditions are met".format(package_name,
+                                                                                                executable_name))
