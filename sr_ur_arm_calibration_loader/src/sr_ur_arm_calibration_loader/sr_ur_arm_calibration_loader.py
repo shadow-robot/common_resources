@@ -29,28 +29,30 @@ from rosparam import upload_params
 
 class SrUrLoadCalibration(object):
     def __init__(self, arm_info_in=[]):
+        self._default_kinematics_config = ''
+        self._arm_calibrations_folder = ''
         if [] == arm_info_in:
             rospy.logerr("No arms specified, cannot find arm calibration")
         self._arm_info_in = arm_info_in
-        arm_type = self._arm_info_in[2].lower()
-        self.ur_arm_ssh_username = "root"
-        self.ur_arm_ssh_password = "easybot"
+        CONST_ARM_TYPE = self._arm_info_in[0]['arm_type'].lower()
+        self._ur_arm_ssh_username = "root"
+        self._ur_arm_ssh_password = "easybot"
         self._first_gui_instance = True
         self._rospack = rospkg.RosPack()
         if 'sr_ur_calibration' in self._rospack.list():
-            sr_ur_arm_calibration_root = self._rospack.get_path('sr_ur_calibration')
+            CONST_SR_UR_ARM_CALIBRATION_ROOT = self._rospack.get_path('sr_ur_calibration')
         else:
-            sr_ur_arm_calibration_root = self._rospack.get_path('sr_ur_arm_calibration_loader')
-        self._arm_calibrations_folder = os.path.join(sr_ur_arm_calibration_root, 'calibrations')
+            CONST_SR_UR_ARM_CALIBRATION_ROOT = self._rospack.get_path('sr_ur_arm_calibration_loader')
+        self._arm_calibrations_folder = os.path.join(CONST_SR_UR_ARM_CALIBRATION_ROOT, 'calibrations')
         self._setup_folders()
-        if 'e' in arm_type:
+        if 'e' in CONST_ARM_TYPE:
             self._default_kinematics_config = os.path.join(self._rospack.get_path('ur_e_description'),
-                                                           'config', arm_type + '_default.yaml')
+                                                           'config', CONST_ARM_TYPE + '_default.yaml')
         else:
             self._default_kinematics_config = os.path.join(self._rospack.get_path('ur_description'),
-                                                           'config', arm_type + '_default.yaml')
+                                                           'config', CONST_ARM_TYPE + '_default.yaml')
         if not os.path.isfile(self._default_kinematics_config):
-            rospy.logerr('Arm type ' + arm_type + ' not recognised.')
+            rospy.logerr('Arm type ' + CONST_ARM_TYPE + ' not recognised.')
 
     def _setup_folders(self):
         if not os.path.exists(self._arm_calibrations_folder):
@@ -59,7 +61,7 @@ class SrUrLoadCalibration(object):
     def _get_serial_from_arm(self, arm_ip):
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(arm_ip, username=self.ur_arm_ssh_username, password=self.ur_arm_ssh_password)
+        client.connect(arm_ip, username=self._ur_arm_ssh_username, password=self._ur_arm_ssh_password)
         stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
         arm_serial_number = stdout.readline()
         client.close()
@@ -115,8 +117,8 @@ class SrUrLoadCalibration(object):
     def get_calibration_files(self):
         arm_calibration_info_list = []
         for arm_info in self._arm_info_in:
-            arm_ip = arm_info[1]
-            arm_side = arm_info[0]
+            arm_ip = arm_info['ip_address']
+            arm_side = arm_info['prefix']
             rospy.loginfo('arm_ip: ' + arm_ip)
             rospy.loginfo('arm_side: ' + arm_side)
             arm_serial = self._get_serial_from_arm(arm_ip)
@@ -129,11 +131,10 @@ class SrUrLoadCalibration(object):
                 calibration_file_location = self._default_kinematics_config
             kinematics_config = self._get_yaml(calibration_file_location)
             upload_params('/' + arm_side + '_sr_ur_robot_hw', kinematics_config)
-            arm_info = {}
-            arm_info['arm_side'] = arm_side
-            arm_info['arm_ip'] = arm_ip
-            arm_info['arm_serial'] = arm_serial
-            arm_info['kinematics_config'] = calibration_file_location
+            arm_info_out = {}
+            arm_info_out['prefix'] = arm_side
+            arm_info_out['ip_address'] = arm_ip
+            arm_info_out['arm_serial'] = arm_serial
+            arm_info_out['kinematics_config'] = calibration_file_location
             arm_calibration_info_list.append(arm_info)
         return arm_calibration_info_list
-
