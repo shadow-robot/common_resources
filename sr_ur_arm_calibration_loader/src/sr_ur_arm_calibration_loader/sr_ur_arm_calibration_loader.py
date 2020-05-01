@@ -79,7 +79,7 @@ class SrUrLoadCalibration(object):
     def _generate_new_arm_calibration(self, arm_ip, arm_serial):
         try:
             root = tk.Tk()
-            root.withdraw()            
+            root.withdraw()
             question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
         except:
             rospy.logerr("Cannot create graphical prompt. If this is running over SSH, are SSH graphics enabled?")
