@@ -20,25 +20,25 @@ import rosservice
 from multiprocessing import Process
 
 class TimeoutException(Exception):
-    def __init__(self):
-        pass
+    def __init__(self, timeout):
+        self.timeout = timeout
 
     def __str__(self):
-        return "TimeoutException"
+        return "TimeoutException: Timeout of {} exceeded".format(self.timeout)
 
 class RosElementsHandler(object):
-    def __init__(self, element_type, required_elements_array):
+    def __init__(self, element_type, required_elements_list):
         self._element_type = element_type
-        self._required_elements_array = required_elements_array
+        self._required_elements_list = required_elements_list
         self.missing_elements = []
 
     def execute(self):
         all_elements_available = False
         roscore_published_elements = self._retrieve_available_elements(self._element_type)
-        self._check_if_element_is_available(roscore_published_elements, self._required_elements_array)
-        if 0 == len(self._required_elements_array):
+        self._check_if_element_is_available(roscore_published_elements, self._required_elements_list)
+        if 0 == len(self._required_elements_list):
             all_elements_available = True
-        self.missing_elements = self._required_elements_array
+        self.missing_elements = self._required_elements_list
         return all_elements_available
 
     def _retrieve_available_elements(self, object_type):
@@ -49,11 +49,11 @@ class RosElementsHandler(object):
         elif object_type == "param":
             return rospy.get_param_names()
 
-    def _check_if_element_is_available(self, roscore_published_elements, required_elements_array):
-        for element in required_elements_array:
+    def _check_if_element_is_available(self, roscore_published_elements, required_elements_list):
+        for element in required_elements_list:
             if any(element in sublist for sublist in roscore_published_elements):
                 rospy.loginfo("Found %s", element)
-                required_elements_array.remove(element)
+                required_elements_list.remove(element)
 
 
 if __name__ == "__main__":
@@ -62,18 +62,17 @@ if __name__ == "__main__":
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
     executable_type = rospy.get_param("~executable_type")
-    topics_array = rospy.get_param("~topics_array")
-    params_array = rospy.get_param("~params_array")
-    services_array = rospy.get_param("~services_array")
-    arguments_array = rospy.get_param("~arguments_array")
+    topics_list = rospy.get_param("~topics_list")
+    params_list = rospy.get_param("~params_list")
+    services_list = rospy.get_param("~services_list")
+    arguments_list = rospy.get_param("~launch_args_list")
     timeout = rospy.get_param("~timeout")
-    timeout = rospy.Duration(1.0)
 
-    topic_handler = RosElementsHandler("topic", topics_array)
-    param_handler = RosElementsHandler("param", params_array)
-    service_handler = RosElementsHandler("service", services_array)
+    topic_handler = RosElementsHandler("topic", topics_list)
+    param_handler = RosElementsHandler("param", params_list)
+    service_handler = RosElementsHandler("service", services_list)
 
-    time = rospy.Time.now() + timeout
+    time = rospy.Time.now() + rospy.Duration(timeout)
     all_conditions_satisfied = False
     while not all_conditions_satisfied:
         all_topics_available = topic_handler.execute()
@@ -83,9 +82,9 @@ if __name__ == "__main__":
             all_conditions_satisfied = True
         if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
             try:
-                raise TimeoutException
+                raise TimeoutException(timeout)
             except TimeoutException as e:
-                rospy.logerr("Timeout exceeded %s", e)
+                rospy.logerr("Timeout of {}s exceeded".format(e.timeout))
                 if topic_handler.missing_elements:
                     rospy.logerr('Could not find the following topics: %s', topic_handler.missing_elements)
                 if param_handler.missing_elements:
@@ -96,9 +95,8 @@ if __name__ == "__main__":
 
     if all_conditions_satisfied:
         if executable_type == "node":
-            os.system("rosrun {} {}")
+            os.system("rosrun {} {}".format(package_name, executable_name, arguments_list))
         elif executable_type == "launch":
-            print("roslaunch {} {} {}".format(package_name, executable_name, " ".join(arguments_array)))
-            os.system("roslaunch {} {} {}".format(package_name, executable_name, " ".join(arguments_array)))
+            os.system("roslaunch {} {} {}".format(package_name, executable_name, arguments_list))
     else:
-        print("Could not launch bro")
+        rospy.logerr("Could not launch {} {}, make sure all required conditions are met".format(package_name, executable_name))
