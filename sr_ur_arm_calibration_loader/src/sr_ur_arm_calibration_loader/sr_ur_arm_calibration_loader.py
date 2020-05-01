@@ -78,14 +78,13 @@ class SrUrLoadCalibration(object):
 
     def _generate_new_arm_calibration(self, arm_ip, arm_serial):
         try:
-            if self._first_gui_instance:
-                root = tk.Tk()
-                root.withdraw()
-                self._first_gui_instance = False
+            root = tk.Tk()
+            root.withdraw()            
             question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
         except:
             rospy.logerr("Cannot create graphical prompt. If this is running over SSH, are SSH graphics enabled?")
         answer = messageBox.askokcancel("Question", question_string)
+        root.destroy()
         if answer is True:
             self._start_calibration(arm_ip, arm_serial)
             return True
@@ -119,8 +118,6 @@ class SrUrLoadCalibration(object):
         for arm_info in self._arm_info_in:
             arm_ip = arm_info['ip_address']
             arm_side = arm_info['prefix']
-            rospy.loginfo('arm_ip: ' + arm_ip)
-            rospy.loginfo('arm_side: ' + arm_side)
             arm_serial = self._get_serial_from_arm(arm_ip)
             calibration_exists = self._check_arm_calibration_exists(arm_serial)
             if not calibration_exists:
