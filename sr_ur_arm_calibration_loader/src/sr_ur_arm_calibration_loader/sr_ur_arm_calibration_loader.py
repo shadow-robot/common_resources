@@ -22,8 +22,8 @@ class SrUrLoadCalibration(object):
             rospy.logerr("No arms specified, cannot find arm calibration")
         self._arm_info_in = arm_info_in
         arm_type = self._arm_info_in[2].lower()
-        self.ur_arm_ssh_username="root"
-        self.ur_arm_ssh_password="easybot"
+        self.ur_arm_ssh_username= "root"
+        self.ur_arm_ssh_password= "easybot"
         self._first_gui_instance = True
         self._rospack = rospkg.RosPack()
         if 'sr_ur_calibration' in self._rospack.list():
@@ -33,11 +33,13 @@ class SrUrLoadCalibration(object):
         self._arm_calibrations_folder = os.path.join(sr_ur_arm_calibration_root, 'calibrations')
         self._setup_folders()
         if 'e' in arm_type:
-            self._default_kinematics_config = os.path.join(self._rospack.get_path('ur_e_description'), 'config', arm_type + '_default.yaml')
+            self._default_kinematics_config = os.path.join(self._rospack.get_path('ur_e_description'),
+                                                           'config', arm_type + '_default.yaml')
         else:
-            self._default_kinematics_config = os.path.join(self._rospack.get_path('ur_description'), 'config', arm_type + '_default.yaml')
+            self._default_kinematics_config = os.path.join(self._rospack.get_path('ur_description'),
+                                                           'config', arm_type + '_default.yaml')
         if not os.path.isfile(self._default_kinematics_config):
-            rospy.logerr('Arm type ' + arm_type + ' not recognised.'
+            rospy.logerr('Arm type ' + arm_type + ' not recognised.')
 
     def _setup_folders(self):
         if not os.path.exists(self._arm_calibrations_folder):
