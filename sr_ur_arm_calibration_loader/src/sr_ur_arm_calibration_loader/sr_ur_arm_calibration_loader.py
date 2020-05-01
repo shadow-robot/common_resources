@@ -66,7 +66,8 @@ class SrUrLoadCalibration(object):
         arm_serial_number = stdout.readline()
         client.close()
         if '' == arm_serial_number:
-            rospy.logwarn("Could not retrieve arm serial number via SSH")
+            rospy.logwarn("Could not retrieve arm serial number via SSH, arm will NOT be calibrated.")
+            arm_serial_number = self._default_kinematics_config
         return arm_serial_number
 
     def _check_arm_calibration_exists(self, arm_serial):
@@ -133,5 +134,5 @@ class SrUrLoadCalibration(object):
             arm_info_out['ip_address'] = arm_ip
             arm_info_out['arm_serial'] = arm_serial
             arm_info_out['kinematics_config'] = calibration_file_location
-            arm_calibration_info_list.append(arm_info)
+            arm_calibration_info_list.append(arm_info_out)
         return arm_calibration_info_list
