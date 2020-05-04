@@ -103,7 +103,6 @@ class SrUrLoadCalibration(object):
         except:
             rospy.logerr("Cannot create graphical prompt. If this is running over SSH, are SSH graphics enabled?")
             raise
-        question_string = 
         answer = messageBox.askokcancel("Question", "No calibration detected for arm at " + arm_ip
                                         + ". Do you want to generate one?")
         root.destroy()
