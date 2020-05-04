@@ -31,7 +31,6 @@ class SrUrLoadCalibrationExceptions(Exception):
 
 
 class NoArmsSpecified(SrUrLoadCalibrationExceptions):
-    print "No arms specified, cannot find arm calibration"
     pass
 
 
@@ -40,7 +39,6 @@ class ArmTypeNotRecognised(SrUrLoadCalibrationExceptions):
 
 
 class DifferentArmTypes(SrUrLoadCalibrationExceptions):
-    print "Different arm types specified. Currently this node only supports arms of the same type"
     pass
 
 
@@ -52,7 +50,7 @@ class SrUrLoadCalibration(object):
         self._CONST_UR_ARM_SSH_PASSWORD = "easybot"
         try:
             if [] == arm_info_in:
-                raise NoArmsSpecified
+                raise NoArmsSpecified("No arms specified, cannot find arm calibration")
         except NoArmsSpecified as err:
                 rospy.logerr(err)
         self._arm_info_in = arm_info_in
@@ -61,7 +59,8 @@ class SrUrLoadCalibration(object):
             if len(self._arm_info_in) > 1:
                 for arm in self._arm_info_in:
                     if arm['arm_type'].lower() != CONST_ARM_TYPE:
-                        raise DifferentArmTypes
+                        raise DifferentArmTypes("Different arm types specified. \
+                                                Currently this node only supports arms of the same type")
         except DifferentArmTypes as err:
             rospy.logerr(err)
             
@@ -79,9 +78,9 @@ class SrUrLoadCalibration(object):
                                                            'config', CONST_ARM_TYPE + '_default.yaml')
         try:
             if not os.path.isfile(self._default_kinematics_config):
-                raise ArmTypeNotRecognised
+                raise ArmTypeNotRecognised('Cannot find default config for ' + CONST_ARM_TYPE)
         except ArmTypeNotRecognised as err:
-                rospy.logerr('Cannot find default config for ' + CONST_ARM_TYPE)
+                rospy.logerr(err)
                 raise
 
     def _setup_folders(self):
