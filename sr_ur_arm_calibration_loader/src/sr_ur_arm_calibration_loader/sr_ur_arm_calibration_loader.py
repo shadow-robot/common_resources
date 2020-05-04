@@ -48,21 +48,16 @@ class SrUrLoadCalibration(object):
         self._arm_calibrations_folder = ''
         self._CONST_UR_ARM_SSH_USERNAME = "root"
         self._CONST_UR_ARM_SSH_PASSWORD = "easybot"
-        try:
-            if [] == arm_info_in:
-                raise NoArmsSpecified("No arms specified, cannot find arm calibration")
-        except NoArmsSpecified as err:
-                rospy.logerr(err)
+        CONST_E_SERIES_ARMS = ['ur10e', 'ur5e', 'ur3e', 'ur16e']
+        if [] == arm_info_in:
+            raise NoArmsSpecified("No arms specified, cannot find arm calibration")
         self._arm_info_in = arm_info_in
         CONST_ARM_TYPE = self._arm_info_in[0]['arm_type'].lower()
-        try:
-            if len(self._arm_info_in) > 1:
-                for arm in self._arm_info_in:
-                    if arm['arm_type'].lower() != CONST_ARM_TYPE:
-                        raise DifferentArmTypes("Different arm types specified. \
-                                                Currently this node only supports arms of the same type")
-        except DifferentArmTypes as err:
-            rospy.logerr(err)
+        if len(self._arm_info_in) > 1:
+            for arm in self._arm_info_in:
+                if arm['arm_type'].lower() != CONST_ARM_TYPE:
+                    raise DifferentArmTypes("Different arm types specified. \
+                                            Currently this node only supports arms of the same type")
             
         if 'sr_ur_calibration' in rospkg.RosPack().list():
             CONST_SR_UR_ARM_CALIBRATION_ROOT = rospkg.RosPack().get_path('sr_ur_calibration')
@@ -70,18 +65,14 @@ class SrUrLoadCalibration(object):
             CONST_SR_UR_ARM_CALIBRATION_ROOT = rospkg.RosPack().get_path('sr_ur_arm_calibration_loader')
         self._arm_calibrations_folder = os.path.join(CONST_SR_UR_ARM_CALIBRATION_ROOT, 'calibrations')
         self._setup_folders()
-        if 'ur10e' or 'ur5e' or 'ur3e' or 'ur16e' in CONST_ARM_TYPE:
+        if CONST_ARM_TYPE in CONST_E_SERIES_ARMS:
             self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_e_description'),
                                                            'config', CONST_ARM_TYPE + '_default.yaml')
         else:
             self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_description'),
                                                            'config', CONST_ARM_TYPE + '_default.yaml')
-        try:
-            if not os.path.isfile(self._default_kinematics_config):
-                raise ArmTypeNotRecognised('Cannot find default config for ' + CONST_ARM_TYPE)
-        except ArmTypeNotRecognised as err:
-                rospy.logerr(err)
-                raise
+        if not os.path.isfile(self._default_kinematics_config):
+            raise ArmTypeNotRecognised('Cannot find default config for ' + CONST_ARM_TYPE)
 
     def _setup_folders(self):
         if not os.path.exists(self._arm_calibrations_folder):
@@ -112,8 +103,9 @@ class SrUrLoadCalibration(object):
         except:
             rospy.logerr("Cannot create graphical prompt. If this is running over SSH, are SSH graphics enabled?")
             raise
-        question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
-        answer = messageBox.askokcancel("Question", question_string)
+        question_string = 
+        answer = messageBox.askokcancel("Question", "No calibration detected for arm at " + arm_ip
+                                        + ". Do you want to generate one?")
         root.destroy()
         if answer:
             self._start_calibration(arm_ip, arm_serial)
