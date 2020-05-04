@@ -58,7 +58,7 @@ class SrUrLoadCalibration(object):
                 if arm['arm_type'].lower() != CONST_ARM_TYPE:
                     raise DifferentArmTypes("Different arm types specified. \
                                             Currently this node only supports arms of the same type")
-            
+
         if 'sr_ur_calibration' in rospkg.RosPack().list():
             CONST_SR_UR_ARM_CALIBRATION_ROOT = rospkg.RosPack().get_path('sr_ur_calibration')
         else:
@@ -103,8 +103,8 @@ class SrUrLoadCalibration(object):
         except:
             rospy.logerr("Cannot create graphical prompt. If this is running over SSH, are SSH graphics enabled?")
             raise
-        answer = messageBox.askokcancel("Question", "No calibration detected for arm at " + arm_ip
-                                        + ". Do you want to generate one?")
+        answer = messageBox.askokcancel("Question", "No calibration detected for arm at " + arm_ip +
+                                        ". Do you want to generate one?")
         root.destroy()
         if answer:
             self._start_calibration(arm_ip, arm_serial)
