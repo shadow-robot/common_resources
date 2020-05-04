@@ -9,8 +9,8 @@ Calling `get_calibration_files()` will also push the retrieved calibration files
 ### Unimanual
 ```python
 arm_type='UR10e'
-arm1 = ('ra', '192.168.1.1', arm_type)
-sr_ur_load_calibration = SrUrLoadCalibration([arm1])
+ra_arm = {'prefix': 'ra', 'ip_address': '192.168.1.1', 'arm_type': arm_type}
+sr_ur_load_calibration = SrUrLoadCalibration([ra_arm])
 arm_info = sr_ur_load_calibration.get_calibration_files()
 
 for key, value in arm_info[0].items():
@@ -29,9 +29,9 @@ kinematics_config /home/user/projects/shadow_robot/base/src/common_resources/sr_
 ### Bimanual
 ```python
 arm_type='UR10'
-arm1 = ('ra', '192.168.1.1', arm_type)
-arm2 = ('la', '192.168.2.1', arm_type)
-sr_ur_load_calibration = SrUrLoadCalibration([arm1, arm2])
+ra_arm = {'prefix': 'ra', 'ip_address': '192.168.1.1', 'arm_type': arm_type}
+la_arm = {'prefix': 'la', 'ip_address': '192.168.2.1', 'arm_type': arm_type}
+sr_ur_load_calibration = SrUrLoadCalibration([ra_arm, la_arm])
 
 for arm in arms_info:
     for key, value in arm.items():
