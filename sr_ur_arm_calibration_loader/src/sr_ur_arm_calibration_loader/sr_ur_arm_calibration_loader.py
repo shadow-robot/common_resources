@@ -26,18 +26,36 @@ import yaml
 from rosparam import upload_params
 
 
+class SrUrLoadCalibrationExceptions(Exception):
+    pass
+
+
+class NoArmsSpecified(SrUrLoadCalibrationExceptions):
+    pass
+
+class ArmTypeNotRecognised(SrUrLoadCalibrationExceptions):
+    pass
+
+class SSHError(SrUrLoadCalibrationExceptions):
+    pass
+
+class SSHGraphicsError(SrUrLoadCalibrationExceptions):
+    pass
+
+
 class SrUrLoadCalibration(object):
     def __init__(self, arm_info_in=[]):
         self._default_kinematics_config = ''
         self._arm_calibrations_folder = ''
-        if [] == arm_info_in:
-            rospy.logerr("No arms specified, cannot find arm calibration")
-        self._arm_info_in = arm_info_in
-        CONST_ARM_TYPE = self._arm_info_in[0]['arm_type'].lower()
         self._ur_arm_ssh_username = "root"
         self._ur_arm_ssh_password = "easybot"
         self._first_gui_instance = True
         self._rospack = rospkg.RosPack()
+        if [] == arm_info_in:
+            rospy.logerr("No arms specified, cannot find arm calibration")
+            raise NoArmsSpecified
+        self._arm_info_in = arm_info_in
+        CONST_ARM_TYPE = self._arm_info_in[0]['arm_type'].lower()
         if 'sr_ur_calibration' in self._rospack.list():
             CONST_SR_UR_ARM_CALIBRATION_ROOT = self._rospack.get_path('sr_ur_calibration')
         else:
@@ -51,19 +69,24 @@ class SrUrLoadCalibration(object):
             self._default_kinematics_config = os.path.join(self._rospack.get_path('ur_description'),
                                                            'config', CONST_ARM_TYPE + '_default.yaml')
         if not os.path.isfile(self._default_kinematics_config):
-            rospy.logerr('Arm type ' + CONST_ARM_TYPE + ' not recognised.')
+            raise ArmTypeNotRecognised
+            rospy.logerr('Cannot find default config for ' + CONST_ARM_TYPE)
 
     def _setup_folders(self):
         if not os.path.exists(self._arm_calibrations_folder):
             os.makedirs(self._arm_calibrations_folder)
 
     def _get_serial_from_arm(self, arm_ip):
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(arm_ip, username=self._ur_arm_ssh_username, password=self._ur_arm_ssh_password)
-        stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
-        arm_serial_number = stdout.readline()
-        client.close()
+        try:
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(arm_ip, username=self._ur_arm_ssh_username, password=self._ur_arm_ssh_password)
+            stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
+            arm_serial_number = stdout.readline()
+            client.close()
+        except:
+            rospy.logerr("Error connceting to arm via SSH")
+            raise SSHError
         if '' == arm_serial_number:
             rospy.logwarn("Could not retrieve arm serial number via SSH, arm will NOT be calibrated.")
             arm_serial_number = self._default_kinematics_config
@@ -83,6 +106,7 @@ class SrUrLoadCalibration(object):
             question_string = "No calibration detected for arm at " + arm_ip + ". Do you want to generate one?"
         except:
             rospy.logerr("Cannot create graphical prompt. If this is running over SSH, are SSH graphics enabled?")
+            raise SSHGraphicsError
         answer = messageBox.askokcancel("Question", question_string)
         root.destroy()
         if answer is True:
