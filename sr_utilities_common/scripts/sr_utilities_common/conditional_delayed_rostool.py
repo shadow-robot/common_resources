@@ -89,14 +89,9 @@ if __name__ == "__main__":
 
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
-    executable_type = rospy.get_param("~executable_type", None)
-    if executable_type != "node" and executable_type != "launch":
-        rospy.logfatal("{}: Unrecognized executable type {}.".format(rospy.get_name(), executable_type))
-        rospy.signal_shutdown("Unrecognized executable type")
-        sys.exit(1)
     arguments_list = rospy.get_param("~launch_args_list")
     timeout = rospy.get_param("~timeout")
-
+   
     if rospy.has_param('~topics_list'):
         topics_list = rospy.get_param("~topics_list")
         conditions_to_satisfy["topic"] = RosElementsHandler("topic", topics_list)
@@ -110,10 +105,10 @@ if __name__ == "__main__":
     all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
 
     if all_conditions_satisfied:
-        if executable_type == "node":
-            os.system("rosrun {} {} {}".format(package_name, executable_name, arguments_list))
-        elif executable_type == "launch":
+        if executable_name.endswith('.launch'):
             os.system("roslaunch {} {} {}".format(package_name, executable_name, arguments_list))
+        else:
+            os.system("rosrun {} {} {}".format(package_name, executable_name, arguments_list))
     else:
         rospy.logfatal("{}: Could not launch {} {}, make sure all required conditions are met".format(rospy.get_name(),
                                                                                                       package_name,

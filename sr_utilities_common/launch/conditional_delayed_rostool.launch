@@ -1,7 +1,6 @@
 <launch>
     <arg name="package_name" default="sr_multi_moveit_config" />
     <arg name="executable_name" default="scene.launch" />
-    <arg name="executable_type" default="launch" />
     <arg name="topics_list" default="[]" />
     <arg name="params_list" default="[/robot_description]" />
     <arg name="services_list" default="[]" />
@@ -12,7 +11,6 @@
     <node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen">
         <param name="package_name" value="$(arg package_name)" />
         <param name="executable_name" value="$(arg executable_name)" />
-        <param name="executable_type" value="$(arg executable_type)" />
         <rosparam param="topics_list" subst_value="True">$(arg topics_list)</rosparam>
         <rosparam param="params_list" subst_value="True">$(arg params_list)</rosparam>
         <rosparam param="services_list" subst_value="True">$(arg services_list)</rosparam>

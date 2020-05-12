@@ -136,8 +136,7 @@ This script allows to delay the launch of ros launch files and nodes. It checks 
 
 The node **requires** the following parameters:
 - package_name: the package in which the executable is stored
-- executable_name: could be the name of the roslaunch (without the .launch) or the name of the node
-- executable_type: this field has to be set to either **launch** or **node** and defines the type of executable that has to be run
+- executable_name: this is the name of the launch file we want to launch (must end with .launch) or the name of the node we want to run
 - timeout: after how long the script should give up waiting for the required conditions
 - launch_args_list: the list of arguments that has to be passed to the launch file or node
 
@@ -154,7 +153,6 @@ You only need to specify the list you want. For instance, if there are no topics
 <node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen" required="true">
   <param name="package_name" value="sr_teleop_launch" />
   <param name="executable_name" value="teleop_core_nodes.launch" />
-  <param name="executable_type" value="launch" />
   <rosparam param="topics_list">[/rh_trajectory_controller/command, /ros_heartbeat]</rosparam>
   <rosparam param="params_list">[/robot_description]</rosparam>
   <rosparam param="services_list">[/get_planning_scene]</rosparam>
