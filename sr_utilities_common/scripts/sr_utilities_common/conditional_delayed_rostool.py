@@ -19,12 +19,14 @@ import os
 import rosservice
 from multiprocessing import Process
 
+
 class TimeoutException(Exception):
     def __init__(self, timeout):
         self.timeout = timeout
 
     def __str__(self):
         return "TimeoutException: Timeout of {} exceeded".format(self.timeout)
+
 
 class RosElementsHandler(object):
     def __init__(self, element_type, required_elements_list):
@@ -73,7 +75,8 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
                 rospy.logerr("Timeout of {}s exceeded".format(e.timeout))
                 for condition_type, condition in conditions_to_satisfy.iteritems():
                     if condition.missing_elements:
-                        rospy.logerr('Could not find the following {}s: {}'.format(condition_type, condition.missing_elements))
+                        rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
+                                                                                   condition.missing_elements))
             break
     return all_conditions_satisfied
 
@@ -99,7 +102,7 @@ if __name__ == "__main__":
 
     all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
 
-    if all_conditions_satisfied: 
+    if all_conditions_satisfied:
         if executable_type == "node":
             os.system("rosrun {} {} {}".format(package_name, executable_name, arguments_list))
         elif executable_type == "launch":
