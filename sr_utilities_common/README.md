@@ -51,13 +51,15 @@ rostopic pub /example_heartbeat std_msgs/Bool "data: true" -r 20
 ```
 will set the value to `true`. The value is `true` or `false` depending on the value within the publisher's message. If the heartbeat object doesn't hear anything within it's set timeframe (`0.1c` above), user will be warned and `enabled` will be set to `false`.
 
-## AWS manager
+## AWS Access Keys
 
-### Getting AWS key
+If you wish to use the AWS CLI or our AWS Manager, you must have an AWS Access Key.
 
-`aws_manager.py` is a script allowing files to be uploaded to and download from AWS. 
+### In a new container
 
-In order for the script to work, you first need to get the AWS Access Key. To do that, you need to install your container by running the following command: 
+If you are yet to set up a container, you should do so as follows to ensure you have a customer key.
+
+To get one, you need to install your container by running the following command: 
 **N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
 
 ```sh
@@ -72,13 +74,33 @@ During installation you will be prompted for a AWS customer key. This key can be
 
 If you can't open the link contact the software team at software@shadowrobot.com.
 
+### In an existing container
+
 **If you already have a container installed which does not contain an AWS key**, retrieve one of the keys from the link above and within your container run the following command:
 
 ```sh
 echo "<your_aws_customer_key>" | sudo tee /usr/local/bin/customer.key
 ```
 
+### AWS CLI Setup
+
+If you wish to use the AWS CLI, you can either put your access key in the file above then run:
+
+```sh
+rosrun sr_utilities_common aws_login.py
+```
+
+Or use the access key directly:
+
+```sh
+rosrun sr_utilities_common aws_login.py --api_key <YOUR_ACCESS_KEY>
+```
+
 If you have doubts about this process, contact the software team at software@shadowrobot.com.
+
+## AWS manager
+
+Follow the steps above to obtain an AWS access key before attempting to use the AWS manager. It assumes you have an access key stored in `/usr/local/bin/customer.key`.
 
 ### Uploading and downloading files
 
