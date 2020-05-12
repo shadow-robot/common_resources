@@ -17,6 +17,7 @@
 import rospy
 import os
 import rosservice
+import sys
 from multiprocessing import Process
 
 
@@ -80,13 +81,19 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
             break
     return all_conditions_satisfied
 
+
 if __name__ == "__main__":
     rospy.init_node('conditional_delayed_roslaunch', anonymous=True)
 
     conditions_to_satisfy = {}
+
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
-    executable_type = rospy.get_param("~executable_type")
+    executable_type = rospy.get_param("~executable_type", None)
+    if executable_type != "node" and executable_type != "launch":
+        rospy.logfatal("{}: Unrecognized executable type {}.".format(rospy.get_name(), executable_type))
+        rospy.signal_shutdown("Unrecognized executable type")
+        sys.exit(1)
     arguments_list = rospy.get_param("~launch_args_list")
     timeout = rospy.get_param("~timeout")
 
@@ -108,5 +115,8 @@ if __name__ == "__main__":
         elif executable_type == "launch":
             os.system("roslaunch {} {} {}".format(package_name, executable_name, arguments_list))
     else:
-        rospy.logerr("Could not launch {} {}, make sure all required conditions are met".format(package_name,
-                                                                                                executable_name))
+        rospy.logfatal("{}: Could not launch {} {}, make sure all required conditions are met".format(rospy.get_name(),
+                                                                                                      package_name,
+                                                                                                      executable_name))
+        rospy.signal_shutdown("Required components missing")
+        sys.exit(1)
