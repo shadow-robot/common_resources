@@ -21,14 +21,6 @@ import sys
 from multiprocessing import Process
 
 
-class TimeoutException(Exception):
-    def __init__(self, timeout):
-        self.timeout = timeout
-
-    def __str__(self):
-        return "TimeoutException: Timeout of {} exceeded".format(self.timeout)
-
-
 class RosElementsHandler(object):
     def __init__(self, element_type, required_elements_list):
         self._element_type = element_type
@@ -70,14 +62,11 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
         if all(satisfied for satisfied in all_conditions_satisfied_list):
             all_conditions_satisfied = True
         if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
-            try:
-                raise TimeoutException(timeout)
-            except TimeoutException as e:
-                rospy.logerr("Timeout of {}s exceeded".format(e.timeout))
-                for condition_type, condition in conditions_to_satisfy.iteritems():
-                    if condition.missing_elements:
-                        rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
-                                                                                   condition.missing_elements))
+            rospy.logerr("Timeout of {}s exceeded".format(timeout))
+            for condition_type, condition in conditions_to_satisfy.iteritems():
+                if condition.missing_elements:
+                    rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
+                                                                               condition.missing_elements))
             break
     return all_conditions_satisfied
 
