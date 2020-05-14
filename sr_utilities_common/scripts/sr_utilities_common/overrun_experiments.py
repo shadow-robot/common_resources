@@ -28,7 +28,7 @@ import os
 class OverrunExperiment(object):
     def __init__(self, hand_type, time):
         self.hand_type = hand_type
-	self.hand_id = rospy.get_param('~hand_id', 'rh')
+        self.hand_id = rospy.get_param('~hand_id', 'rh')
         self.time = time
         self.supported_hand_types = ['hand_e', 'hand_h']
         self.num_of_drops = 0
