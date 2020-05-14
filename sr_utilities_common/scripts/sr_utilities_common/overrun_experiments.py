@@ -28,6 +28,7 @@ import os
 class OverrunExperiment(object):
     def __init__(self, hand_type, time):
         self.hand_type = hand_type
+	self.hand_id = rospy.get_param('~hand_id', 'rh')
         self.time = time
         self.supported_hand_types = ['hand_e', 'hand_h']
         self.num_of_drops = 0
@@ -82,7 +83,7 @@ class OverrunExperiment(object):
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_h)
         elif 'hand_e' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_e)
-            rospy.Subscriber("/rh/debug_etherCAT_data", EthercatDebug, self.drops_callback_hand_e)
+            rospy.Subscriber("/" + self.hand_id + "/debug_etherCAT_data", EthercatDebug, self.drops_callback_hand_e)
         while (self.iterations < self.time) and (not rospy.is_shutdown()):
             rospy.sleep(0.1)
         rospy.loginfo("Your data has been recorded to ./overruns_data.txt file.")
