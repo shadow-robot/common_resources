@@ -82,7 +82,6 @@ class OverrunExperiment(object):
         except rospy.exceptions.ROSException:
             rospy.logerr("Cannot find hand id: %s", self.hand_id)
             raise
-        
         rospy.loginfo("Your data is being recorded, please wait for " + str(self.time) + " seconds")
         if 'hand_h' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_h)
