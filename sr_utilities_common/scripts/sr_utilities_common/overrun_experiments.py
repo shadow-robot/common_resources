@@ -79,7 +79,7 @@ class OverrunExperiment(object):
             raise ValueError('Please specify the experiment duration in seconds with -t 60 for example')
         try:
             rospy.wait_for_message("/" + self.hand_id + "/debug_etherCAT_data", EthercatDebug, timeout=2)
-        except rospy.exceptions.ROSException as e:
+        except rospy.exceptions.ROSException:
             rospy.logerr("Cannot find hand id: %s", self.hand_id)
             raise
         
