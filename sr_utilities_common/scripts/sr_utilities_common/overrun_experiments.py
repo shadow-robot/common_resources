@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# example use: ./overrun_experiments.py -ht hand_e -t 60
+# example use: ./overrun_experiments.py -ht hand_e -t 60 -id lh
 
 import rospy
 import argparse
@@ -26,8 +26,9 @@ import os
 
 
 class OverrunExperiment(object):
-    def __init__(self, hand_type, time):
+    def __init__(self, hand_type, time, hand_id):
         self.hand_type = hand_type
+        self.hand_id = hand_id
         self.time = time
         self.supported_hand_types = ['hand_e', 'hand_h']
         self.num_of_drops = 0
@@ -76,13 +77,17 @@ class OverrunExperiment(object):
             raise ValueError('Unrecognized hand type: {}!'.format(self.hand_type))
         elif self.time < 1:
             raise ValueError('Please specify the experiment duration in seconds with -t 60 for example')
-
+        try:
+            rospy.wait_for_message("/" + self.hand_id + "/debug_etherCAT_data", EthercatDebug, timeout=2)
+        except rospy.exceptions.ROSException:
+            rospy.logerr("Cannot find hand id: %s", self.hand_id)
+            raise
         rospy.loginfo("Your data is being recorded, please wait for " + str(self.time) + " seconds")
         if 'hand_h' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_h)
         elif 'hand_e' == self.hand_type:
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_e)
-            rospy.Subscriber("/rh/debug_etherCAT_data", EthercatDebug, self.drops_callback_hand_e)
+            rospy.Subscriber("/" + self.hand_id + "/debug_etherCAT_data", EthercatDebug, self.drops_callback_hand_e)
         while (self.iterations < self.time) and (not rospy.is_shutdown()):
             rospy.sleep(0.1)
         rospy.loginfo("Your data has been recorded to ./overruns_data.txt file.")
@@ -98,6 +103,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-ht', '--hand_type', type=str, help='Hand type, e.g. hand_e or hand_h')
     parser.add_argument('-t', '--time', type=int, help='Number of seconds for the experiment to run')
+    parser.add_argument('-id', '--hand_id', type=str, help='Hand id, e.g. rh or lh', default="rh")
     args = parser.parse_args()
-    oe = OverrunExperiment(args.hand_type, args.time)
+    oe = OverrunExperiment(args.hand_type, args.time, args.hand_id)
     oe.listener()
