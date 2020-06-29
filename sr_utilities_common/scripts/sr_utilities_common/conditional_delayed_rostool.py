@@ -27,13 +27,22 @@ class RosElementsHandler(object):
         self._required_elements_list = required_elements_list
         self.missing_elements = []
 
-    def execute(self):
+    def check_if_required_element_is_published(self):
         all_elements_available = False
         roscore_published_elements = self._retrieve_available_elements(self._element_type)
-        self._check_if_element_is_available(roscore_published_elements, self._required_elements_list)
-        if 0 == len(self._required_elements_list):
+        if self._required_elements_list:
+            for element in self._required_elements_list:
+                if element:
+                    if any(element in sublist for sublist in roscore_published_elements):
+                        rospy.loginfo("Found %s", element)
+                        self._required_elements_list.remove(element)
+                else:
+                    raise ValueError
+            if 0 == len(self._required_elements_list):
+                all_elements_available = True
+            self.missing_elements = self._required_elements_list
+        else:
             all_elements_available = True
-        self.missing_elements = self._required_elements_list
         return all_elements_available
 
     def _retrieve_available_elements(self, object_type):
@@ -43,12 +52,9 @@ class RosElementsHandler(object):
             return rosservice.get_service_list()
         elif object_type == "param":
             return rospy.get_param_names()
-
-    def _check_if_element_is_available(self, roscore_published_elements, required_elements_list):
-        for element in required_elements_list:
-            if any(element in sublist for sublist in roscore_published_elements):
-                rospy.loginfo("Found %s", element)
-                required_elements_list.remove(element)
+        else:
+            rospy.logerr("Requested ros element %s does not exist", object_type)
+            return None
 
 
 def wait_for_conditions(conditions_to_satisfy, timeout):
@@ -57,8 +63,8 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
 
     while not all_conditions_satisfied:
         all_conditions_satisfied_list = []
-        for wait_for_condition in conditions_to_satisfy.values():
-            all_conditions_satisfied_list.append(wait_for_condition.execute())
+        for condition in conditions_to_satisfy.values():
+            all_conditions_satisfied_list.append(condition.check_if_required_element_is_published())
         if all(satisfied for satisfied in all_conditions_satisfied_list):
             all_conditions_satisfied = True
         if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
