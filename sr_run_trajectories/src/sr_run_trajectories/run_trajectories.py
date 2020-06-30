@@ -55,7 +55,8 @@ class SrRunTrajectories(object):
             if self._hand_commander is None:
                 raise MoveItCommanderException('Failed to initialise hand commander!')
         if self.arm_and_hand:
-            self._arm_and_hand_commander = SrArmCommander(name='{}_arm_and_hand'.format(self.hand_side), set_ground=False)
+            self._arm_and_hand_commander = SrArmCommander(name='{}_arm_and_hand'.format(self.hand_side),
+                                                          set_ground=False)
             if self._arm_and_hand_commander is None:
                 raise MoveItCommanderException('Failed to initialise arm and hand commander!')
             self._arm_and_hand_commander.set_max_velocity_scaling_factor(0.3)
