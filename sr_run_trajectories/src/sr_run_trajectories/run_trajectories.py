@@ -19,6 +19,7 @@ import yaml
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 from sr_robot_commander.sr_hand_commander import SrHandCommander
 from sr_utilities.hand_finder import HandFinder
+from sr_utilities.arm_finder import ArmFinder
 
 
 class SrRunTrajectories(object):
@@ -71,12 +72,12 @@ class SrRunTrajectories(object):
             self._arm_trajectories = self._parse_trajectories_dict(arm_trajectories, arm_joints_order)
 
         if self.hand:
-            hand_joints_order = trajectories_info['hand_joints_order']
+            hand_joints_order = [self.hand_prefix + joint for joint in trajectories_info['hand_joints_order']]
             hand_trajectories = trajectories_info['hand_trajectories']
             self._hand_trajectories = self._parse_trajectories_dict(hand_trajectories, hand_joints_order)
 
         if self.arm_and_hand:
-            arm_and_hand_joints_order = trajectories_info['arm_and_hand_joints_order']
+            arm_and_hand_joints_order = trajectories_info['arm_joints_order'] + trajectories_info['hand_joints_order']
             arm_and_hand_trajectories = trajectories_info['arm_and_hand_trajectories']
             self._arm_and_hand_trajectories = self._parse_trajectories_dict(arm_and_hand_trajectories,
                                                                             arm_and_hand_joints_order)
@@ -105,8 +106,7 @@ class SrRunTrajectories(object):
 
     def get_hand_prefix(self):
         hand_finder = HandFinder()
-        hand_parameters = hand_finder.get_hand_parameters()
-        joint_prefix_dict = hand_parameters.joint_prefix
+        joint_prefix_dict = hand_finder.get_hand_parameters().joint_prefix
         if len(joint_prefix_dict) > 1:
             raise ValueError("More then one hand connected, unsupported!")
         values_view = joint_prefix_dict.values()
@@ -120,3 +120,4 @@ class SrRunTrajectories(object):
             self.hand_side = 'left'
         else:
             raise ValueError("Unknown hand prefix!")
+
