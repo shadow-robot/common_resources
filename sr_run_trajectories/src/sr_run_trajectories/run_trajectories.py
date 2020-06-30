@@ -19,7 +19,6 @@ import yaml
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 from sr_robot_commander.sr_hand_commander import SrHandCommander
 from sr_utilities.hand_finder import HandFinder
-from sr_utilities.arm_finder import ArmFinder
 
 
 class SrRunTrajectories(object):
@@ -120,4 +119,3 @@ class SrRunTrajectories(object):
             self.hand_side = 'left'
         else:
             raise ValueError("Unknown hand prefix!")
-
