@@ -8,7 +8,7 @@
     <arg name="launch_args_list" default=""/>
     <arg name="timeout" default="5.0" />
 
-    <node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen" required="true">
+    <node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen">
         <param name="package_name" value="$(arg package_name)" />
         <param name="executable_name" value="$(arg executable_name)" />
         <rosparam param="topics_list" subst_value="True">$(arg topics_list)</rosparam>
