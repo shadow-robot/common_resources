@@ -20,8 +20,6 @@
 class CppMockLIb
 {
 public:
-  /* IMPORTANT: If you want to obtain current tfs, make sure you pass the tf buffer
-     to a tf listener outside of this class */
   CppMockLIb();
   ~CppMockLIb();
   int mock_value = 0;
