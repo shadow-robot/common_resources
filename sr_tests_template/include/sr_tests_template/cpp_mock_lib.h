@@ -14,8 +14,8 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SR_UTILITIES_COMMON_PRIVATE_CPP_MOCK_LIB_H
-#define SR_UTILITIES_COMMON_PRIVATE_CPP_MOCK_LIB_H
+#ifndef SR_TESTS_TEMPLATE_CPP_MOCK_LIB_H
+#define SR_TESTS_TEMPLATE_CPP_MOCK_LIB_H
 
 class CppMockLIb
 {
@@ -25,7 +25,6 @@ public:
   CppMockLIb();
   ~CppMockLIb();
   int mock_value = 0;
-
 };
 
-#endif  // SR_UTILITIES_COMMON_PRIVATE_CPP_MOCK_LIB_H
+#endif  // SR_TESTS_TEMPLATE_CPP_MOCK_LIB_H
