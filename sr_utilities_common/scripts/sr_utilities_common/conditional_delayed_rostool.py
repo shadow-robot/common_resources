@@ -25,25 +25,29 @@ class RosElementsHandler(object):
     def __init__(self, element_type, required_elements_list):
         self._element_type = element_type
         self._required_elements_list = required_elements_list
+        self._found_elements = []
         self.missing_elements = []
 
-    def check_if_required_element_is_published(self):
-        all_elements_available = False
+    def check_if_required_element_is_available(self):
         roscore_published_elements = self._retrieve_available_elements(self._element_type)
-        if self._required_elements_list:
-            for element in self._required_elements_list:
-                if element:
-                    if any(element in sublist for sublist in roscore_published_elements):
-                        rospy.loginfo("Found %s", element)
-                        self._required_elements_list.remove(element)
-                else:
-                    raise ValueError
-            if 0 == len(self._required_elements_list):
-                all_elements_available = True
-            self.missing_elements = self._required_elements_list
+        if isinstance(self._required_elements_list, list):
+            if self._required_elements_list:
+                for element in self._required_elements_list:
+                    if element and type(element) == str:
+                        if any(element in sublist for sublist in roscore_published_elements):
+                            rospy.loginfo("Found %s", element)
+                            self._found_elements.append(element)
+                    else:
+                        raise ValueError("{}: Element is not a string, check the required element list".format(rospy.get_name()))
+                if len(self._found_elements) == len(self._required_elements_list):
+                    return True
+                self.missing_elements = list(set(self._required_elements_list) - set(self._found_elements))
+            else:
+                return True
+            return False
         else:
-            all_elements_available = True
-        return all_elements_available
+            raise ValueError("{}: Required elements must be a list not a string, \
+                             check the required element list declaration".format(rospy.get_name()))
 
     def _retrieve_available_elements(self, object_type):
         if object_type == "topic":
@@ -64,7 +68,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
     while not all_conditions_satisfied:
         all_conditions_satisfied_list = []
         for condition in conditions_to_satisfy.values():
-            all_conditions_satisfied_list.append(condition.check_if_required_element_is_published())
+            all_conditions_satisfied_list.append(condition.check_if_required_element_is_available())
         if all(satisfied for satisfied in all_conditions_satisfied_list):
             all_conditions_satisfied = True
         if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):

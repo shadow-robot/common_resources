@@ -17,9 +17,9 @@ if __name__ == "__main__":
     rospy.set_param('test_mocap_param', True)
 
     r = rospy.Rate(10)
-    
+
+    test_string = String()
     while not rospy.is_shutdown():
-        test_string = String()
         test_string.data = "test"
         topic_mocap_pub.publish(test_string)
         r.sleep()
