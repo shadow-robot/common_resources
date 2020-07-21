@@ -38,7 +38,7 @@ class RosElementsHandler(object):
                             rospy.loginfo("Found %s", element)
                             self._found_elements.append(element)
                     else:
-                        raise ValueError("{}: Element is not a string, check the required element list".format(rospy.get_name()))
+                        raise ValueError("{}: Required element is not a string".format(rospy.get_name()))
                 if len(self._found_elements) == len(self._required_elements_list):
                     return True
                 self.missing_elements = list(set(self._required_elements_list) - set(self._found_elements))
