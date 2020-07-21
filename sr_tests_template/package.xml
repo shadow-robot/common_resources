@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sr_tests_template</name>
+  <version>0.0.0</version>
+  <description>The sr_tests_template package</description>
+  <maintainer email="software@shadowrobot.com">Shadow Robot's Software Team</maintainer>
+  <license>GPLv2</license>
+  <author email="michal@shadowrobot.com">Michal Kramarczyk</author>
+
+  <build_depend>roscpp</build_depend>
+  <exec_depend>roscpp</exec_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <test_depend>rostest</test_depend>
+
+  <export>
+  </export>
+</package>
