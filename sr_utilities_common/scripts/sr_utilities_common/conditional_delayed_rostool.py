@@ -29,35 +29,34 @@ class RosElementsHandler(object):
         self.missing_elements = []
 
     def check_if_required_element_is_available(self):
-        roscore_published_elements = self._retrieve_available_elements(self._element_type)
-        if isinstance(self._required_elements_list, list):
-            if self._required_elements_list:
-                for element in self._required_elements_list:
-                    if element and type(element) == str:
-                        if any(element in sublist for sublist in roscore_published_elements):
-                            rospy.loginfo("Found %s", element)
-                            self._found_elements.append(element)
-                    else:
-                        raise ValueError("{}: Required element is not a string".format(rospy.get_name()))
-                if len(self._found_elements) == len(self._required_elements_list):
-                    return True
-                self.missing_elements = list(set(self._required_elements_list) - set(self._found_elements))
-            else:
-                return True
-            return False
-        else:
+        roscore_published_elements = self._retrieve_available_elements()
+        if not isinstance(self._required_elements_list, list):
             raise ValueError("{}: Required elements must be a list not a string, \
                              check the required element list declaration".format(rospy.get_name()))
+        if self._required_elements_list:
+            for element in self._required_elements_list:
+                if element and type(element) == str:
+                    if any(element in sublist for sublist in roscore_published_elements):
+                        rospy.loginfo("Found %s", element)
+                        self._found_elements.append(element)
+                else:
+                    raise ValueError("{}: Required element is not a string".format(rospy.get_name()))
+            if len(self._found_elements) == len(self._required_elements_list):
+                return True
+            self.missing_elements = list(set(self._required_elements_list) - set(self._found_elements))
+        else:
+            return True
+        return False
 
-    def _retrieve_available_elements(self, object_type):
-        if object_type == "topic":
+    def _retrieve_available_elements(self):
+        if self._element_type == "topic":
             return rospy.get_published_topics()
-        elif object_type == "service":
+        elif self._element_type == "service":
             return rosservice.get_service_list()
-        elif object_type == "param":
+        elif self._element_type == "param":
             return rospy.get_param_names()
         else:
-            rospy.logerr("Requested ros element %s does not exist", object_type)
+            rospy.logerr("Requested ros element %s does not exist", self._element_type)
             return None
 
 

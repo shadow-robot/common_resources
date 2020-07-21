@@ -7,6 +7,7 @@ import rospy
 from std_msgs.msg import String
 from std_srvs.srv import Empty
 
+
 def empty_callback(req):
     pass
 
