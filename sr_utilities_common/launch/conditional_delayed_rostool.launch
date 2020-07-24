@@ -4,7 +4,7 @@
     <arg name="topics_list" default="[]" />
     <arg name="params_list" default="[/robot_description]" />
     <arg name="services_list" default="[]" />
-    <arg name="scene_file" default="true"/>
+    <arg name="scene_file" default=""/>
     <arg name="launch_args_list" default=""/>
     <arg name="timeout" default="5.0" />
 
@@ -14,7 +14,7 @@
         <rosparam param="topics_list" subst_value="True">$(arg topics_list)</rosparam>
         <rosparam param="params_list" subst_value="True">$(arg params_list)</rosparam>
         <rosparam param="services_list" subst_value="True">$(arg services_list)</rosparam>
-        <param name="launch_args_list" value="scene_file:=$(arg scene_file) pupu:=caca" />
+        <param name="launch_args_list" value="scene_file:=$(arg scene_file)" />
         <param name="timeout" value="$(arg timeout)" />
     </node>
 </launch>
