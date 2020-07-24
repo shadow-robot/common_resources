@@ -150,7 +150,7 @@ You only need to specify the list you want. For instance, if there are no topics
 ### Real code example
 
 ```xml
-<node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen" required="true">
+<node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen">
   <param name="package_name" value="sr_teleop_launch" />
   <param name="executable_name" value="teleop_core_nodes.launch" />
   <rosparam param="topics_list">[/rh_trajectory_controller/command, /ros_heartbeat]</rosparam>

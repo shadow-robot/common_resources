@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="sr_utilities_common" type="mocap_ros_elements.py" name="mocap_ros_elements" />
+  <test test-name="test_conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool_test.py" />
+</launch>
