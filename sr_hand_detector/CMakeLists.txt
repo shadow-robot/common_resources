@@ -135,8 +135,16 @@ SET(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
 set (CMAKE_CXX_STANDARD 11)
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}/sr_hand_detector_node.cpp)
+add_executable(sr_hand_autodetect src/${PROJECT_NAME}/sr_hand_detector_prefix.cpp)
+
+target_link_libraries(${PROJECT_NAME} cap)
 
 target_link_libraries(${PROJECT_NAME}_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(sr_hand_autodetect
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
@@ -210,6 +218,12 @@ set_target_properties(${PROJECT_NAME}_node PROPERTIES BUILD_WITH_INSTALL_RPATH F
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
+install(TARGETS ${PROJECT_NAME} sr_hand_autodetect
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

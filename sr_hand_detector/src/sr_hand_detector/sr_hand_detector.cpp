@@ -14,17 +14,21 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <ros/ros.h>
+#include <iostream>
 #include <string>
 #include <utility>
+#include <algorithm>
 #include <ifaddrs.h>
+#include <unistd.h>
 #include "sr_hand_detector/sr_hand_detector.h"
+#include <sys/capability.h>
+
 
 namespace sr_hand_detector
 {
 SrHandDetector::SrHandDetector()
 {
-  ROS_INFO("Starting hand detector...");
+  std::cout << "Starting hand detector...";
 }
 
 SrHandDetector::~SrHandDetector()
@@ -33,8 +37,10 @@ SrHandDetector::~SrHandDetector()
 
 void SrHandDetector::run()
 {
+  set_root_privileges();
   get_available_port_names();
   get_hands_ports_and_serials();
+  drop_root_privileges();
 }
 
 void SrHandDetector::get_available_port_names()
@@ -50,7 +56,7 @@ void SrHandDetector::get_available_port_names()
 
   for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
   {
-    if (ifa->ifa_addr == NULL || std::count(available_port_names_.begin(),
+    if (ifa->ifa_addr == NULL || count(available_port_names_.begin(),
                                             available_port_names_.end(),
                                             ifa->ifa_name))
     {
@@ -105,7 +111,7 @@ int SrHandDetector::get_hand_serial(std::string port_name)
   }
   else
   {
-    ROS_ERROR_STREAM("No socket connection on " << port_name_c_str << ". Excecute as root.");
+    std::cout << "No socket connection on " << port_name_c_str << ". Excecute as root.";
     return 0;
   }
 }
@@ -161,4 +167,100 @@ int SrHandDetector::read_eeprom(int slave, int start, int length)
 
   return 1;
 }
+
+int SrHandDetector::set_root_privileges()
+{
+  cap_value_t cap_list[4];
+  cap_t caps = cap_get_proc();
+  printf("Capabilities: %s\n", cap_to_text(caps, NULL));
+
+  // const char *cap_text = "cap_ipc_lock=ep cap_net_raw=ep cap_sys_nice=ep cap_net_admin=ep";
+  // cap_t cap_d = cap_from_text(cap_text);
+  // if (cap_d == NULL) {
+  //   perror("cap_from_text");
+  //   return -1;
+  // }
+
+  cap_list[0] = CAP_IPC_LOCK;
+  // cap_list[1] = CAP_NET_RAW;
+  // cap_list[2] = CAP_SYS_NICE;
+  // cap_list[3] = CAP_NET_ADMIN;
+
+  // cap_set_flag(caps, CAP_EFFECTIVE, 1, cap_list, CAP_SET);
+  cap_set_flag(caps, CAP_PERMITTED, 1, cap_list, CAP_SET);
+
+  std::cout << "chuj" << std::endl;
+  printf("New capabilities: %s\n", cap_to_text(caps, NULL));
+
+  if (cap_set_proc(caps) == -1) {
+		printf("cap_set_proc() failed\n");
+		exit(1);
+	}
+
+	// cap_free(cap_d);
+  cap_free(caps);
+  // if (getresuid(&ruid, &euid, &suid) == -1)
+  // {
+  //     fprintf(stderr, "Cannot obtain user identity: %m.\n");
+  //     return EXIT_FAILURE;
+  // }
+  // if (getresgid(&rgid, &egid, &sgid) == -1)
+  // {
+  //     fprintf(stderr, "Cannot obtain group identity: %m.\n");
+  //     return EXIT_FAILURE;
+  // }
+  // if (ruid != (uid_t)TARGET_UID && ruid < (uid_t)MIN_UID)
+  // {
+  //     fprintf(stderr, "Invalid user.\n");
+  //     return EXIT_FAILURE;
+  // }
+  // if (rgid != (gid_t)TARGET_UID && rgid < (gid_t)MIN_GID)
+  // {
+  //     fprintf(stderr, "Invalid group.\n");
+  //     return EXIT_FAILURE;
+  // }
+
+  // /* Switch to target user. setuid bit handles this, but doing it again does no harm. */
+  // if (seteuid((uid_t)TARGET_UID) == -1)
+  // {
+  //     fprintf(stderr, "Insufficient user privileges.\n");
+  //     return EXIT_FAILURE;
+  // }
+
+  // /* Switch to target group. setgid bit handles this, but doing it again does no harm.
+  //   * If TARGET_UID == 0, we need no setgid bit, as root has the privilege. */
+  // if (setegid((gid_t)TARGET_GID) == -1)
+  // {
+  //     fprintf(stderr, "Insufficient group privileges.\n");
+  //     return EXIT_FAILURE;
+  // }
+}
+
+int SrHandDetector::drop_root_privileges()
+{
+  std::cout << "nothing to do";
+  // gerr = 0;
+  // if (setresgid(rgid, rgid, rgid) == -1)
+  // {
+  //     gerr = errno;
+  //     if (!gerr)
+  //         gerr = EINVAL;
+  // }
+  // uerr = 0;
+  // if (setresuid(ruid, ruid, ruid) == -1)
+  // {
+  //     uerr = errno;
+  //     if (!uerr)
+  //         uerr = EINVAL;
+  // }
+  // if (uerr || gerr)
+  // {
+  //     if (uerr)
+  //         fprintf(stderr, "Cannot drop user privileges.\n");
+  //     if (gerr)
+  //         fprintf(stderr, "Cannot drop group privileges.\n");
+  //     return EXIT_FAILURE;
+  // }
+}
+
 }  // namespace sr_hand_detector

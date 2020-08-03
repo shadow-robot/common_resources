@@ -25,6 +25,10 @@
 #include "soem/ethercatmain.h"
 
 #define MAXBUF 32768
+#define TARGET_UID 0
+#define TARGET_GID 0
+#define MIN_UID 500
+#define MIN_GID 500
 
 namespace sr_hand_detector
 {
@@ -36,11 +40,16 @@ class SrHandDetector
   int count_slaves_on_port(std::string);
   int get_hand_serial(std::string);
   int read_eeprom(int, int, int);
+  int set_root_privileges();
+  int drop_root_privileges();
 
   std::vector<std::string> available_port_names_;
   uint8 ebuf_[MAXBUF];
   const int SLAVE_WITH_HAND_SERIAL_ = 2;
   const int NUM_OF_SLAVES_EXPECTED_FOR_HAND_ = 2;
+  uid_t ruid, euid, suid; /* Real, Effective, Saved user ID */
+  gid_t rgid, egid, sgid; /* Real, Effective, Saved group ID */
+  int uerr, gerr, fd;
 
   public:
     SrHandDetector();
