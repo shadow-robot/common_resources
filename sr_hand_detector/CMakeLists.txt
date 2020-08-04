@@ -9,6 +9,7 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,6 +106,7 @@ catkin_package(
  LIBRARIES sr_hand_detector
  CATKIN_DEPENDS
     roscpp
+    roslib
 #  DEPENDS system_lib
 )
 
@@ -135,9 +137,7 @@ SET(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
 set (CMAKE_CXX_STANDARD 11)
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}/sr_hand_detector_node.cpp)
-add_executable(sr_hand_autodetect src/${PROJECT_NAME}/sr_hand_detector_prefix.cpp)
-
-target_link_libraries(${PROJECT_NAME} cap)
+add_executable(sr_hand_autodetect src/${PROJECT_NAME}/sr_hand_detector_prefix.cpp src/${PROJECT_NAME}/sr_hand_autodetect.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
@@ -147,6 +147,7 @@ target_link_libraries(${PROJECT_NAME}_node
 target_link_libraries(sr_hand_autodetect
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  yaml-cpp
 )
 
 # Set ${PROJECT_NAME}_nodewith RPATH built in so that we can install it suid
