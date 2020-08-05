@@ -16,6 +16,7 @@
 
 #include "sr_hand_detector/sr_hand_autodetect.h"
 #include "yaml-cpp/yaml.h"
+#include "yaml-cpp/exceptions.h"
 #include <iostream>
 #include <ros/package.h>
 #include <string>
@@ -47,7 +48,15 @@ void SrHandAutodetect::get_path_to_sr_hand_config()
 YAML::Node SrHandAutodetect::get_hand_general_info(int serial)
 {
   std::string path_to_info_file = sr_hand_config_path_ + "/" + std::to_string(serial) + "/general_info.yaml";
-  return YAML::LoadFile(path_to_info_file);
+  try
+  {
+    return YAML::LoadFile(path_to_info_file);
+  }
+  catch(YAML::BadFile)
+  {
+    std::cerr << "sr_hand_autodetect: General info for detected hand does not exist!";
+    throw;
+  }
 }
 
 std::string SrHandAutodetect::get_hand_id(std::string hand_side)

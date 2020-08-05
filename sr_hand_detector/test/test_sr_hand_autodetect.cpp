@@ -21,6 +21,7 @@
 #include <string>
 #include "sr_hand_detector/sr_hand_detector.h"
 #include "sr_hand_detector/sr_hand_autodetect.h"
+#include "yaml-cpp/exceptions.h"
 
 
 class MockSrHandDetectorUnimanual : public sr_hand_detector::SrHandDetector
@@ -39,6 +40,15 @@ class MockSrHandDetectorBimanual : public sr_hand_detector::SrHandDetector
   {
     hand_serial_and_port_map_.insert(std::pair<int, std::string>(1130, "eth0"));
     hand_serial_and_port_map_.insert(std::pair<int, std::string>(2346, "eth1"));
+  }
+};
+
+class MockSrHandDetectorNonExistingHand : public sr_hand_detector::SrHandDetector
+{
+ public:
+  MockSrHandDetectorNonExistingHand()
+  {
+    hand_serial_and_port_map_.insert(std::pair<int, std::string>(0, "eth0"));
   }
 };
 
@@ -73,6 +83,13 @@ TEST(SrHandAutodetect, test_run_no_hands)
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect(sr_hand_detector);
   sr_hand_autodetect.run();
   ASSERT_EQ(sr_hand_autodetect.command_sufix_, expected_command_sufix);
+}
+
+TEST(SrHandAutodetect, test_run_non_existing_hand)
+{
+  MockSrHandDetectorNonExistingHand mock_sr_hand_detector;
+  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector);
+  ASSERT_THROW(sr_hand_autodetect.run(), YAML::BadFile);
 }
 
 int main(int argc, char **argv)
