@@ -24,7 +24,7 @@
 class MockSrHandDetectorUnimanual : public sr_hand_detector::SrHandDetector
 {
  public:
-  void run()
+  MockSrHandDetectorUnimanual()
   {
     hand_serial_and_port_map_.insert(std::pair<int, std::string>(1130, "eth0"));
   }
@@ -33,7 +33,7 @@ class MockSrHandDetectorUnimanual : public sr_hand_detector::SrHandDetector
 class MockSrHandDetectorBimanual : public sr_hand_detector::SrHandDetector
 {
  public:
-  void run()
+  MockSrHandDetectorBimanual()
   {
     hand_serial_and_port_map_.insert(std::pair<int, std::string>(1130, "eth0"));
     hand_serial_and_port_map_.insert(std::pair<int, std::string>(2346, "eth1"));
@@ -46,10 +46,8 @@ TEST(SrHandAutodetect, test_run_unimanual)
   std::string hand_config_path = ros::package::getPath("sr_hand_detector") + "/test/config";
 
   MockSrHandDetectorUnimanual mock_sr_hand_detector;
-  mock_sr_hand_detector.run();
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector, hand_config_path);
   sr_hand_autodetect.run();
-  ROS_WARN_STREAM(sr_hand_autodetect.command_sufix);
   ASSERT_EQ(sr_hand_autodetect.command_sufix, expected_command_sufix);
 }
 
@@ -60,10 +58,18 @@ TEST(SrHandAutodetect, test_run_bimanual)
 
 
   MockSrHandDetectorBimanual mock_sr_hand_detector;
-  mock_sr_hand_detector.run();
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector, hand_config_path);
   sr_hand_autodetect.run();
-  ROS_WARN_STREAM(sr_hand_autodetect.command_sufix);
+  ASSERT_EQ(sr_hand_autodetect.command_sufix, expected_command_sufix);
+}
+
+TEST(SrHandAutodetect, test_run_no_hands)
+{
+  std::string expected_command_sufix = "";
+
+  sr_hand_detector::SrHandDetector sr_hand_detector;
+  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(sr_hand_detector);
+  sr_hand_autodetect.run();
   ASSERT_EQ(sr_hand_autodetect.command_sufix, expected_command_sufix);
 }
 
