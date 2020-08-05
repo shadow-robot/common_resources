@@ -143,7 +143,7 @@ SET(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
 set (CMAKE_CXX_STANDARD 11)
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}/sr_hand_detector_node.cpp)
-add_executable(sr_hand_autodetect src/${PROJECT_NAME}/sr_hand_detector_prefix.cpp src/${PROJECT_NAME}/sr_hand_autodetect.cpp)
+add_executable(sr_hand_autodetect src/${PROJECT_NAME}/sr_hand_autodetect_node.cpp src/${PROJECT_NAME}/sr_hand_autodetect.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}

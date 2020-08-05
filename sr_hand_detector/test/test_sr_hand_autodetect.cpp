@@ -48,7 +48,7 @@ TEST(SrHandAutodetect, test_run_unimanual)
   MockSrHandDetectorUnimanual mock_sr_hand_detector;
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector, hand_config_path);
   sr_hand_autodetect.run();
-  ASSERT_EQ(sr_hand_autodetect.command_sufix, expected_command_sufix);
+  ASSERT_EQ(sr_hand_autodetect.command_sufix_, expected_command_sufix);
 }
 
 TEST(SrHandAutodetect, test_run_bimanual)
@@ -60,7 +60,7 @@ TEST(SrHandAutodetect, test_run_bimanual)
   MockSrHandDetectorBimanual mock_sr_hand_detector;
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector, hand_config_path);
   sr_hand_autodetect.run();
-  ASSERT_EQ(sr_hand_autodetect.command_sufix, expected_command_sufix);
+  ASSERT_EQ(sr_hand_autodetect.command_sufix_, expected_command_sufix);
 }
 
 TEST(SrHandAutodetect, test_run_no_hands)
@@ -70,7 +70,7 @@ TEST(SrHandAutodetect, test_run_no_hands)
   sr_hand_detector::SrHandDetector sr_hand_detector;
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect(sr_hand_detector);
   sr_hand_autodetect.run();
-  ASSERT_EQ(sr_hand_autodetect.command_sufix, expected_command_sufix);
+  ASSERT_EQ(sr_hand_autodetect.command_sufix_, expected_command_sufix);
 }
 
 int main(int argc, char **argv)

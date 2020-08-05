@@ -31,7 +31,9 @@ class SrHandAutodetect
   void compose_command_sufix();
   std::string get_hand_id(std::string hand_side);
 
-
+  int number_of_detected_hands_;
+  std::string sr_hand_config_path_;
+  std::map<int, std::string> hand_serial_and_port_map_;
 
   public:
     SrHandAutodetect(SrHandDetector sr_hand_detector, std::string hand_config_path = "");
@@ -39,11 +41,7 @@ class SrHandAutodetect
     void run();
 
     SrHandDetector sr_hand_detector_;
-    std::string command_sufix;
-
-    int number_of_detected_hands;
-    std::string sr_hand_config_path;
-    std::map<int, std::string> hand_serial_and_port_map;
+    std::string command_sufix_;
 };
 
 }  // namespace sr_hand_detector
