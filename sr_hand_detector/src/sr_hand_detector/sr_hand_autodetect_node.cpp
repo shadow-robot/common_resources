@@ -15,6 +15,7 @@
 */
 
 #include <iostream>
+#include <string>
 #include <ros/package.h>
 #include "sr_hand_detector/sr_hand_detector.h"
 #include "sr_hand_detector/sr_hand_autodetect.h"
@@ -35,9 +36,9 @@ int main(int argc, char* argv[])
       }
   }
 
-    command_string += sr_hand_autodetect.command_sufix_;
+  command_string += sr_hand_autodetect.command_sufix_;
 
-    std::cout << command_string << std::endl;
-    system(command_string.c_str());
-    return 0;
+  std::cout << command_string << std::endl;
+  system(command_string.c_str());
+  return 0;
 }

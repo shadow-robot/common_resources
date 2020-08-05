@@ -17,6 +17,8 @@
 #include <gtest/gtest.h>
 #include <ros/ros.h>
 #include <ros/package.h>
+#include <utility>
+#include <string>
 #include "sr_hand_detector/sr_hand_detector.h"
 #include "sr_hand_detector/sr_hand_autodetect.h"
 

@@ -263,6 +263,8 @@ install(DIRECTORY launch/
 ## Testing ##
 #############
 
+if(CATKIN_ENABLE_TESTING)
   add_rostest_gtest(test_sr_hand_autodetect test/test_sr_hand_autodetect.test test/test_sr_hand_autodetect)
   add_dependencies(test_sr_hand_autodetect ${catkin_EXPORTED_TARGETS})
   target_link_libraries(test_sr_hand_autodetect ${PROJECT_NAME} sr_hand_autodetect_lib ${catkin_LIBRARIES})
+endif()

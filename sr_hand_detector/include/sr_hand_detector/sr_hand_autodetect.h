@@ -18,6 +18,7 @@
 #define SR_HAND_DETECTOR_SR_HAND_AUTODETECT_H
 
 #include <string>
+#include <map>
 #include "sr_hand_detector/sr_hand_detector.h"
 #include "yaml-cpp/yaml.h"
 
@@ -36,7 +37,7 @@ class SrHandAutodetect
   std::map<int, std::string> hand_serial_and_port_map_;
 
   public:
-    SrHandAutodetect(SrHandDetector sr_hand_detector, std::string hand_config_path = "");
+    explicit SrHandAutodetect(SrHandDetector sr_hand_detector, std::string hand_config_path = "");
     ~SrHandAutodetect();
     void run();
 
