@@ -1,7 +1,24 @@
+/*
+* Copyright 2020 Shadow Robot Company Ltd.
+*
+* This program is free software: you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the Free
+* Software Foundation version 2 of the License.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "sr_hand_detector/sr_hand_autodetect.h"
 #include "yaml-cpp/yaml.h"
 #include <iostream>
 #include <ros/package.h>
+#include <string>
 
 namespace sr_hand_detector
 {
@@ -70,7 +87,8 @@ void SrHandAutodetect::compose_command_sufix()
     YAML::Node hand_info = get_hand_general_info(hand_serial);
     std::string hand_id = get_hand_id(hand_info["side"].as<std::string>());
 
-    command_sufix_ = " eth_port:=" + eth_port + " hand_serial:=" + std::to_string(hand_serial) + " hand_id:=" + hand_id;
+    command_sufix_ = " eth_port:=" + eth_port + " hand_serial:=" +
+      std::to_string(hand_serial) + " hand_id:=" + hand_id;
   }
   else if (2 == number_of_detected_hands_)
   {
@@ -97,13 +115,13 @@ void SrHandAutodetect::compose_command_sufix()
       }
     }
 
-    command_sufix_ = " eth_port:=" + rh_eth_port + "_" + lh_eth_port + " rh_serial:=" + std::to_string(rh_serial) + " lh_serial:=" + std::to_string(lh_serial);
+    command_sufix_ = " eth_port:=" + rh_eth_port + "_" + lh_eth_port + " rh_serial:=" +
+      std::to_string(rh_serial) + " lh_serial:=" + std::to_string(lh_serial);
   }
   else
   {
     throw std::runtime_error("sr_hand_autodetect: Unsupported number of hands detected in the system");
   }
-
 }
 
 void SrHandAutodetect::run()
@@ -111,4 +129,4 @@ void SrHandAutodetect::run()
   detect_hands();
   compose_command_sufix();
 }
-}
+}  // namespace sr_hand_detector
