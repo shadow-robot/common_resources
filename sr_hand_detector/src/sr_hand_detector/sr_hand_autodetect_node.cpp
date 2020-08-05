@@ -37,8 +37,6 @@ int main(int argc, char* argv[])
   }
 
   command_string += sr_hand_autodetect.command_sufix_;
-
-  std::cout << command_string << std::endl;
   system(command_string.c_str());
   return 0;
 }
