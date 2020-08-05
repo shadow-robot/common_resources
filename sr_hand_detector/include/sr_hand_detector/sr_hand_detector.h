@@ -25,10 +25,6 @@
 #include "soem/ethercatmain.h"
 
 #define MAXBUF 32768
-#define TARGET_UID 0
-#define TARGET_GID 0
-#define MIN_UID 500
-#define MIN_GID 500
 
 namespace sr_hand_detector
 {

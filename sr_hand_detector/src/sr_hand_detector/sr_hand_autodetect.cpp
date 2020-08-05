@@ -1,13 +1,21 @@
 #include "sr_hand_detector/sr_hand_autodetect.h"
-#include "sr_hand_detector/sr_hand_detector.h"
 #include "yaml-cpp/yaml.h"
 #include <iostream>
 #include <ros/package.h>
 
 namespace sr_hand_detector
 {
-SrHandAutodetect::SrHandAutodetect()
+SrHandAutodetect::SrHandAutodetect(SrHandDetector sr_hand_detector, std::string hand_config_path) :
+  sr_hand_detector_(sr_hand_detector)
 {
+  if (hand_config_path.empty())
+  {
+    get_path_to_sr_hand_config();
+  }
+  else
+  {
+    sr_hand_config_path = hand_config_path;
+  }
 }
 
 SrHandAutodetect::~SrHandAutodetect()
@@ -25,17 +33,37 @@ YAML::Node SrHandAutodetect::get_hand_general_info(int serial)
   return YAML::LoadFile(path_to_info_file);
 }
 
+std::string SrHandAutodetect::get_hand_id(std::string hand_side)
+{
+  if ("right" == hand_side)
+  {
+    return "rh";
+  }
+  else if ("left" == hand_side)
+  {
+    return "lh";
+  }
+  else
+  {
+    throw std::runtime_error("sr_hand_autodetect: Unknown hand side.");
+  }
+}
+
 void SrHandAutodetect::detect_hands()
 {
-  sr_hand_detector::SrHandDetector sr_hand_detector;
-  sr_hand_detector.run();
-  hand_serial_and_port_map = sr_hand_detector.hand_serial_and_port_map_;
+  sr_hand_detector_.run();
+  hand_serial_and_port_map = sr_hand_detector_.hand_serial_and_port_map_;
   number_of_detected_hands = hand_serial_and_port_map.size();
 }
 
 void SrHandAutodetect::compose_command_sufix()
 {
-  if (1 == number_of_detected_hands)
+  if (0 == number_of_detected_hands)
+  {
+    std::cout << "No hands detected. Not wrapping the roslaunch command!";
+    command_sufix = "";
+  }
+  else if (1 == number_of_detected_hands)
   {
     int hand_serial = hand_serial_and_port_map.begin()->first;
     std::string eth_port = hand_serial_and_port_map.begin()->second;
@@ -78,24 +106,9 @@ void SrHandAutodetect::compose_command_sufix()
 
 }
 
-  std::string SrHandAutodetect::get_hand_id(std::string hand_side)
-  {
-    if ("right" == hand_side)
-    {
-      return "rh";
-    }
-    else if ("left" == hand_side)
-    {
-      return "lh";
-    }
-    else
-    {
-      throw std::runtime_error("sr_hand_autodetect: Unknown hand side.");
-    }
-  }
-
 void SrHandAutodetect::run()
 {
-  std::cout << "********** test **************" << std::endl;
+  detect_hands();
+  compose_command_sufix();
 }
 }

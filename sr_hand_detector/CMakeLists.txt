@@ -131,6 +131,12 @@ add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/soem/osal.c
 )
 
+add_library(sr_hand_autodetect_lib
+  src/${PROJECT_NAME}/sr_hand_autodetect.cpp
+)
+
+add_dependencies(sr_hand_autodetect_lib ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 SET(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
@@ -145,6 +151,12 @@ target_link_libraries(${PROJECT_NAME}_node
 )
 
 target_link_libraries(sr_hand_autodetect
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  yaml-cpp
+)
+
+target_link_libraries(sr_hand_autodetect_lib
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   yaml-cpp
@@ -251,11 +263,6 @@ install(DIRECTORY launch/
 ## Testing ##
 #############
 
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_sr_hand_detector.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+  add_rostest_gtest(test_sr_hand_autodetect test/test_sr_hand_autodetect.test test/test_sr_hand_autodetect)
+  add_dependencies(test_sr_hand_autodetect ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(test_sr_hand_autodetect ${PROJECT_NAME} sr_hand_autodetect_lib ${catkin_LIBRARIES})

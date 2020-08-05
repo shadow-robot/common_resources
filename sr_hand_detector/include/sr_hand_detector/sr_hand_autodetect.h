@@ -18,6 +18,7 @@
 #define SR_HAND_DETECTOR_SR_HAND_AUTODETECT_H
 
 #include <string>
+#include "sr_hand_detector/sr_hand_detector.h"
 #include "yaml-cpp/yaml.h"
 
 namespace sr_hand_detector
@@ -30,16 +31,19 @@ class SrHandAutodetect
   void compose_command_sufix();
   std::string get_hand_id(std::string hand_side);
 
-  int number_of_detected_hands;
-  std::string sr_hand_config_path;
-  std::map<int, std::string> hand_serial_and_port_map;
+
 
   public:
-    SrHandAutodetect();
+    SrHandAutodetect(SrHandDetector sr_hand_detector, std::string hand_config_path = "");
     ~SrHandAutodetect();
     void run();
 
+    SrHandDetector sr_hand_detector_;
     std::string command_sufix;
+
+    int number_of_detected_hands;
+    std::string sr_hand_config_path;
+    std::map<int, std::string> hand_serial_and_port_map;
 };
 
 }  // namespace sr_hand_detector
