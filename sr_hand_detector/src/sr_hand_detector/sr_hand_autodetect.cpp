@@ -43,6 +43,10 @@ SrHandAutodetect::~SrHandAutodetect()
 void SrHandAutodetect::get_path_to_sr_hand_config()
 {
   sr_hand_config_path_ = ros::package::getPath("sr_hand_config");
+  if (sr_hand_config_path_.empty())
+  {
+    throw std::runtime_error("sr_hand_autodetect: Did not find sr_hand_config package.");
+  }
 }
 
 YAML::Node SrHandAutodetect::get_hand_general_info(int serial)
