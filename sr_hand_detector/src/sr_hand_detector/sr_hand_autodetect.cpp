@@ -86,7 +86,7 @@ void SrHandAutodetect::detect_hands()
   number_of_detected_hands_ = hand_serial_and_port_map_.size();
 }
 
-void SrHandAutodetect::compose_command_sufix()
+void SrHandAutodetect::compose_command_suffix()
 {
   if (0 == number_of_detected_hands_)
   {
@@ -140,6 +140,6 @@ void SrHandAutodetect::compose_command_sufix()
 void SrHandAutodetect::run()
 {
   detect_hands();
-  compose_command_sufix();
+  compose_command_suffix();
 }
 }  // namespace sr_hand_detector
