@@ -24,29 +24,28 @@ from multiprocessing import Process
 class RosElementsHandler(object):
     def __init__(self, element_type, required_elements_list):
         self._element_type = element_type
-        self._required_elements_list = required_elements_list
-        self._found_elements = []
-        self.missing_elements = []
+        # De-duplicate and make a copy of the required elements list
+        self.missing_elements = list(set(required_elements_list))
 
     def check_if_required_element_is_available(self):
         roscore_published_elements = self._retrieve_available_elements()
-        if not isinstance(self._required_elements_list, list):
+        if not isinstance(self.missing_elements, list):
             raise ValueError("{}: Required elements must be a list not a string, \
                              check the required element list declaration".format(rospy.get_name()))
-        if self._required_elements_list:
-            for element in self._required_elements_list:
+        # If there are missing elements, try to find them, else return true
+        if self.missing_elements:
+            # Loop through a copy of missing elements; we're removing items from it within the loop
+            for element in list(self.missing_elements):
                 if element and type(element) == str:
                     if any(element in sublist for sublist in roscore_published_elements):
                         rospy.loginfo("Found %s", element)
-                        self._found_elements.append(element)
+                        self.missing_elements.remove(element)
                 else:
                     raise ValueError("{}: Required element is not a string".format(rospy.get_name()))
-            if len(self._found_elements) == len(self._required_elements_list):
-                return True
-            self.missing_elements = list(set(self._required_elements_list) - set(self._found_elements))
+            # Return true if there are no more missing elements
+            return not self.missing_elements
         else:
             return True
-        return False
 
     def _retrieve_available_elements(self):
         if self._element_type == "topic":
