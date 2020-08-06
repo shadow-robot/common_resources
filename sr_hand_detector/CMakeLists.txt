@@ -9,6 +9,7 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,6 +106,7 @@ catkin_package(
  LIBRARIES sr_hand_detector
  CATKIN_DEPENDS
     roscpp
+    roslib
 #  DEPENDS system_lib
 )
 
@@ -129,16 +131,35 @@ add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/soem/osal.c
 )
 
+add_library(sr_hand_autodetect_lib
+  src/${PROJECT_NAME}/sr_hand_autodetect.cpp
+)
+
+add_dependencies(sr_hand_autodetect_lib ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 SET(GCC_NEWDTAGS_LINK_FLAGS "-Wl,--disable-new-dtags")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_NEWDTAGS_LINK_FLAGS}")
 set (CMAKE_CXX_STANDARD 11)
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}/sr_hand_detector_node.cpp)
+add_executable(sr_hand_autodetect src/${PROJECT_NAME}/sr_hand_autodetect_node.cpp src/${PROJECT_NAME}/sr_hand_autodetect.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(sr_hand_autodetect
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  yaml-cpp
+)
+
+target_link_libraries(sr_hand_autodetect_lib
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  yaml-cpp
 )
 
 # Set ${PROJECT_NAME}_nodewith RPATH built in so that we can install it suid
@@ -215,6 +236,12 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
+install(TARGETS ${PROJECT_NAME} sr_hand_autodetect
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
 ## Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
@@ -236,11 +263,10 @@ install(DIRECTORY launch/
 ## Testing ##
 #############
 
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_sr_hand_detector.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
 
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+  add_rostest_gtest(test_sr_hand_autodetect test/test_sr_hand_autodetect.test test/test_sr_hand_autodetect)
+  add_dependencies(test_sr_hand_autodetect ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(test_sr_hand_autodetect ${PROJECT_NAME} sr_hand_autodetect_lib ${catkin_LIBRARIES})
+endif ()
