@@ -17,7 +17,6 @@
 #include <iostream>
 #include <string>
 #include <ros/package.h>
-#include <ros/ros.h>
 #include "sr_hand_detector/sr_hand_autodetect.h"
 
 int main(int argc, char* argv[])
