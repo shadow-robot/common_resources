@@ -41,8 +41,6 @@ int main(int argc, char** argv)
     hand_serial_to_port_map[x.first] = x.second;
   }
 
-  hand_serial_to_port_map[1130] = "eth0";
-  hand_serial_to_port_map[2346] = "eth1";
   std::ofstream fout("/tmp/sr_hand_detector.yaml");
   fout << hand_serial_to_port_map;
   return 0;
