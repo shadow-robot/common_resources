@@ -23,8 +23,8 @@
 
 namespace sr_hand_detector
 {
-SrHandAutodetect::SrHandAutodetect(SrHandDetector sr_hand_detector, std::string hand_config_path) :
-  sr_hand_detector_(sr_hand_detector)
+SrHandAutodetect::SrHandAutodetect(std::string detected_hands_file, std::string hand_config_path) :
+  detected_hands_file_(detected_hands_file)
 {
   if (hand_config_path.empty())
   {
@@ -81,8 +81,11 @@ std::string SrHandAutodetect::get_hand_id(std::string hand_side)
 
 void SrHandAutodetect::detect_hands()
 {
-  sr_hand_detector_.run();
-  hand_serial_and_port_map_ = sr_hand_detector_.hand_serial_and_port_map_;
+  YAML::Node config = YAML::LoadFile(detected_hands_file_);
+  for (YAML::const_iterator it = config.begin(); it != config.end(); ++it)
+  {
+    hand_serial_and_port_map_.insert(std::pair<int, std::string>(it->first.as<int>(), it->second.as<std::string>()));
+  }
   number_of_detected_hands_ = hand_serial_and_port_map_.size();
 }
 

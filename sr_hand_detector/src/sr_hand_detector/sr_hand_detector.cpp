@@ -23,14 +23,12 @@
 #include "sr_hand_detector/sr_hand_detector.h"
 #include <sys/capability.h>
 
-#include <ros/ros.h>
-
 
 namespace sr_hand_detector
 {
 SrHandDetector::SrHandDetector()
 {
-  std::cout << "Starting hand detector...";
+  std::cout << "Starting hand detector..." << std::endl;
 }
 
 SrHandDetector::~SrHandDetector()
