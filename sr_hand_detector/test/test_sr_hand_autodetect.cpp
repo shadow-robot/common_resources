@@ -24,41 +24,13 @@
 #include "yaml-cpp/exceptions.h"
 
 
-class MockSrHandDetectorUnimanual : public sr_hand_detector::SrHandDetector
-{
- public:
-  MockSrHandDetectorUnimanual()
-  {
-    hand_serial_and_port_map_.insert(std::pair<int, std::string>(1130, "eth0"));
-  }
-};
-
-class MockSrHandDetectorBimanual : public sr_hand_detector::SrHandDetector
-{
- public:
-  MockSrHandDetectorBimanual()
-  {
-    hand_serial_and_port_map_.insert(std::pair<int, std::string>(1130, "eth0"));
-    hand_serial_and_port_map_.insert(std::pair<int, std::string>(2346, "eth1"));
-  }
-};
-
-class MockSrHandDetectorNonExistingHand : public sr_hand_detector::SrHandDetector
-{
- public:
-  MockSrHandDetectorNonExistingHand()
-  {
-    hand_serial_and_port_map_.insert(std::pair<int, std::string>(0, "eth0"));
-  }
-};
-
 TEST(SrHandAutodetect, test_run_unimanual)
 {
   std::string expected_command_sufix = " eth_port:=eth0 hand_serial:=1130 hand_id:=rh";
   std::string hand_config_path = ros::package::getPath("sr_hand_detector") + "/test/config";
+  std::string detected_hands_file = ros::package::getPath("sr_hand_detector") + "/test/config/test_unimanual.yaml";
 
-  MockSrHandDetectorUnimanual mock_sr_hand_detector;
-  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector, hand_config_path);
+  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(detected_hands_file, hand_config_path);
   sr_hand_autodetect.run();
   ASSERT_EQ(sr_hand_autodetect.command_sufix_, expected_command_sufix);
 }
@@ -67,10 +39,9 @@ TEST(SrHandAutodetect, test_run_bimanual)
 {
   std::string expected_command_sufix = " eth_port:=eth0_eth1 rh_serial:=1130 lh_serial:=2346";
   std::string hand_config_path = ros::package::getPath("sr_hand_detector") + "/test/config";
+  std::string detected_hands_file = ros::package::getPath("sr_hand_detector") + "/test/config/test_bimanual.yaml";
 
-
-  MockSrHandDetectorBimanual mock_sr_hand_detector;
-  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector, hand_config_path);
+  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(detected_hands_file, hand_config_path);
   sr_hand_autodetect.run();
   ASSERT_EQ(sr_hand_autodetect.command_sufix_, expected_command_sufix);
 }
@@ -78,17 +49,19 @@ TEST(SrHandAutodetect, test_run_bimanual)
 TEST(SrHandAutodetect, test_run_no_hands)
 {
   std::string expected_command_sufix = "";
+  std::string detected_hands_file = ros::package::getPath("sr_hand_detector") + "/test/config/test_no_hands.yaml";
 
-  sr_hand_detector::SrHandDetector sr_hand_detector;
-  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(sr_hand_detector);
+  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(detected_hands_file);
   sr_hand_autodetect.run();
   ASSERT_EQ(sr_hand_autodetect.command_sufix_, expected_command_sufix);
 }
 
 TEST(SrHandAutodetect, test_run_non_existing_hand)
 {
-  MockSrHandDetectorNonExistingHand mock_sr_hand_detector;
-  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(mock_sr_hand_detector);
+  std::string hand_config_path = ros::package::getPath("sr_hand_detector") + "/test/config";
+  std::string detected_hands_file = ros::package::getPath("sr_hand_detector") +
+    "/test/config/test_non_existing_hand.yaml";
+  sr_hand_detector::SrHandAutodetect sr_hand_autodetect(detected_hands_file, hand_config_path);
   ASSERT_THROW(sr_hand_autodetect.run(), YAML::BadFile);
 }
 

@@ -148,6 +148,7 @@ add_executable(sr_hand_autodetect src/${PROJECT_NAME}/sr_hand_autodetect_node.cp
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  yaml-cpp
 )
 
 target_link_libraries(sr_hand_autodetect

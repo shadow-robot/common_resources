@@ -34,14 +34,15 @@ class SrHandAutodetect
 
   int number_of_detected_hands_;
   std::string sr_hand_config_path_;
+  std::string detected_hands_file_;
   std::map<int, std::string> hand_serial_and_port_map_;
 
   public:
-    explicit SrHandAutodetect(SrHandDetector sr_hand_detector, std::string hand_config_path = "");
+    explicit SrHandAutodetect(std::string detected_hands_file = "/tmp/sr_hand_detector.yaml",
+                              std::string hand_config_path = "");
     ~SrHandAutodetect();
     void run();
 
-    SrHandDetector sr_hand_detector_;
     std::string command_sufix_;
 };
 
