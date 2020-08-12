@@ -59,7 +59,8 @@ TEST(SrHandAutodetect, test_run_no_hands)
 TEST(SrHandAutodetect, test_run_non_existing_hand)
 {
   std::string hand_config_path = ros::package::getPath("sr_hand_detector") + "/test/config";
-  std::string detected_hands_file = ros::package::getPath("sr_hand_detector") + "/test/config/test_non_existing_hand.yaml";
+  std::string detected_hands_file = ros::package::getPath("sr_hand_detector") +
+    "/test/config/test_non_existing_hand.yaml";
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect(detected_hands_file, hand_config_path);
   ASSERT_THROW(sr_hand_autodetect.run(), YAML::BadFile);
 }

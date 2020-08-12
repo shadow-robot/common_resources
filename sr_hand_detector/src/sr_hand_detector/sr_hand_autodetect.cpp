@@ -20,6 +20,7 @@
 #include <iostream>
 #include <ros/package.h>
 #include <string>
+#include <utility>
 
 namespace sr_hand_detector
 {

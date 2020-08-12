@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 
   sr_hand_detector::SrHandAutodetect sr_hand_autodetect;
   sr_hand_autodetect.run();
-  
+
   std::string command_string = "";
   for (int i = 1; i < argc; i++)
   {
