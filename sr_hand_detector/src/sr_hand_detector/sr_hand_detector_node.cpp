@@ -30,7 +30,6 @@ int main(int argc, char** argv)
   if (sr_hand_detector.hand_serial_and_port_map_.empty())
   {
     std::cout << "No hand detected on any of the ports!" << std::endl;
-    // return 1;
   }
 
   YAML::Node hand_serial_to_port_map;

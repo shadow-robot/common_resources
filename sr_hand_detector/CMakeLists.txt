@@ -149,21 +149,18 @@ target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   yaml-cpp
-  cap
 )
 
 target_link_libraries(sr_hand_autodetect
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   yaml-cpp
-  cap
 )
 
 target_link_libraries(sr_hand_autodetect_lib
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   yaml-cpp
-  cap
 )
 
 # Set ${PROJECT_NAME}_nodewith RPATH built in so that we can install it suid
