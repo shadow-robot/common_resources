@@ -14,17 +14,21 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <ros/ros.h>
+#include <iostream>
 #include <string>
 #include <utility>
+#include <algorithm>
 #include <ifaddrs.h>
+#include <unistd.h>
 #include "sr_hand_detector/sr_hand_detector.h"
+#include <sys/capability.h>
+
 
 namespace sr_hand_detector
 {
 SrHandDetector::SrHandDetector()
 {
-  ROS_INFO("Starting hand detector...");
+  std::cout << "Starting hand detector..." << std::endl;
 }
 
 SrHandDetector::~SrHandDetector()
@@ -50,7 +54,7 @@ void SrHandDetector::get_available_port_names()
 
   for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++)
   {
-    if (ifa->ifa_addr == NULL || std::count(available_port_names_.begin(),
+    if (ifa->ifa_addr == NULL || count(available_port_names_.begin(),
                                             available_port_names_.end(),
                                             ifa->ifa_name))
     {
@@ -105,7 +109,7 @@ int SrHandDetector::get_hand_serial(std::string port_name)
   }
   else
   {
-    ROS_ERROR_STREAM("No socket connection on " << port_name_c_str << ". Excecute as root.");
+    std::cout << "No socket connection on " << port_name_c_str << ". Excecute as root.";
     return 0;
   }
 }

@@ -18,6 +18,7 @@ import rospy
 import yaml
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 from sr_robot_commander.sr_hand_commander import SrHandCommander
+from sr_utilities.hand_finder import HandFinder
 
 
 class SrRunTrajectories(object):
@@ -34,6 +35,12 @@ class SrRunTrajectories(object):
         self._hand_commander = None
         self._arm_and_hand_commander = None
 
+        if hand:
+            self.hand_prefix = None
+            self.hand_side = None
+            self.get_hand_prefix()
+            self.get_hand_side()
+
         self._init_moveit_commanders()
         self._parse_all_trajectories(trajectories_file_path)
 
@@ -44,11 +51,12 @@ class SrRunTrajectories(object):
                 raise MoveItCommanderException('Failed to initialise arm commander!')
             self._arm_commander.set_max_velocity_scaling_factor(0.3)
         if self.hand:
-            self._hand_commander = SrHandCommander(name='right_hand')
+            self._hand_commander = SrHandCommander(name='{}_hand'.format(self.hand_side))
             if self._hand_commander is None:
                 raise MoveItCommanderException('Failed to initialise hand commander!')
         if self.arm_and_hand:
-            self._arm_and_hand_commander = SrArmCommander(name='right_arm_and_hand', set_ground=False)
+            self._arm_and_hand_commander = SrArmCommander(name='{}_arm_and_hand'.format(self.hand_side),
+                                                          set_ground=False)
             if self._arm_and_hand_commander is None:
                 raise MoveItCommanderException('Failed to initialise arm and hand commander!')
             self._arm_and_hand_commander.set_max_velocity_scaling_factor(0.3)
@@ -63,12 +71,12 @@ class SrRunTrajectories(object):
             self._arm_trajectories = self._parse_trajectories_dict(arm_trajectories, arm_joints_order)
 
         if self.hand:
-            hand_joints_order = trajectories_info['hand_joints_order']
+            hand_joints_order = [self.hand_prefix + joint for joint in trajectories_info['hand_joints_order']]
             hand_trajectories = trajectories_info['hand_trajectories']
             self._hand_trajectories = self._parse_trajectories_dict(hand_trajectories, hand_joints_order)
 
         if self.arm_and_hand:
-            arm_and_hand_joints_order = trajectories_info['arm_and_hand_joints_order']
+            arm_and_hand_joints_order = trajectories_info['arm_joints_order'] + trajectories_info['hand_joints_order']
             arm_and_hand_trajectories = trajectories_info['arm_and_hand_trajectories']
             self._arm_and_hand_trajectories = self._parse_trajectories_dict(arm_and_hand_trajectories,
                                                                             arm_and_hand_joints_order)
@@ -94,3 +102,20 @@ class SrRunTrajectories(object):
             self._arm_and_hand_commander.run_named_trajectory(self._arm_and_hand_trajectories[trajectory_name])
         else:
             rospy.logerr("Unknown configuration!")
+
+    def get_hand_prefix(self):
+        hand_finder = HandFinder()
+        joint_prefix_dict = hand_finder.get_hand_parameters().joint_prefix
+        if len(joint_prefix_dict) > 1:
+            raise ValueError("More then one hand connected, unsupported!")
+        values_view = joint_prefix_dict.values()
+        value_iterator = iter(values_view)
+        self.hand_prefix = next(value_iterator)
+
+    def get_hand_side(self):
+        if 'rh_' == self.hand_prefix:
+            self.hand_side = 'right'
+        elif 'lh_' == self.hand_prefix:
+            self.hand_side = 'left'
+        else:
+            raise ValueError("Unknown hand prefix!")

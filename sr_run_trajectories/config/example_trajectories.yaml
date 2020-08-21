@@ -22,5 +22,4 @@ arm_and_hand_trajectories:
       interpolate_time: 1
 
 arm_joints_order: [ra_elbow_joint, ra_shoulder_lift_joint, ra_shoulder_pan_joint, ra_wrist_1_joint, ra_wrist_2_joint, ra_wrist_3_joint]
-hand_joints_order: [rh_FFJ1, rh_FFJ2, rh_FFJ3, rh_FFJ4, rh_LFJ1, rh_LFJ2, rh_LFJ3, rh_LFJ4, rh_LFJ5, rh_MFJ1, rh_MFJ2, rh_MFJ3, rh_MFJ4, rh_RFJ1, rh_RFJ2, rh_RFJ3, rh_RFJ4, rh_THJ1, rh_THJ2, rh_THJ3, rh_THJ4, rh_THJ5, rh_WRJ1, rh_WRJ2]
-arm_and_hand_joints_order: [ra_elbow_joint, ra_shoulder_lift_joint, ra_shoulder_pan_joint, ra_wrist_1_joint, ra_wrist_2_joint, ra_wrist_3_joint, rh_FFJ1, rh_FFJ2, rh_FFJ3, rh_FFJ4, rh_LFJ1, rh_LFJ2, rh_LFJ3, rh_LFJ4, rh_LFJ5, rh_MFJ1, rh_MFJ2, rh_MFJ3, rh_MFJ4, rh_RFJ1, rh_RFJ2, rh_RFJ3, rh_RFJ4, rh_THJ1, rh_THJ2, rh_THJ3, rh_THJ4, rh_THJ5, rh_WRJ1, rh_WRJ2]
+hand_joints_order: [FFJ1, FFJ2, FFJ3, FFJ4, LFJ1, LFJ2, LFJ3, LFJ4, LFJ5, MFJ1, MFJ2, MFJ3, MFJ4, RFJ1, RFJ2, RFJ3, RFJ4, THJ1, THJ2, THJ3, THJ4, THJ5, WRJ1, WRJ2]
