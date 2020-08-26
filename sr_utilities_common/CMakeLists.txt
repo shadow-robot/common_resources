@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     roslint    
     std_msgs
+    topic_tools
 )
 
 ## System dependencies are found with CMake's conventions
@@ -152,6 +153,9 @@ target_link_libraries(ros_heartbeat_server_example
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
+
+add_executable(relay src/${PROJECT_NAME}/relay.cpp)
+target_link_libraries(relay ${catkin_LIBRARIES})
 
 #############
 ## Install ##
