@@ -28,8 +28,8 @@ class RemotePowerControl(object):
     def __init__(self, arm_power_ip, side="right"):
         self._on_off_delay = 0.4
         self._arm_power_ip = arm_power_ip
-        rospy.Subscriber(side + "_power_arm_on", Bool, self.power_on_cb)
-        rospy.Subscriber(side + "_power_arm_off", Bool, self.power_off_cb)
+        rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
+        rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
         while not rospy.is_shutdown():
             rospy.spin()
 
