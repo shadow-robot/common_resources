@@ -18,14 +18,46 @@ import rospy
 import os
 import rosservice
 import sys
-
+import requests
 
 
 
 class RemotePowerControl(object):
-    def __init__(self):
+    def __init__(self, arm_power_ip):
+        self._arm_power_ip = arm_power_ip
+        rospy.Subscriber("power_arm_on", Bool, self.power_on_cb)
+        rospy.Subscriber("power_arm_off", Bool, self.power_off_cb)
 
+    def power_on(self):
+        r = requests.get(self._arm_power_ip + "/setpara[45]=1")
+        rospy.logwarn("%s", r)
+        rospy.sleep(0.5)
+        r = requests.get(self._arm_power_ip + "/setpara[45]=0")
+        rospy.logwarn("%s", r)
+        rospy.sleep(1.0)        
+
+    def power_off(self):
+        r = requests.get(self._arm_power_ip + "/setpara[46]=1")
+        rospy.logwarn("%s", r)
+        rospy.sleep(0.5)
+        r = requests.get(self._arm_power_ip + "/setpara[46]=0")
+        rospy.logwarn("%s", r)
+        rospy.sleep(1.0)        
+
+    def power_on_cb(self, message):
+        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+        if data.data == True:
+            rospy.loginfo("powering on...")
+            self.power_on
+
+    def power_off_cb(self, message):
+        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+        if data.data == True:
+            rospy.loginfo("powering off...")
+            self.power_off
 
 
 if __name__ == "__main__":
+    ip="192.168.1.105"
     rospy.init_node('remote_power_control', anonymous=True)
+    remote_power_control = RemotePowerControl(ip)
