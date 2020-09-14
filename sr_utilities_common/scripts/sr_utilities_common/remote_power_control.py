@@ -39,7 +39,7 @@ class RemotePowerControl(object):
             while (r.status_code != requests.codes.ok) or (i < retries):
                 r = requests.get(request_string)   
                 i = i + 1      
-                rospy.loginfo("i: %d r: %s", i, r)   
+                rospy.loginfo("i: %d r: %s, req: %s", i, r, request_string)   
                 rospy.sleep(0.1)
         except requests.exceptions.ConnectionError as e:
             rospy.logerr("%s", e)
