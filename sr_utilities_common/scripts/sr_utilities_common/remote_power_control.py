@@ -30,14 +30,19 @@ class RemotePowerControl(object):
         while not rospy.is_shutdown():
             rospy.spin()
 
-    def do_request(self, param, value, retries=10):
+    def do_request(self, param, value, retries=20):
         request_string = self._arm_power_ip + "/setpara[" + str(param) + "]=" + str(value)
         i = 0
-        r = requests.get(request_string)
-        rospy.loginfo("%s", r)
-        while (r.status_code != requests.codes.ok) or (i < retries):
-            r = requests.get(request_string)   
-            i = i + 1         
+        try:
+            r = requests.get(request_string)
+            rospy.loginfo("%s", r)
+            while (r.status_code != requests.codes.ok) or (i < retries):
+                r = requests.get(request_string)   
+                i = i + 1      
+                rospy.loginfo("i: %d r: %s", i, r)   
+                rospy.sleep(0.1)
+         except requests.exceptions.ConnectionError as e:
+             rospy.logerr("%s", e)
 
     def power_on(self):
         self.do_request(45, 1)
