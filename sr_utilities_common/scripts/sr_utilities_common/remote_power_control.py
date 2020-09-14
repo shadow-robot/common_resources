@@ -53,11 +53,15 @@ class RemotePowerControl(object):
 
     def power_on(self):
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=1')
+        rospy.sleep(0.4)
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=0')
+        rospy.sleep(0.4)
 
     def power_off(self):
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=1')
+        rospy.sleep(0.4)
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=0')
+        rospy.sleep(0.4)
 
     def power_on_cb(self, data):
         if data.data == True:
