@@ -25,17 +25,13 @@ from std_msgs.msg import Bool
 
 
 class RemotePowerControl(object):
-    def __init__(self, arm_power_ip):
+    def __init__(self, arm_power_ip, side="right"):
+        self._on_off_delay = 0.4
         self._arm_power_ip = arm_power_ip
-        rospy.Subscriber("power_arm_on", Bool, self.power_on_cb)
-        rospy.Subscriber("power_arm_off", Bool, self.power_off_cb)
-        r = rospy.Rate(1) # 10hz 
+        rospy.Subscriber(side + "_power_arm_on", Bool, self.power_on_cb)
+        rospy.Subscriber(side + "_power_arm_off", Bool, self.power_off_cb)
         while not rospy.is_shutdown():
-            response = self.requests_retry_session().get(self._arm_power_ip + '/getpara[45]=1')
-            rospy.logwarn("45: %s", response.content)
-            response = self.requests_retry_session().get(self._arm_power_ip + '/getpara[46]=1')
-            rospy.logwarn("46: %s", response.content)
-            r.sleep()
+            rospy.spin()
 
     def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
         session = session or requests.Session()
@@ -53,15 +49,15 @@ class RemotePowerControl(object):
 
     def power_on(self):
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=1')
-        rospy.sleep(0.4)
+        rospy.sleep(self._on_off_delay)
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=0')
-        rospy.sleep(0.4)
+        rospy.sleep(self._on_off_delay)
 
     def power_off(self):
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=1')
-        rospy.sleep(0.4)
+        rospy.sleep(self._on_off_delay)
         response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=0')
-        rospy.sleep(0.4)
+        rospy.sleep(self._on_off_delay)
 
     def power_on_cb(self, data):
         if data.data == True:
@@ -76,6 +72,8 @@ class RemotePowerControl(object):
 
 if __name__ == "__main__":
     ip="http://192.168.1.105"
+    side="right"
     rospy.init_node('remote_power_control', anonymous=True)
-    remote_power_control = RemotePowerControl(ip)
+    remote_power_control = RemotePowerControl(ip, side)
+
 
