@@ -46,13 +46,13 @@ class RemotePowerControl(object):
         rospy.sleep(0.2)
         self.do_request(46, 0)
 
-    def power_on_cb(self, message):
+    def power_on_cb(self, data):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
         if data.data == True:
             rospy.loginfo("powering on...")
             self.power_on
 
-    def power_off_cb(self, message):
+    def power_off_cb(self, data):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
         if data.data == True:
             rospy.loginfo("powering off...")
@@ -60,6 +60,6 @@ class RemotePowerControl(object):
 
 
 if __name__ == "__main__":
-    ip="192.168.1.105"
+    ip="http://192.168.1.105"
     rospy.init_node('remote_power_control', anonymous=True)
     remote_power_control = RemotePowerControl(ip)
