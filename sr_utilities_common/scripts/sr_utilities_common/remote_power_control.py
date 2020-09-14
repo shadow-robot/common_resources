@@ -41,8 +41,8 @@ class RemotePowerControl(object):
                 i = i + 1      
                 rospy.loginfo("i: %d r: %s", i, r)   
                 rospy.sleep(0.1)
-         except requests.exceptions.ConnectionError as e:
-             rospy.logerr("%s", e)
+        except requests.exceptions.ConnectionError as e:
+            rospy.logerr("%s", e)
 
     def power_on(self):
         self.do_request(45, 1)
