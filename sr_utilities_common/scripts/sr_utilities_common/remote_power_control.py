@@ -15,9 +15,6 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-import os
-import rosservice
-import sys
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
