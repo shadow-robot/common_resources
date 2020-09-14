@@ -32,9 +32,9 @@ class RemotePowerControl(object):
         r = rospy.Rate(1) # 10hz 
         while not rospy.is_shutdown():
             response = self.requests_retry_session().get(self._arm_power_ip + '/getpara[45]=1')
-            rospy.logwarn(response)
+            rospy.logwarn("45: %s", response.content)
             response = self.requests_retry_session().get(self._arm_power_ip + '/getpara[46]=1')
-            rospy.logwarn(response)
+            rospy.logwarn("46: %s", response.content)
             r.sleep()
 
     def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
