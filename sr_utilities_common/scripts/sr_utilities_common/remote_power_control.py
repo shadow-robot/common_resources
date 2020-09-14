@@ -28,21 +28,23 @@ class RemotePowerControl(object):
         rospy.Subscriber("power_arm_on", Bool, self.power_on_cb)
         rospy.Subscriber("power_arm_off", Bool, self.power_off_cb)
 
+    def do_request(self, param, value, retries=10):
+        request_string = self._arm_power_ip + "/setpara[" + param + "]=" + value
+        i = 0
+        r = requests.get(request_string)
+        while (r.status_code != requests.codes.ok) || (i < retries):
+            r = requests.get(request_string)   
+            i = i + 1         
+
     def power_on(self):
-        r = requests.get(self._arm_power_ip + "/setpara[45]=1")
-        rospy.logwarn("%s", r)
-        rospy.sleep(0.5)
-        r = requests.get(self._arm_power_ip + "/setpara[45]=0")
-        rospy.logwarn("%s", r)
-        rospy.sleep(1.0)        
+        self.do_request(45, 1)
+        rospy.sleep(0.2)
+        self.do_request(45, 0)
 
     def power_off(self):
-        r = requests.get(self._arm_power_ip + "/setpara[46]=1")
-        rospy.logwarn("%s", r)
-        rospy.sleep(0.5)
-        r = requests.get(self._arm_power_ip + "/setpara[46]=0")
-        rospy.logwarn("%s", r)
-        rospy.sleep(1.0)        
+        self.do_request(46, 1)
+        rospy.sleep(0.2)
+        self.do_request(46, 0)
 
     def power_on_cb(self, message):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
