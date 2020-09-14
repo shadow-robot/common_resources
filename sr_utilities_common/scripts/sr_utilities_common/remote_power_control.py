@@ -19,7 +19,7 @@ import os
 import rosservice
 import sys
 import requests
-
+from std_msgs.msg import Bool
 
 
 class RemotePowerControl(object):
@@ -27,12 +27,15 @@ class RemotePowerControl(object):
         self._arm_power_ip = arm_power_ip
         rospy.Subscriber("power_arm_on", Bool, self.power_on_cb)
         rospy.Subscriber("power_arm_off", Bool, self.power_off_cb)
+        while not rospy.is_shutdown():
+            rospy.spin()
 
     def do_request(self, param, value, retries=10):
-        request_string = self._arm_power_ip + "/setpara[" + param + "]=" + value
+        request_string = self._arm_power_ip + "/setpara[" + str(param) + "]=" + str(value)
         i = 0
         r = requests.get(request_string)
-        while (r.status_code != requests.codes.ok) || (i < retries):
+        rospy.loginfo("%s", r)
+        while (r.status_code != requests.codes.ok) or (i < retries):
             r = requests.get(request_string)   
             i = i + 1         
 
@@ -50,13 +53,13 @@ class RemotePowerControl(object):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
         if data.data == True:
             rospy.loginfo("powering on...")
-            self.power_on
+            self.power_on()
 
     def power_off_cb(self, data):
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
         if data.data == True:
             rospy.loginfo("powering off...")
-            self.power_off
+            self.power_off()
 
 
 if __name__ == "__main__":
