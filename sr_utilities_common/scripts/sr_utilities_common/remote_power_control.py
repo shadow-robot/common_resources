@@ -19,6 +19,8 @@ import os
 import rosservice
 import sys
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from std_msgs.msg import Bool
 
 
@@ -30,38 +32,34 @@ class RemotePowerControl(object):
         while not rospy.is_shutdown():
             rospy.spin()
 
-    def do_request(self, param, value, retries=20):
-        request_string = self._arm_power_ip + "/setpara[" + str(param) + "]=" + str(value)
-        i = 0
-        try:
-            r = requests.get(request_string)
-            rospy.loginfo("%s", r)
-            while (r.status_code != requests.codes.ok) or (i < retries):
-                r = requests.get(request_string)   
-                i = i + 1      
-                rospy.loginfo("i: %d r: %s, req: %s", i, r, request_string)   
-                rospy.sleep(0.1)
-        except requests.exceptions.ConnectionError as e:
-            rospy.logerr("%s", e)
+    def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
+        session = session or requests.Session()
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
 
     def power_on(self):
-        self.do_request(45, 1)
-        rospy.sleep(0.2)
-        self.do_request(45, 0)
+        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=1')
+        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=0')
 
     def power_off(self):
-        self.do_request(46, 1)
-        rospy.sleep(0.2)
-        self.do_request(46, 0)
+        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=1')
+        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=0')
 
     def power_on_cb(self, data):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
         if data.data == True:
             rospy.loginfo("powering on...")
             self.power_on()
 
     def power_off_cb(self, data):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
         if data.data == True:
             rospy.loginfo("powering off...")
             self.power_off()
@@ -71,3 +69,4 @@ if __name__ == "__main__":
     ip="http://192.168.1.105"
     rospy.init_node('remote_power_control', anonymous=True)
     remote_power_control = RemotePowerControl(ip)
+
