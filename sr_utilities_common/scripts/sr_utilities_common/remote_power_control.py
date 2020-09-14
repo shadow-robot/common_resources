@@ -29,8 +29,13 @@ class RemotePowerControl(object):
         self._arm_power_ip = arm_power_ip
         rospy.Subscriber("power_arm_on", Bool, self.power_on_cb)
         rospy.Subscriber("power_arm_off", Bool, self.power_off_cb)
+        r = rospy.Rate(1) # 10hz 
         while not rospy.is_shutdown():
-            rospy.spin()
+            response = self.requests_retry_session().get(self._arm_power_ip + '/getpara[45]=1')
+            rospy.logwarn(response)
+            response = self.requests_retry_session().get(self._arm_power_ip + '/getpara[46]=1')
+            rospy.logwarn(response)
+            rospy.sleep()
 
     def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
         session = session or requests.Session()
