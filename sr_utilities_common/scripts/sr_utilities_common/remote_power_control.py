@@ -71,9 +71,15 @@ class RemotePowerControl(object):
 
 
 if __name__ == "__main__":
-    ip="http://192.168.1.105"
-    side="right"
     rospy.init_node('remote_power_control', anonymous=True)
-    remote_power_control = RemotePowerControl(ip, side)
-
+    if rospy.has_param('~arm_ip'):
+        arm_ip = rospy.get_param("~arm_ip")
+    else:
+        arm_ip = "192.168.1.105"
+    if rospy.has_param('~side'):
+        side = rospy.get_param("~side")
+    else:
+        side = "right"
+    address = "http://" + arm_ip
+    remote_power_control = RemotePowerControl(address, side)
 
