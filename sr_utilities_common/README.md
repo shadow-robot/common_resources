@@ -160,3 +160,23 @@ You only need to specify the list you want. For instance, if there are no topics
   <param name="timeout" value="60.0" />
 </node>
 ```
+
+## Remote Power Control
+
+This node interfaces with an IP relay for remote power on/off of a UR arm. 
+
+To start the node:
+```bash
+rosrun sr_utilities_common remote_power_control.py
+```
+
+To power an arm on:
+```bash
+rostopic pub /right_arm_power_on std_msgs/Bool "data: true" 
+```
+
+To power an arm off:
+
+```bash
+rostopic pub /right_arm_power_off std_msgs/Bool "data: true" 
+```
