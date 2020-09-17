@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
     roslint    
     std_msgs
     topic_tools
+    message_generation
+    actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -48,11 +50,11 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  sr_power_feedback.msg
+  sr_power_result.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -62,17 +64,17 @@ catkin_python_setup()
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  DIRECTORY action
+  FILES PowerManager.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+  actionlib_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -106,7 +108,7 @@ catkin_python_setup()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS
+  CATKIN_DEPENDS message_runtime actionlib_msgs
     roscpp
 #  DEPENDS system_lib
 )

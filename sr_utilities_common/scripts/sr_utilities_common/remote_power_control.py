@@ -16,27 +16,40 @@
 
 import rospy
 import requests
+import actionlib
 import os
 import subprocess
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from std_msgs.msg import Bool
 
+from sr_utilities_common.msg import PowerManagerAction
+
+
 
 class RemotePowerControl(object):
-    def __init__(self, arm_power_ip, arm_ip_address, side="right"):
+    def __init__(self, name, arm_power_ip, arm_ip_address, side="right"):
+        self._action_name = name
         self._on_off_delay = 0.4
         self._arm_power_ip = arm_power_ip
         self._http_arm_power_ip = 'http://' + arm_power_ip
         self._arm_data_ip = arm_ip_address
         rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
         rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
+
+        self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb, auto_start = False)
+        self._as.start()
+
         if self.does_ip_relay_respond():
             rospy.loginfo("Contacted " + side + " arm ip relay")
         else:
             rospy.logerr("Cannot reach arm ip relay at " + self._arm_power_ip)
         #while not rospy.is_shutdown():
             #rospy.spin()
+
+
+    def execute_cb(self):
+        pass
 
     def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
         session = session or requests.Session()
@@ -122,5 +135,5 @@ if __name__ == "__main__":
         side = "right"
     ##ip_power_address = "http://" + arm_power_ip
     arm_address = arm_ip
-    remote_power_control = RemotePowerControl(arm_power_ip, arm_address, side)
+    remote_power_control = RemotePowerControl(rospy.get_name(), arm_power_ip, arm_address, side)
 
