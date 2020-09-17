@@ -16,19 +16,27 @@
 
 import rospy
 import requests
+import os
+import subprocess
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from std_msgs.msg import Bool
 
 
 class RemotePowerControl(object):
-    def __init__(self, arm_power_ip, side="right"):
+    def __init__(self, arm_power_ip, arm_ip_address, side="right"):
         self._on_off_delay = 0.4
         self._arm_power_ip = arm_power_ip
+        self._http_arm_power_ip = 'http://' + arm_power_ip
+        self._arm_data_ip = arm_ip_address
         rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
         rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
-        while not rospy.is_shutdown():
-            rospy.spin()
+        if self.does_ip_relay_respond():
+            rospy.loginfo("Contacted " + side + " arm ip relay")
+        else:
+            rospy.logerr("Cannot reach arm ip relay at " + self._arm_power_ip)
+        #while not rospy.is_shutdown():
+            #rospy.spin()
 
     def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
         session = session or requests.Session()
@@ -45,26 +53,55 @@ class RemotePowerControl(object):
         return session
 
     def power_on(self):
-        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=1')
+        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[45]=1')
         rospy.sleep(self._on_off_delay)
-        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[45]=0')
+        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[45]=0')
         rospy.sleep(self._on_off_delay)
 
     def power_off(self):
-        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=1')
+        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[46]=1')
         rospy.sleep(self._on_off_delay)
-        response = self.requests_retry_session().get(self._arm_power_ip + '/setpara[46]=0')
+        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[46]=0')
         rospy.sleep(self._on_off_delay)
 
     def power_on_cb(self, data):
         if data.data == True:
-            rospy.loginfo("powering on...")
-            self.power_on()
+            if self.is_arm_off():
+                rospy.loginfo("powering on...")
+                self.power_on()
+            else: 
+                rospy.logwarn("arm already on, not powering up")
 
     def power_off_cb(self, data):
         if data.data == True:
-            rospy.loginfo("powering off...")
-            self.power_off()
+            if self.is_arm_on():
+                rospy.loginfo("powering off...")
+                self.power_off()
+            else:
+                rospy.logwarn("Arm already off, not sending shutdown signal")
+
+    def is_ping_successful(self, ip):
+        command = 'fping -c1 -t500 ' + ip + ' 2>&1 >/dev/null'
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        stdout = p.communicate()[0]
+        if (p.returncode == 0):
+            return True
+        else:
+            return False
+
+    def does_ip_relay_respond(self):
+        return self.is_ping_successful(self._arm_power_ip)
+
+    def is_arm_off(self):
+        return not self.is_ping_successful(self._arm_data_ip)
+
+    def is_arm_on(self):
+        return self.is_ping_successful(self._arm_data_ip)
+
+    def is_arm_booting(self):        
+        while True:
+            t = os.system('fping -c1 -t500 192.168.1.1')
+            print t
 
 
 if __name__ == "__main__":
@@ -72,11 +109,18 @@ if __name__ == "__main__":
     if rospy.has_param('~arm_ip'):
         arm_ip = rospy.get_param("~arm_ip")
     else:
-        arm_ip = "192.168.1.105"
+        arm_ip = "192.168.1.1"
+
+    if rospy.has_param('~arm_power_ip'):
+        arm_power_ip = rospy.get_param("~arm_power_ip")
+    else:
+        arm_power_ip = "10.6.10.105"
+
     if rospy.has_param('~side'):
         side = rospy.get_param("~side")
     else:
         side = "right"
-    address = "http://" + arm_ip
-    remote_power_control = RemotePowerControl(address, side)
+    ##ip_power_address = "http://" + arm_power_ip
+    arm_address = arm_ip
+    remote_power_control = RemotePowerControl(arm_power_ip, arm_address, side)
 
