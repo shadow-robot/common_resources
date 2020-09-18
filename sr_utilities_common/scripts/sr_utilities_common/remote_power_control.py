@@ -32,6 +32,10 @@ class Device:
   power_ip = ""
   device_ip = ""
 
+class Struct:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
 
 class RemotePowerControl(object):
     _feedback = sr_utilities_common.msg.PowerManagerFeedback()
@@ -49,8 +53,6 @@ class RemotePowerControl(object):
         rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
         rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
         self.goal = PowerManagerGoal()
-
-
 
         self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb, auto_start = False)
         self._as.start()
@@ -181,8 +183,14 @@ class RemotePowerControl(object):
 
 
 
+
 if __name__ == "__main__":
     rospy.init_node('remote_power_control', anonymous=False)
+    config_path = os.path.join(rospkg.RosPack().get_path('sr_utilities_common'), 'config')    
+    with open(config_path + 'power_devices.yaml') as f:
+        # use safe_load instead load
+        dataMap = yaml.safe_load(f)
+
     if rospy.has_param('~arm_ip'):
         arm_ip = rospy.get_param("~arm_ip")
     else:
