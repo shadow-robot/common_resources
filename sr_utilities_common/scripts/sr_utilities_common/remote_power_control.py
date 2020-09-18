@@ -27,6 +27,7 @@ from std_msgs.msg import Bool
 import sr_utilities_common.msg
 from sr_utilities_common.msg import PowerManagerAction
 from sr_utilities_common.msg import PowerManagerGoal
+from sr_utilities_common.srv import CustomRelayCommand,CustomRelayCommandResponse
 
 
 class Device:
@@ -37,6 +38,15 @@ class Device:
 class Devices:
     def __init__(self, **entries):
         self.__dict__.update(entries)
+
+def handle_add_two_ints(req):
+    print("Returning [%s + %s = %s]"%(req.a, req.b, (req.a + req.b)))
+    return AddTwoIntsResponse(req.a + req.b)
+
+def add_two_ints_server():
+    rospy.init_node('add_two_ints_server')
+    s = rospy.Service('add_two_ints', AddTwoInts, handle_add_two_ints)
+    print("Ready to add two ints.")
 
 
 class RemotePowerControl(object):
@@ -49,10 +59,21 @@ class RemotePowerControl(object):
         self._devices = devices
         self.goal = PowerManagerGoal()
         self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb, auto_start = False)
+        self._custom_relay_service = rospy.Service('custom_power_relay_command', CustomRelayCommand, self.handle_custom_relay_request)
         self._as.start()
         self.check_relays_connected()
         while not rospy.is_shutdown():
             rospy.spin()
+
+    def handle_custom_relay_request(self, req):
+        if 'get' in req.request_type.lower():
+            req_type = 'get'
+        if 'set' in req.request_type.lower():
+            req_type = 'set'
+        request_string = 'http://' + str(req.ip_address) + '/' + str(req_type) + 'para[' + str(req.param_number) + ']=' + str(req.value)
+        response = self.requests_retry_session().get(request_string)
+        response_content = response.content.replace("<html><body>", '').replace("</body></html>\r\n\r\n", '')
+        return CustomRelayCommandResponse(response_content)
 
     def check_relays_connected(self):
         for device in self._devices:
@@ -90,7 +111,7 @@ class RemotePowerControl(object):
             self._feedback.feedback.append(fb)
         
         # publish info to the console for the user
-        rospy.logwarn('%s: Executing, creating fibonacci sequence of string %s with %s, %s' % (self._action_name, goal.power_on[0], self._feedback.feedback[0], self._feedback.feedback[1]))
+        rospy.logwarn('%s: Executing. \nPower on list: %s \nPower off list: %s' % (self._action_name, goal.power_on, goal.power_off))
         
         # start executing the action
         for i in range(1, 2):
@@ -165,7 +186,7 @@ if __name__ == "__main__":
     rospy.init_node('remote_power_control', anonymous=False)
     config_file = 'power_devices.yaml'
     config_path = os.path.join(rospkg.RosPack().get_path('sr_utilities_common'), 'config')
-    config = os.path.join(config_path, config_file)   
+    config = os.path.join(config_path, config_file)
     with open(config) as f:
         # use safe_load instead load
         dataMap = yaml.safe_load(f)
