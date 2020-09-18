@@ -18,6 +18,8 @@ import rospy
 import requests
 import actionlib
 import os
+import yaml
+import rospkg
 import subprocess
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -32,7 +34,7 @@ class Device:
   power_ip = ""
   device_ip = ""
 
-class Struct:
+class Devices:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
@@ -41,28 +43,28 @@ class RemotePowerControl(object):
     _feedback = sr_utilities_common.msg.PowerManagerFeedback()
     _result = sr_utilities_common.msg.PowerManagerResult()
 
-    def __init__(self, name, arm_power_ip, arm_ip_address, devices, side="right"):
+    def __init__(self, name, devices):
         self._action_name = name
         self._on_off_delay = 0.4
-        self._arm_power_ip = arm_power_ip
-        self._http_arm_power_ip = 'http://' + arm_power_ip
-        self._arm_data_ip = arm_ip_address
+
+        #self._http_arm_power_ip = 'http://' + arm_power_ip
+
         self._devices = devices
-        #self._power_on_list = []
-        #self._power_off_list = []
-        rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
-        rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
+        #rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
+        #rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
         self.goal = PowerManagerGoal()
 
         self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb, auto_start = False)
         self._as.start()
+        self.check_relays_connected()
 
-        if self.does_ip_relay_respond():
-            rospy.loginfo("Contacted " + side + " arm ip relay")
-        else:
-            rospy.logerr("Cannot reach arm ip relay at " + self._arm_power_ip)
-        #while not rospy.is_shutdown():
-            #rospy.spin()
+    def check_relays_connected(self):
+        for device in self._devices:
+            if 'arm' in device['name']:
+                if self.does_ip_relay_respond(device['power_ip']):
+                    rospy.loginfo("Contacted " + device['name'] + " ip relay at " + device['power_ip'])
+                else:
+                    rospy.logwarn("Could not contact " + device['name'] + " ip relay at " + device['power_ip'])
 
     def execute_cb(self, goal):
         rospy.logwarn("cb")
@@ -70,22 +72,20 @@ class RemotePowerControl(object):
         # helper variables
         r = rospy.Rate(1)
         success = True
-        self._power_on_list = goal.power_on
-        self._power_off_list = goal.power_off
 
         for power_on_goal in goal.power_on:
             for device in self._devices:
-                if power_on_goal == device.name:
-                    if self.is_arm_off():
+                if device['name'] == power_on_goal:
+                    if not 'arm' in device['name'] or self.is_arm_off(device['data_ip']):
                         rospy.loginfo("powering on...")
-                        self.power_on()
+                        self.power_on(device['power_ip'])
 
         for power_off_goal in goal.power_off:
             for device in self._devices:
-                if power_off_goal == device.name:
-                    if self.is_arm_on():
+                if device['name'] == power_off_goal:
+                    if not 'arm' in device['name'] or self.is_arm_on(device['data_ip']):
                         rospy.loginfo("powering off...")
-                        self.power_off()
+                        self.power_off(device['power_ip'])
         
         # append the seeds for the fibonacci sequence
         for i in range(0, 2):
@@ -129,13 +129,13 @@ class RemotePowerControl(object):
         session.mount('https://', adapter)
         return session
 
-    def power_on(self):
+    def power_on(self, power_ip):
         response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[45]=1')
         rospy.sleep(self._on_off_delay)
         response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[45]=0')
         rospy.sleep(self._on_off_delay)
 
-    def power_off(self):
+    def power_off(self, power_ip):
         response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[46]=1')
         rospy.sleep(self._on_off_delay)
         response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[46]=0')
@@ -166,14 +166,14 @@ class RemotePowerControl(object):
         else:
             return False
 
-    def does_ip_relay_respond(self):
-        return self.is_ping_successful(self._arm_power_ip)
+    def does_ip_relay_respond(self, ip):
+        return self.is_ping_successful(ip)
 
-    def is_arm_off(self):
-        return not self.is_ping_successful(self._arm_data_ip)
+    def is_arm_off(self, ip):
+        return not self.is_ping_successful(ip)
 
-    def is_arm_on(self):
-        return self.is_ping_successful(self._arm_data_ip)
+    def is_arm_on(self, ip):
+        return self.is_ping_successful(ip)
 
     def is_arm_booting(self):        
         while True:
@@ -181,37 +181,14 @@ class RemotePowerControl(object):
             print t
 
 
-
-
-
 if __name__ == "__main__":
     rospy.init_node('remote_power_control', anonymous=False)
-    config_path = os.path.join(rospkg.RosPack().get_path('sr_utilities_common'), 'config')    
-    with open(config_path + 'power_devices.yaml') as f:
+    config_file = 'power_devices.yaml'
+    config_path = os.path.join(rospkg.RosPack().get_path('sr_utilities_common'), 'config')
+    config = os.path.join(config_path, config_file)   
+    with open(config) as f:
         # use safe_load instead load
         dataMap = yaml.safe_load(f)
 
-    if rospy.has_param('~arm_ip'):
-        arm_ip = rospy.get_param("~arm_ip")
-    else:
-        arm_ip = "192.168.1.1"
-
-    if rospy.has_param('~arm_power_ip'):
-        arm_power_ip = rospy.get_param("~arm_power_ip")
-    else:
-        arm_power_ip = "10.6.10.105"
-
-    if rospy.has_param('~side'):
-        side = rospy.get_param("~side")
-    else:
-        side = "right"
-    ##ip_power_address = "http://" + arm_power_ip
-    devices = []
-    device = Device()
-    device.name = "right_arm"
-    device.power_ip = "10.6.10.105"
-    device.device_ip = "192.168.1.1"
-    devices.append(device)
-    arm_address = arm_ip
-    remote_power_control = RemotePowerControl(rospy.get_name(), arm_power_ip, arm_address, devices)
+    remote_power_control = RemotePowerControl(rospy.get_name(), dataMap)
 
