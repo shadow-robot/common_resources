@@ -1,6 +1,6 @@
 #goal definition
-string power_on
-string power_off
+string power_on[]
+string power_off[]
 ---
 #result definition
 sr_utilities_common/sr_power_result[] results
