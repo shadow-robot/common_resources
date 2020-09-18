@@ -24,6 +24,7 @@ from requests.packages.urllib3.util.retry import Retry
 from std_msgs.msg import Bool
 import sr_utilities_common.msg
 from sr_utilities_common.msg import PowerManagerAction
+from sr_utilities_common.msg import PowerManagerGoal
 
 
 
@@ -39,6 +40,7 @@ class RemotePowerControl(object):
         self._arm_data_ip = arm_ip_address
         rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
         rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
+        self.goal = PowerManagerGoal()
 
 
 
@@ -54,6 +56,7 @@ class RemotePowerControl(object):
 
     def execute_cb(self, goal):
         rospy.logwarn("cb")
+        self.goal = goal
         # helper variables
         r = rospy.Rate(1)
         success = True
@@ -65,10 +68,10 @@ class RemotePowerControl(object):
             self._feedback.feedback.append(fb)
         
         # publish info to the console for the user
-        rospy.logwarn('%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i' % (self._action_name, goal[0].power_on, self._feedback.feedback[0], self._feedback.feedback[1]))
+        rospy.logwarn('%s: Executing, creating fibonacci sequence of string %s with %s, %s' % (self._action_name, goal.power_on, self._feedback.feedback[0], self._feedback.feedback[1]))
         
         # start executing the action
-        for i in range(1, goal[0].power_on):
+        for i in range(1, 2):
             # check that preempt has not been requested by the client
             if self._as.is_preempt_requested():
                 rospy.loginfo('%s: Preempted' % self._action_name)
@@ -82,7 +85,7 @@ class RemotePowerControl(object):
             r.sleep()
           
         if success:
-            self._result.results[0] = self._feedback.feedback[0]
+            self._result.results.append(self._feedback.feedback[0])
             rospy.loginfo('%s: Succeeded' % self._action_name)
             self._as.set_succeeded(self._result)
 
