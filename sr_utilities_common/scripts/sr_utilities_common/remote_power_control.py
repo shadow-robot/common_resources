@@ -46,17 +46,13 @@ class RemotePowerControl(object):
     def __init__(self, name, devices):
         self._action_name = name
         self._on_off_delay = 0.4
-
-        #self._http_arm_power_ip = 'http://' + arm_power_ip
-
         self._devices = devices
-        #rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
-        #rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
         self.goal = PowerManagerGoal()
-
         self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb, auto_start = False)
         self._as.start()
         self.check_relays_connected()
+        while not rospy.is_shutdown():
+            rospy.spin()
 
     def check_relays_connected(self):
         for device in self._devices:
@@ -130,32 +126,16 @@ class RemotePowerControl(object):
         return session
 
     def power_on(self, power_ip):
-        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[45]=1')
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
         rospy.sleep(self._on_off_delay)
-        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[45]=0')
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
         rospy.sleep(self._on_off_delay)
 
     def power_off(self, power_ip):
-        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[46]=1')
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
         rospy.sleep(self._on_off_delay)
-        response = self.requests_retry_session().get(self._http_arm_power_ip + '/setpara[46]=0')
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
         rospy.sleep(self._on_off_delay)
-
-    def power_on_cb(self, data):
-        if data.data == True:
-            if self.is_arm_off():
-                rospy.loginfo("powering on...")
-                self.power_on()
-            else: 
-                rospy.logwarn("arm already on, not powering up")
-
-    def power_off_cb(self, data):
-        if data.data == True:
-            if self.is_arm_on():
-                rospy.loginfo("powering off...")
-                self.power_off()
-            else:
-                rospy.logwarn("Arm already off, not sending shutdown signal")
 
     def is_ping_successful(self, ip):
         command = 'fping -c1 -t500 ' + ip + ' 2>&1 >/dev/null'
@@ -191,4 +171,5 @@ if __name__ == "__main__":
         dataMap = yaml.safe_load(f)
 
     remote_power_control = RemotePowerControl(rospy.get_name(), dataMap)
+
 
