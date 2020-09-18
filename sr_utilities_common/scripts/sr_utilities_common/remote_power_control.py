@@ -21,6 +21,7 @@ import os
 import yaml
 import rospkg
 import subprocess
+import paramiko
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from std_msgs.msg import Bool
@@ -28,25 +29,6 @@ import sr_utilities_common.msg
 from sr_utilities_common.msg import PowerManagerAction
 from sr_utilities_common.msg import PowerManagerGoal
 from sr_utilities_common.srv import CustomRelayCommand,CustomRelayCommandResponse
-
-
-class Device:
-  name = ""
-  power_ip = ""
-  device_ip = ""
-
-class Devices:
-    def __init__(self, **entries):
-        self.__dict__.update(entries)
-
-def handle_add_two_ints(req):
-    print("Returning [%s + %s = %s]"%(req.a, req.b, (req.a + req.b)))
-    return AddTwoIntsResponse(req.a + req.b)
-
-def add_two_ints_server():
-    rospy.init_node('add_two_ints_server')
-    s = rospy.Service('add_two_ints', AddTwoInts, handle_add_two_ints)
-    print("Ready to add two ints.")
 
 
 class RemotePowerControl(object):
@@ -89,6 +71,15 @@ class RemotePowerControl(object):
         # helper variables
         r = rospy.Rate(1)
         success = True
+        
+        # append the seeds for the fibonacci sequence
+        for i in range(0, 2):
+            fb = sr_utilities_common.msg.sr_power_feedback()
+            fb.status = "test" + str(i)
+            self._feedback.feedback.append(fb)
+        
+        # publish info to the console for the user
+        rospy.logwarn('%s: Executing. \nPower on list: %s \nPower off list: %s' % (self._action_name, goal.power_on, goal.power_off))
 
         for power_on_goal in goal.power_on:
             for device in self._devices:
@@ -103,15 +94,6 @@ class RemotePowerControl(object):
                     if not 'arm' in device['name'] or self.is_arm_on(device['data_ip']):
                         rospy.loginfo("powering off...")
                         self.power_off(device['power_ip'])
-        
-        # append the seeds for the fibonacci sequence
-        for i in range(0, 2):
-            fb = sr_utilities_common.msg.sr_power_feedback()
-            fb.status = "test" + str(i)
-            self._feedback.feedback.append(fb)
-        
-        # publish info to the console for the user
-        rospy.logwarn('%s: Executing. \nPower on list: %s \nPower off list: %s' % (self._action_name, goal.power_on, goal.power_off))
         
         # start executing the action
         for i in range(1, 2):
@@ -180,6 +162,97 @@ class RemotePowerControl(object):
         while True:
             t = os.system('fping -c1 -t500 192.168.1.1')
             print t
+
+
+class BootMonitor(object):
+    def __init__(self, device, action_server):
+        self._CONST_UR_ARM_SSH_USERNAME = 'root'
+        self._CONST_UR_ARM_SSH_PASSWORD = 'easybot'
+        self._device_name = device['name']
+        if 'arm' in device['name']:
+            self._data_ip = device['data_ip']
+        self._power_ip = device['power_ip']
+        self._as = action_server
+        self.check_relays_connected(device)
+
+
+    def boot_device(self):
+        if self.is_arm_off(self._data_ip):
+            #self._as.
+            self.power_on(self._power_ip)
+
+
+    def get_log_from_arm(self, arm_ip):
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(arm_ip, username=self._CONST_UR_ARM_SSH_USERNAME, password=self._CONST_UR_ARM_SSH_PASSWORD)
+        stdin, stdout, stderr = client.exec_command('cat /tmp/log/urcontrol/current')
+        log = stdout.readlines()
+        client.close()
+        return log
+
+
+    def check_relays_connected(self, device):
+        if 'arm' in device['name']:
+            if self.does_ip_relay_respond(device['power_ip']):
+                rospy.loginfo("Contacted " + device['name'] + " ip relay at " + device['power_ip'])
+            else:
+                rospy.logwarn("Could not contact " + device['name'] + " ip relay at " + device['power_ip'])
+
+    def check_arm_progress(self, ip):
+        check_command = "ifconfig | grep -B1 " + ip_addr + " | head -n1 | awk '{print $1}' | cut -d : -f 1 2> /dev/null"
+        if machine_ip is not None:
+            check_command = "ssh -o 'StrictHostKeyChecking no' -q -t {}@{} ".format(username, machine_ip) + check_command
+        return subprocess.check_output(check_command, shell=True).strip()
+
+
+    def does_ip_relay_respond(self, ip):
+        return self.is_ping_successful(ip)
+
+    def is_arm_off(self, ip):
+        return not self.is_ping_successful(ip)
+
+    def is_arm_on(self, ip):
+        return self.is_ping_successful(ip)
+
+    def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
+        session = session or requests.Session()
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
+
+    def power_on(self, power_ip):
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
+        rospy.sleep(self._on_off_delay)
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
+        rospy.sleep(self._on_off_delay)
+
+    def power_off(self, power_ip):
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
+        rospy.sleep(self._on_off_delay)
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
+        rospy.sleep(self._on_off_delay)
+
+    def is_ping_successful(self, ip):
+        command = 'fping -c1 -t500 ' + ip + ' 2>&1 >/dev/null'
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        stdout = p.communicate()[0]
+        if (p.returncode == 0):
+            return True
+        else:
+            return False
+
+        
+
+    
 
 
 if __name__ == "__main__":
