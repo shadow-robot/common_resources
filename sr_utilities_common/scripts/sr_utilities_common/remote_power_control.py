@@ -27,17 +27,25 @@ from sr_utilities_common.msg import PowerManagerAction
 from sr_utilities_common.msg import PowerManagerGoal
 
 
+class Device:
+  name = ""
+  power_ip = ""
+  device_ip = ""
+
 
 class RemotePowerControl(object):
     _feedback = sr_utilities_common.msg.PowerManagerFeedback()
     _result = sr_utilities_common.msg.PowerManagerResult()
 
-    def __init__(self, name, arm_power_ip, arm_ip_address, side="right"):
+    def __init__(self, name, arm_power_ip, arm_ip_address, devices, side="right"):
         self._action_name = name
         self._on_off_delay = 0.4
         self._arm_power_ip = arm_power_ip
         self._http_arm_power_ip = 'http://' + arm_power_ip
         self._arm_data_ip = arm_ip_address
+        self._devices = devices
+        #self._power_on_list = []
+        #self._power_off_list = []
         rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
         rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
         self.goal = PowerManagerGoal()
@@ -60,6 +68,22 @@ class RemotePowerControl(object):
         # helper variables
         r = rospy.Rate(1)
         success = True
+        self._power_on_list = goal.power_on
+        self._power_off_list = goal.power_off
+
+        for power_on_goal in goal.power_on:
+            for device in self._devices:
+                if power_on_goal == device.name:
+                    if self.is_arm_off():
+                        rospy.loginfo("powering on...")
+                        self.power_on()
+
+        for power_off_goal in goal.power_off:
+            for device in self._devices:
+                if power_off_goal == device.name:
+                    if self.is_arm_on():
+                        rospy.loginfo("powering off...")
+                        self.power_off()
         
         # append the seeds for the fibonacci sequence
         for i in range(0, 2):
@@ -68,7 +92,7 @@ class RemotePowerControl(object):
             self._feedback.feedback.append(fb)
         
         # publish info to the console for the user
-        rospy.logwarn('%s: Executing, creating fibonacci sequence of string %s with %s, %s' % (self._action_name, goal.power_on, self._feedback.feedback[0], self._feedback.feedback[1]))
+        rospy.logwarn('%s: Executing, creating fibonacci sequence of string %s with %s, %s' % (self._action_name, goal.power_on[0], self._feedback.feedback[0], self._feedback.feedback[1]))
         
         # start executing the action
         for i in range(1, 2):
@@ -155,6 +179,8 @@ class RemotePowerControl(object):
             print t
 
 
+
+
 if __name__ == "__main__":
     rospy.init_node('remote_power_control', anonymous=False)
     if rospy.has_param('~arm_ip'):
@@ -172,6 +198,12 @@ if __name__ == "__main__":
     else:
         side = "right"
     ##ip_power_address = "http://" + arm_power_ip
+    devices = []
+    device = Device()
+    device.name = "right_arm"
+    device.power_ip = "10.6.10.105"
+    device.device_ip = "192.168.1.1"
+    devices.append(device)
     arm_address = arm_ip
-    remote_power_control = RemotePowerControl(rospy.get_name(), arm_power_ip, arm_address, side)
+    remote_power_control = RemotePowerControl(rospy.get_name(), arm_power_ip, arm_address, devices)
 
