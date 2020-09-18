@@ -1,9 +1,9 @@
 #goal definition
-string[] power_on
-string[] power_off
+string power_on
+string power_off
 ---
 #result definition
-sr_utilities_common/sr_power_result[] results
+sr_utilities_common/sr_power_result result
 ---
 #feedback
-sr_utilities_common/sr_power_feedback[] feedback
+sr_utilities_common/sr_power_feedback feedback

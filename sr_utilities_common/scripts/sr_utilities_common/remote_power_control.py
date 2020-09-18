@@ -53,17 +53,19 @@ class RemotePowerControl(object):
             #rospy.spin()
 
     def execute_cb(self, goal):
+        rospy.logwarn("cb")
         # helper variables
         r = rospy.Rate(1)
         success = True
         
         # append the seeds for the fibonacci sequence
-        self._feedback.feedback[0].status = "test1"
-        self._feedback.feedback[1].status = "test2"
-        self._feedback.feedback[2].status = "test3"
+        for i in range(0, 2):
+            fb = sr_utilities_common.msg.sr_power_feedback()
+            fb.status = "test" + str(i)
+            self._feedback.feedback.append(fb)
         
         # publish info to the console for the user
-        rospy.loginfo('%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i' % (self._action_name, goal[0].power_on, self._feedback.sequence[0], self._feedback.sequence[1]))
+        rospy.logwarn('%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i' % (self._action_name, goal[0].power_on, self._feedback.feedback[0], self._feedback.feedback[1]))
         
         # start executing the action
         for i in range(1, goal[0].power_on):
@@ -151,7 +153,7 @@ class RemotePowerControl(object):
 
 
 if __name__ == "__main__":
-    rospy.init_node('remote_power_control', anonymous=True)
+    rospy.init_node('remote_power_control', anonymous=False)
     if rospy.has_param('~arm_ip'):
         arm_ip = rospy.get_param("~arm_ip")
     else:
