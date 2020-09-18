@@ -22,12 +22,15 @@ import subprocess
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from std_msgs.msg import Bool
-
+import sr_utilities_common.msg
 from sr_utilities_common.msg import PowerManagerAction
 
 
 
 class RemotePowerControl(object):
+    _feedback = sr_utilities_common.msg.PowerManagerFeedback()
+    _result = sr_utilities_common.msg.PowerManagerResult()
+
     def __init__(self, name, arm_power_ip, arm_ip_address, side="right"):
         self._action_name = name
         self._on_off_delay = 0.4
@@ -36,6 +39,8 @@ class RemotePowerControl(object):
         self._arm_data_ip = arm_ip_address
         rospy.Subscriber(side + "_arm_power_on", Bool, self.power_on_cb)
         rospy.Subscriber(side + "_arm_power_off", Bool, self.power_off_cb)
+
+
 
         self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb, auto_start = False)
         self._as.start()
@@ -47,9 +52,37 @@ class RemotePowerControl(object):
         #while not rospy.is_shutdown():
             #rospy.spin()
 
-
-    def execute_cb(self):
-        pass
+    def execute_cb(self, goal):
+        # helper variables
+        r = rospy.Rate(1)
+        success = True
+        
+        # append the seeds for the fibonacci sequence
+        self._feedback.feedback[0].status = "test1"
+        self._feedback.feedback[1].status = "test2"
+        self._feedback.feedback[2].status = "test3"
+        
+        # publish info to the console for the user
+        rospy.loginfo('%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i' % (self._action_name, goal[0].power_on, self._feedback.sequence[0], self._feedback.sequence[1]))
+        
+        # start executing the action
+        for i in range(1, goal[0].power_on):
+            # check that preempt has not been requested by the client
+            if self._as.is_preempt_requested():
+                rospy.loginfo('%s: Preempted' % self._action_name)
+                self._as.set_preempted()
+                success = False
+                break
+            self._feedback.feedback.append(self._feedback.feedback[i].status + self._feedback.feedback[i-1].status)
+            # publish the feedback
+            self._as.publish_feedback(self._feedback)
+            # this step is not necessary, the sequence is computed at 1 Hz for demonstration purposes
+            r.sleep()
+          
+        if success:
+            self._result.results[0] = self._feedback.feedback[0]
+            rospy.loginfo('%s: Succeeded' % self._action_name)
+            self._as.set_succeeded(self._result)
 
     def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
         session = session or requests.Session()
