@@ -27,8 +27,15 @@ from requests.packages.urllib3.util.retry import Retry
 from std_msgs.msg import Bool
 import sr_utilities_common.msg
 from sr_utilities_common.msg import PowerManagerAction
+from sr_utilities_common.msg import BootProgress
 from sr_utilities_common.msg import PowerManagerGoal
 from sr_utilities_common.srv import CustomRelayCommand, CustomRelayCommandResponse
+import threading
+
+
+
+
+
 
 class PowerControlCommon(object):
     _on_off_delay = 0.4
@@ -134,14 +141,17 @@ class RemotePowerControl(PowerControlCommon):
         self._action_name, goal.power_on, goal.power_off))
 
 
+        threads = {}
+        thread_id_counter = 1
 
         for power_on_goal in goal.power_on:
             for device in self._devices:
                 if device['name'] == power_on_goal:
                     if not 'arm' in device['name'] or self.is_arm_off(device['data_ip']):
                         rospy.loginfo("powering on...")
-                        bm = BootMonitor(device, self._as, self._feedback)
-                        bm.boot_device()
+                        threads[device['name']] = BootMonitor(thread_id_counter, device, self._as, self._feedback)
+                        thread_id_counter = thread_id_counter + 1
+                        threads[device['name']].start()
                         #self.power_on(device['power_ip'])
 
         for power_off_goal in goal.power_off:
@@ -159,9 +169,9 @@ class RemotePowerControl(PowerControlCommon):
                 self._as.set_preempted()
                 success = False
                 break
-            self._feedback.feedback.append(self._feedback.feedback[i].status + self._feedback.feedback[i - 1].status)
+            #self._feedback.feedback.append(self._feedback.feedback[i].status + self._feedback.feedback[i - 1].status)
             # publish the feedback
-            self._as.publish_feedback(self._feedback)
+            #self._as.publish_feedback(self._feedback)
             # this step is not necessary, the sequence is computed at 1 Hz for demonstration purposes
             r.sleep()
 
@@ -171,8 +181,10 @@ class RemotePowerControl(PowerControlCommon):
             self._as.set_succeeded(self._result)
 
 
-class BootMonitor(PowerControlCommon):
-    def __init__(self, device, action_server, feedback):
+class BootMonitor(threading.Thread, PowerControlCommon):
+    def __init__(self, threadID, device, action_server, feedback):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
         self._feedback = feedback
         self._CONST_UR_ARM_SSH_USERNAME = 'root'
         self._CONST_UR_ARM_SSH_PASSWORD = 'easybot'
@@ -183,7 +195,10 @@ class BootMonitor(PowerControlCommon):
         self._as = action_server
         self._ping_loop_time = 2.0
         self._ping_timeout_time = 60.0
-        self.check_relays_connected(device)
+        #self.check_relays_connected()
+
+    def run(self):
+        return self.boot_device()
 
     def boot_device(self):
         if self.is_arm_off(self._data_ip):
@@ -201,6 +216,7 @@ class BootMonitor(PowerControlCommon):
             else:
                 self.add_feedback("ping failed, cannot boot arm", failed=True)
                 # TODO: also fail nicely here if ping times out
+            log_line = ""
             log = ""
             while log == "":
                 log = self.get_log_from_arm(self._data_ip)
@@ -213,16 +229,22 @@ class BootMonitor(PowerControlCommon):
             else:
                 self.add_feedback("log retrieval timed out, cannot boot arm", failed=True)
             self.add_feedback("log returned, arm still booting...")
-            while "New safety mode: SAFETY_MODE_NORMAL" not in log:
+            while "New safety mode: SAFETY_MODE_NORMAL" not in log_line:
                 log = self.get_log_from_arm(self._data_ip)
+                for line in log:
+                    log_line = line
+                    if "New safety mode: SAFETY_MODE_NORMAL" in log_line:
+                        break
                 rospy.sleep(self._ping_loop_time)
                 self.add_feedback("waiting for arm to finish booting...")
                 if (i * self._ping_loop_time) > self._ping_timeout_time:
                     break
-            if "New safety mode: SAFETY_MODE_NORMAL" not in log:
+            if "New safety mode: SAFETY_MODE_NORMAL" not in log_line:
                 self.add_feedback("arm boot time out, failed", failed=True)
+                return False
             else:
                 self.add_feedback("Finished booting arm!", finished=True)
+                return True
 
 
     def add_feedback(self, status, finished=False, failed=False):
@@ -232,8 +254,10 @@ class BootMonitor(PowerControlCommon):
         fb.name = self._device_name
         fb.complete = finished
         fb.failed = failed
+        threadLock.acquire()
         self._feedback.feedback.append(fb)
         self._as.publish_feedback(self._feedback)
+        threadLock.release()
 
     def get_log_from_arm(self, arm_ip):
         client = paramiko.SSHClient()
@@ -244,13 +268,8 @@ class BootMonitor(PowerControlCommon):
         client.close()
         return log
 
-    def check_arm_progress(self, ip):
-        check_command = "ifconfig | grep -B1 " + ip_addr + " | head -n1 | awk '{print $1}' | cut -d : -f 1 2> /dev/null"
-        if machine_ip is not None:
-            check_command = "ssh -o 'StrictHostKeyChecking no' -q -t {}@{} ".format(username,
-                                                                                    machine_ip) + check_command
-        return subprocess.check_output(check_command, shell=True).strip()
 
+threadLock = threading.Lock()
 
 
 if __name__ == "__main__":
