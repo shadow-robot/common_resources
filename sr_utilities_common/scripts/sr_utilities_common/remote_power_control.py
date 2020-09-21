@@ -202,33 +202,33 @@ class BootMonitor(threading.Thread, PowerControlCommon):
 
     def boot_device(self):
         if self.is_arm_off(self._data_ip):
-            self.add_feedback("was off, now booting...")
+            self.add_feedback("was off, now booting...", boot_status=BootProgress.BOOT_STATUS_OFF)
             self.power_on(self._power_ip)
             i = 0
             while not self.is_ping_successful(self._data_ip):
-                self.add_feedback("waiting for ping to succeed")
+                self.add_feedback("waiting for ping to succeed", boot_status=BootProgress.PINGING)
                 rospy.sleep(self._ping_loop_time)
                 i = i + 1
                 if (i * self._ping_loop_time) > self._ping_timeout_time:
                     break
             if self.is_ping_successful(self._data_ip):
-                self.add_feedback("ping successful, waiting for log to return...")
+                self.add_feedback("ping successful, waiting for log to return...", boot_status=BootProgress.BOOT_STATUS_WAITING_FOR_LOG)
             else:
-                self.add_feedback("ping failed, cannot boot arm", failed=True)
+                self.add_feedback("ping failed, cannot boot arm", failed=True, boot_status=BootProgress.BOOT_STATUS_BOOT_FAILED)
                 # TODO: also fail nicely here if ping times out
             log_line = ""
             log = ""
             while log == "":
                 log = self.get_log_from_arm(self._data_ip)
                 rospy.sleep(self._ping_loop_time)
-                self.add_feedback("waiting for log...")
+                self.add_feedback("waiting for log...", boot_status=BootProgress.BOOT_STATUS_WAITING_FOR_LOG)
                 if (i * self._ping_loop_time) > self._ping_timeout_time:
                     break
             if log != "":
-                self.add_feedback("log found, waiting for arm to finish booting")
+                self.add_feedback("log found, waiting for arm to finish booting", boot_status=BootProgress.BOOT_STATUS_GOT_LOG)
             else:
-                self.add_feedback("log retrieval timed out, cannot boot arm", failed=True)
-            self.add_feedback("log returned, arm still booting...")
+                self.add_feedback("log retrieval timed out, cannot boot arm", failed=True, boot_status=BootProgress.BOOT_STATUS_BOOT_FAILED)
+            self.add_feedback("log returned, waiting for arm to finish booting...", boot_status=BootProgress.BOOT_STATUS_WAITING_FOR_BOOT_SUCCESS)
             while "New safety mode: SAFETY_MODE_NORMAL" not in log_line:
                 log = self.get_log_from_arm(self._data_ip)
                 for line in log:
@@ -236,23 +236,24 @@ class BootMonitor(threading.Thread, PowerControlCommon):
                     if "New safety mode: SAFETY_MODE_NORMAL" in log_line:
                         break
                 rospy.sleep(self._ping_loop_time)
-                self.add_feedback("waiting for arm to finish booting...")
+                self.add_feedback("waiting for arm to finish booting...", boot_status=BootProgress.BOOT_STATUS_WAITING_FOR_BOOT_SUCCESS)
                 if (i * self._ping_loop_time) > self._ping_timeout_time:
                     break
             if "New safety mode: SAFETY_MODE_NORMAL" not in log_line:
-                self.add_feedback("arm boot time out, failed", failed=True)
+                self.add_feedback("arm boot time out, failed", failed=True, boot_status=BootProgress.BOOT_STATUS_BOOT_FAILED)
                 return False
             else:
-                self.add_feedback("Finished booting arm!", finished=True)
+                self.add_feedback("Finished booting arm!", finished=True, boot_status=BootProgress.BOOT_STATUS_BOOT_SUCCESS)
                 return True
 
 
-    def add_feedback(self, status, finished=False, failed=False):
-        rospy.loginfo("%s", status)
+    def add_feedback(self, status_message, boot_status, finished=False, failed=False):
+        rospy.loginfo("%s", status_message)
         fb = sr_utilities_common.msg.sr_power_feedback()
-        fb.status = self._device_name + " " + status
+        fb.status = self._device_name + " " + status_message
         fb.name = self._device_name
         fb.complete = finished
+        fb.boot_status = boot_status
         fb.failed = failed
         threadLock.acquire()
         self._feedback.feedback.append(fb)
