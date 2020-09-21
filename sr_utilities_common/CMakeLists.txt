@@ -9,7 +9,7 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
     roscpp
-    roslint    
+    roslint
     std_msgs
     topic_tools
     message_generation
@@ -54,6 +54,7 @@ add_message_files(
   FILES
   sr_power_feedback.msg
   sr_power_result.msg
+  BootProgress.msg
 )
 
 ## Generate services in the 'srv' folder
