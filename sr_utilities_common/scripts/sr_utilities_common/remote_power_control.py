@@ -33,10 +33,6 @@ from sr_utilities_common.srv import CustomRelayCommand, CustomRelayCommandRespon
 import threading
 
 
-
-
-
-
 class PowerControlCommon(object):
     _on_off_delay = 0.4
     def __init__(self):
@@ -195,7 +191,6 @@ class BootMonitor(threading.Thread, PowerControlCommon):
         self._as = action_server
         self._ping_loop_time = 2.0
         self._ping_timeout_time = 60.0
-        #self.check_relays_connected()
 
     def run(self):
         return self.boot_device()
@@ -204,9 +199,11 @@ class BootMonitor(threading.Thread, PowerControlCommon):
         if self.is_arm_off(self._data_ip):
             self.add_feedback("was off, now booting...", boot_status=BootProgress.BOOT_STATUS_OFF)
             self.power_on(self._power_ip)
+            # TODO: add http code 200 check on relay commands to feedback
             i = 0
+            # TODO: fix/tidy timeouts
             while not self.is_ping_successful(self._data_ip):
-                self.add_feedback("waiting for ping to succeed", boot_status=BootProgress.PINGING)
+                self.add_feedback("waiting for ping to succeed", boot_status=BootProgress.BOOT_STATUS_PINGING)
                 rospy.sleep(self._ping_loop_time)
                 i = i + 1
                 if (i * self._ping_loop_time) > self._ping_timeout_time:
@@ -253,7 +250,9 @@ class BootMonitor(threading.Thread, PowerControlCommon):
         fb.status = self._device_name + " " + status_message
         fb.name = self._device_name
         fb.complete = finished
-        fb.boot_status = boot_status
+        bp = BootProgress()
+        bp.boot_status = boot_status
+        fb.boot_status = bp
         fb.failed = failed
         threadLock.acquire()
         self._feedback.feedback.append(fb)
