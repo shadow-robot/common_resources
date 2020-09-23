@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
     topic_tools
     message_generation
-    actionlib_msgs 
+    actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
