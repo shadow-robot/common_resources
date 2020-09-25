@@ -30,8 +30,24 @@ from sr_utilities_common.msg import PowerManagerAction
 from sr_utilities_common.msg import BootProgress
 from sr_utilities_common.msg import BootProgress
 from sr_utilities_common.msg import PowerManagerGoal
+from sr_utilities_common.msg import PowerManagerActionResult
 from sr_utilities_common.srv import CustomRelayCommand, CustomRelayCommandResponse
 import threading
+
+
+def requests_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 class PowerControlCommon(object):
@@ -81,15 +97,27 @@ class PowerControlCommon(object):
         return self.is_ping_successful(ip)
 
     def power_on(self, power_ip):
-        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
+        try:
+            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
+        except requests.exceptions.ConnectionError as e:
+            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
         rospy.sleep(self._on_off_delay)
-        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
+        try:
+            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
+        except requests.exceptions.ConnectionError as e:
+            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
         rospy.sleep(self._on_off_delay)
 
     def power_off(self, power_ip):
-        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
+        try:
+            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
+        except requests.exceptions.ConnectionError as e:
+            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
         rospy.sleep(self._on_off_delay)
-        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
+        try:
+            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
+        except requests.exceptions.ConnectionError as e:
+            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
         rospy.sleep(self._on_off_delay)
 
 
@@ -166,7 +194,6 @@ class RemotePowerControl(PowerControlCommon):
 
         if all_finished:
             self._as.set_succeeded(self._result)
-
             #self._feedback.feedback.append(self._feedback.feedback[i].status + self._feedback.feedback[i - 1].status)
             # publish the feedback
             #self._as.publish_feedback(self._feedback)
@@ -213,12 +240,16 @@ class BootMonitor(threading.Thread, PowerControlCommon):
                 result.success = True
                 self._result.results.append(result)
                 rospy.loginfo('%s: Succeeded' % self._device_name)
-                self._as.set_succeeded(self._result)
+                return True
+                self._result.results.append(result)
+                #self._as.set_succeeded(self._result)
             else:
                 result.success = False
                 self._result.results.append(result)
                 rospy.loginfo('%s: Succeeded' % self._device_name)
-                self._as.set_succeeded(self._result)
+                self._result.results.append(result)
+                #self._as.set_succeeded(self._result)
+                return False
         else:
             return self.boot_hand()
 
