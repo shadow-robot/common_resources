@@ -274,7 +274,8 @@ class BootMonitor(threading.Thread, PowerControlCommon):
 
     def shutdown_arm(self):
         if self.is_arm_on(self._data_ip):
-            self.add_feedback("shutting down %s", self._device_name)
+            self.add_feedback("shutting down %s" % self._device_name,
+                              boot_status=BootProgress.BOOT_STATUS_SHUTTING_DOWN)
             self.power_off(self._data_ip)
             now = rospy.get_rostime()
             while self.is_ping_successful(self._data_ip):
@@ -283,7 +284,7 @@ class BootMonitor(threading.Thread, PowerControlCommon):
                     self.add_feedback("Failed to shutdown arm", failed=True,
                                       boot_status=BootProgress.BOOT_STATUS_SHUTDOWN_FAILED)
                     return False
-            self.add_feedback("Arm shutdown successfully",
+            self.add_feedback("Arm shutdown successfully", failed=False, finished=True,
                               boot_status=BootProgress.BOOT_STATUS_SHUTDOWN_SUCCEEDED)
             return True
 
