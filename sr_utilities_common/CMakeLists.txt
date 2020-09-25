@@ -52,8 +52,8 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  sr_power_feedback.msg
-  sr_power_result.msg
+  PowerFeedback.msg
+  PowerResult.msg
   BootProgress.msg
 )
 

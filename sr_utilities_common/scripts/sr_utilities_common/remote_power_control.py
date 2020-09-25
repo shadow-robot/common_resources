@@ -202,7 +202,7 @@ class BootMonitor(threading.Thread, PowerControlCommon):
         return False
 
     def run(self):
-        result = sr_utilities_common.msg.sr_power_result()
+        result = sr_utilities_common.msg.PowerResult()
         result.name = self._device_name
         if 'arm' in self._device_name:
             if self._on_off == 'on':
@@ -323,7 +323,7 @@ class BootMonitor(threading.Thread, PowerControlCommon):
 
     def add_feedback(self, status_message, boot_status, finished=False, failed=False):
         rospy.loginfo("%s: %s", self._device_name, status_message)
-        fb = sr_utilities_common.msg.sr_power_feedback()
+        fb = sr_utilities_common.msg.PowerFeedback()
         fb.status = self._device_name + " " + status_message
         fb.name = self._device_name
         fb.complete = finished
