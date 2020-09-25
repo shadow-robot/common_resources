@@ -128,7 +128,7 @@ class RemotePowerControl(PowerControlCommon):
     def __init__(self, name, devices):
         self._action_name = name
         self._devices = devices
-        self._all_threads_finished_timeout = 120
+        self._CONST_ALL_THREADS_FINISHED_TIMEOUT = 200
         self.goal = PowerManagerGoal()
         self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
@@ -172,7 +172,7 @@ class RemotePowerControl(PowerControlCommon):
                     if not 'arm' in device['name'] or self.is_arm_off(device['data_ip']):
                         rospy.loginfo("powering on...")
                         threads[device['name']] = BootMonitor(thread_id_counter, device, self._as,
-                                                              self._feedback, self._result)
+                                                              self._feedback, self._result, "on")
                         thread_id_counter = thread_id_counter + 1
                         threads[device['name']].start()
                         #self.power_on(device['power_ip'])
@@ -182,15 +182,29 @@ class RemotePowerControl(PowerControlCommon):
                 if device['name'] == power_off_goal:
                     if not 'arm' in device['name'] or self.is_arm_on(device['data_ip']):
                         rospy.loginfo("powering off...")
-                        self.power_off(device['power_ip'])
+                        #self.power_off(device['power_ip'])
+                        threads[device['name']] = BootMonitor(thread_id_counter, device, self._as,
+                                                              self._feedback, self._result, "off")
+                        thread_id_counter = thread_id_counter + 1
+                        threads[device['name']].start()
 
         all_finished = False
         now = rospy.get_rostime()
+        rospy.logwarn("pre not finished")
         while not all_finished:
-            if all(thread.is_alive() for name, thread in threads.iteritems()):
+            rospy.logwarn("while not finished")
+            for name, thread in threads.iteritems():
+                if thread.is_alive():
+                    tvar = "true"
+                else:
+                    tvar = "false"
+                rospy.logwarn("%s: %s", name, tvar)
+            rospy.sleep(1.0)
+            if not all(thread.is_alive() for name, thread in threads.iteritems()):
                 all_finished = True
-            if (now.secs + self._all_threads_finished_timeout) < rospy.get_rostime().secs:
+            if (now.secs + self._CONST_ALL_THREADS_FINISHED_TIMEOUT) < rospy.get_rostime().secs:
                 break
+        rospy.logwarn("finished")
 
         if all_finished:
             self._as.set_succeeded(self._result)
@@ -207,8 +221,9 @@ class RemotePowerControl(PowerControlCommon):
 
 
 class BootMonitor(threading.Thread, PowerControlCommon):
-    def __init__(self, threadID, device, action_server, feedback, result):
+    def __init__(self, threadID, device, action_server, feedback, result, on_off):
         threading.Thread.__init__(self)
+        self._on_off = on_off
         self.threadID = threadID
         self._feedback = feedback
         self._CONST_UR_ARM_SSH_USERNAME = 'root'
@@ -218,7 +233,7 @@ class BootMonitor(threading.Thread, PowerControlCommon):
             self._data_ip = device['data_ip']
         self._power_ip = device['power_ip']
         self._as = action_server
-        self._CONST_PING_TIMEOUT = 60.0
+        self._CONST_PING_TIMEOUT = 80.0
         self._CONST_GET_LOG_TIMEOUT = 60.0
         self._CONST_FINISH_BOOTING_TIMEOUT = 60.0
         self._result = result
@@ -236,7 +251,11 @@ class BootMonitor(threading.Thread, PowerControlCommon):
         result = sr_utilities_common.msg.sr_power_result()
         result.name = self._device_name
         if 'arm' in self._device_name:
-            if self.boot_arm():
+            if self._on_off == 'on':
+                success = self.boot_arm()
+            else:
+                success = self.shutdown_arm()
+            if success:
                 result.success = True
                 self._result.results.append(result)
                 rospy.loginfo('%s: Succeeded' % self._device_name)
@@ -246,12 +265,29 @@ class BootMonitor(threading.Thread, PowerControlCommon):
             else:
                 result.success = False
                 self._result.results.append(result)
-                rospy.loginfo('%s: Succeeded' % self._device_name)
+                rospy.logerr('%s: FAILED' % self._device_name)
                 self._result.results.append(result)
                 #self._as.set_succeeded(self._result)
                 return False
         else:
             return self.boot_hand()
+
+    def shutdown_arm(self):
+        if self.is_arm_on(self._data_ip):
+            self.add_feedback("shutting down %s", self._device_name)
+            self.power_off(self._data_ip)
+            now = rospy.get_rostime()
+            while self.is_ping_successful(self._data_ip):
+                if (rospy.get_rostime().secs + self._CONST_PING_TIMEOUT) < now.secs:
+                    rospy.logerr("")
+                    self.add_feedback("Failed to shutdown arm", failed=True,
+                                      boot_status=BootProgress.BOOT_STATUS_SHUTDOWN_FAILED)
+                    return False
+            self.add_feedback("Arm shutdown successfully",
+                              boot_status=BootProgress.BOOT_STATUS_SHUTDOWN_SUCCEEDED)
+            return True
+
+
 
     # This function will be corrected when we have hand power control
     def boot_hand(self):
@@ -278,8 +314,8 @@ class BootMonitor(threading.Thread, PowerControlCommon):
             self.power_on(self._power_ip)
             # TODO: add http code 200 check on relay commands to feedback
             now = rospy.get_rostime()
+            self.add_feedback("waiting for ping to succeed", boot_status=BootProgress.BOOT_STATUS_PINGING)
             while not self.is_ping_successful(self._data_ip):
-                self.add_feedback("waiting for ping to succeed", boot_status=BootProgress.BOOT_STATUS_PINGING)
                 if self.check_preempt():
                     return False
                 if (rospy.get_rostime().secs + self._CONST_PING_TIMEOUT) < now.secs:
@@ -297,7 +333,7 @@ class BootMonitor(threading.Thread, PowerControlCommon):
                 self.add_feedback("waiting for log...", boot_status=BootProgress.BOOT_STATUS_WAITING_FOR_LOG)
                 if self.check_preempt():
                     return False
-                if (rospy.get_rostime().secs + self._CONST_GET_LOG_TIMEOUT) > now.secs:
+                if (rospy.get_rostime().secs + self._CONST_GET_LOG_TIMEOUT) < now.secs:
                     rospy.logerr("Failed to retrieve log, arm boot failed")
                     self.add_feedback("log retrieval timed out, cannot boot arm", failed=True, finished=True,
                                       boot_status=BootProgress.BOOT_STATUS_BOOT_FAILED)
@@ -314,7 +350,7 @@ class BootMonitor(threading.Thread, PowerControlCommon):
                         return False
                     if "New safety mode: SAFETY_MODE_NORMAL" in log_line:
                         break
-                if (rospy.get_rostime().secs + self._CONST_FINISH_BOOTING_TIMEOUT) > now.secs:
+                if (rospy.get_rostime().secs + self._CONST_FINISH_BOOTING_TIMEOUT) < now.secs:
                     rospy.logerr("Failed to finish booting, arm boot failed")
                     self.add_feedback("arm boot time out, failed", failed=True, finished=True,
                                       boot_status=BootProgress.BOOT_STATUS_BOOT_FAILED)
