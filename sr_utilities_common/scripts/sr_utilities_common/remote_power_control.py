@@ -64,6 +64,12 @@ class PowerControlCommon(object):
                 else:
                     rospy.logwarn("Could not contact " + device['name'] + " ip relay at " + device['power_ip'])
 
+    def set_relays_to_default(self):
+        for device in self._devices:
+            device_ip = device['power_ip']
+            if self.does_ip_relay_respond(device_ip):
+                response = self.requests_retry_session().get('http://' + device_ip + '/setpara[45]=0')
+
     def requests_retry_session(self, retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
         session = session or requests.Session()
         retry = Retry(
@@ -96,29 +102,62 @@ class PowerControlCommon(object):
     def is_arm_on(self, ip):
         return self.is_ping_successful(ip)
 
+    # def power_on(self, power_ip):
+    #     try:
+    #         response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
+    #     except requests.exceptions.ConnectionError as e:
+    #         rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+    #         failed = True
+    #     else:
+    #         failed = False
+    #     if not failed:
+    #         rospy.sleep(self._on_off_delay)
+    #         try:
+    #             response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
+    #         except requests.exceptions.ConnectionError as e:
+    #             rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+    #             failed = True
+    #     #rospy.sleep(self._on_off_delay)
+    #     return not failed
+
     def power_on(self, power_ip):
-        try:
-            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
-        except requests.exceptions.ConnectionError as e:
-            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+        responses = []
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
+        responses.append(response)
         rospy.sleep(self._on_off_delay)
-        try:
-            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
-        except requests.exceptions.ConnectionError as e:
-            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
+        responses.append(response)
         rospy.sleep(self._on_off_delay)
+        return responses
 
     def power_off(self, power_ip):
-        try:
-            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
-        except requests.exceptions.ConnectionError as e:
-            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+        responses = []
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
+        responses.append(response)
         rospy.sleep(self._on_off_delay)
-        try:
-            response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
-        except requests.exceptions.ConnectionError as e:
-            rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+        response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
+        responses.append(response)
         rospy.sleep(self._on_off_delay)
+        return responses
+
+    # def power_off(self, power_ip):
+    #     try:
+    #         response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
+    #     except requests.exceptions.ConnectionError as e:
+    #         rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+    #         failed = True
+    #     else:
+    #         failed = False
+    #     if not failed:
+    #         rospy.sleep(self._on_off_delay)
+    #         try:
+    #             response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
+    #             failed = False
+    #         except requests.exceptions.ConnectionError as e:
+    #             rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
+    #             failed = True
+    #         #rospy.sleep(self._on_off_delay)
+    #     return not failed
 
 
 class RemotePowerControl(PowerControlCommon):
@@ -136,6 +175,7 @@ class RemotePowerControl(PowerControlCommon):
                                                    self.handle_custom_relay_request)
         self._as.start()
         self.check_relays_connected()
+        self.set_relays_to_default()
         while not rospy.is_shutdown():
             rospy.spin()
 
@@ -192,14 +232,6 @@ class RemotePowerControl(PowerControlCommon):
         now = rospy.get_rostime()
         rospy.logwarn("pre not finished")
         while not all_finished:
-            rospy.logwarn("while not finished")
-            for name, thread in threads.iteritems():
-                if thread.is_alive():
-                    tvar = "true"
-                else:
-                    tvar = "false"
-                rospy.logwarn("%s: %s", name, tvar)
-            rospy.sleep(1.0)
             if not all(thread.is_alive() for name, thread in threads.iteritems()):
                 all_finished = True
             if (now.secs + self._CONST_ALL_THREADS_FINISHED_TIMEOUT) < rospy.get_rostime().secs:
@@ -260,14 +292,10 @@ class BootMonitor(threading.Thread, PowerControlCommon):
                 self._result.results.append(result)
                 rospy.loginfo('%s: Succeeded' % self._device_name)
                 return True
-                self._result.results.append(result)
-                #self._as.set_succeeded(self._result)
             else:
                 result.success = False
                 self._result.results.append(result)
                 rospy.logerr('%s: FAILED' % self._device_name)
-                self._result.results.append(result)
-                #self._as.set_succeeded(self._result)
                 return False
         else:
             return self.boot_hand()
@@ -276,7 +304,11 @@ class BootMonitor(threading.Thread, PowerControlCommon):
         if self.is_arm_on(self._data_ip):
             self.add_feedback("shutting down %s" % self._device_name,
                               boot_status=BootProgress.BOOT_STATUS_SHUTTING_DOWN)
-            self.power_off(self._data_ip)
+            responses = self.power_off(self._power_ip)
+            if not all(response.status_code == 200 for response in responses):
+                self.add_feedback("NOT200Could not contact relay",
+                                  boot_status=BootProgress.BOOT_STATUS_BOOT_FAIL_NO_RELAY)
+                return False
             now = rospy.get_rostime()
             while self.is_ping_successful(self._data_ip):
                 if (rospy.get_rostime().secs + self._CONST_PING_TIMEOUT) < now.secs:
@@ -287,8 +319,10 @@ class BootMonitor(threading.Thread, PowerControlCommon):
             self.add_feedback("Arm shutdown successfully", failed=False, finished=True,
                               boot_status=BootProgress.BOOT_STATUS_SHUTDOWN_SUCCEEDED)
             return True
-
-
+        else:
+            self.add_feedback("Arm already off", failed=True, finished=True,
+                              boot_status=BootProgress.BOOT_STATUS_REDUNDANT_REQUEST)
+            return False
 
     # This function will be corrected when we have hand power control
     def boot_hand(self):
@@ -311,9 +345,10 @@ class BootMonitor(threading.Thread, PowerControlCommon):
     def boot_arm(self):
         if self.is_arm_off(self._data_ip):
             self.add_feedback("was off, now booting...", boot_status=BootProgress.BOOT_STATUS_OFF)
-            # TODO: generate exception on power_on fail
-            self.power_on(self._power_ip)
-            # TODO: add http code 200 check on relay commands to feedback
+            responses = self.power_on(self._power_ip)
+            if not all(response.status_code == 200 for response in responses):
+                self.add_feedback("Could not contact relay", boot_status=BootProgress.BOOT_STATUS_BOOT_FAIL_NO_RELAY)
+                return False
             now = rospy.get_rostime()
             self.add_feedback("waiting for ping to succeed", boot_status=BootProgress.BOOT_STATUS_PINGING)
             while not self.is_ping_successful(self._data_ip):
@@ -359,6 +394,10 @@ class BootMonitor(threading.Thread, PowerControlCommon):
             self.add_feedback("Finished booting arm!", finished=True,
                               boot_status=BootProgress.BOOT_STATUS_BOOT_SUCCESS)
             return True
+        else:
+            self.add_feedback("Arm already on", failed=True, finished=True,
+                              boot_status=BootProgress.BOOT_STATUS_REDUNDANT_REQUEST)
+            return False
 
     def add_feedback(self, status_message, boot_status, finished=False, failed=False):
         rospy.loginfo("%s", status_message)
