@@ -3,7 +3,7 @@ string[] power_on
 string[] power_off
 ---
 #result definition
-sr_utilities_common/sr_power_result[] results
+sr_utilities_common/PowerResult[] results
 ---
 #feedback
-sr_utilities_common/sr_power_feedback[] feedback
+sr_utilities_common/PowerFeedback[] feedback
