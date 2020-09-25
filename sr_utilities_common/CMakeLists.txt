@@ -108,8 +108,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS message_runtime actionlib_msgs
-    roscpp
+  CATKIN_DEPENDS message_runtime actionlib_msgs std_msgs roscpp
 #  DEPENDS system_lib
 )
 

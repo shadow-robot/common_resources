@@ -357,4 +357,3 @@ if __name__ == "__main__":
         dataMap = yaml.safe_load(f)
 
     remote_power_control = RemotePowerControl(rospy.get_name(), dataMap)
-
