@@ -21,40 +21,18 @@ import os
 import yaml
 import rospkg
 import subprocess
+import threading
 import paramiko
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-from std_msgs.msg import Bool
 import sr_utilities_common.msg
 from sr_utilities_common.msg import PowerManagerAction
 from sr_utilities_common.msg import BootProgress
-from sr_utilities_common.msg import BootProgress
-from sr_utilities_common.msg import PowerManagerGoal
-from sr_utilities_common.msg import PowerManagerActionResult
 from sr_utilities_common.srv import CustomRelayCommand, CustomRelayCommandResponse
-import threading
-
-
-def requests_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
-    session = session or requests.Session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        connect=retries,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    return session
 
 
 class PowerControlCommon(object):
     _on_off_delay = 0.4
-
-    def __init__(self):
-        self._on_off_delay = 0.4
 
     def check_relays_connected(self):
         for device in self._devices:
@@ -102,24 +80,6 @@ class PowerControlCommon(object):
     def is_arm_on(self, ip):
         return self.is_ping_successful(ip)
 
-    # def power_on(self, power_ip):
-    #     try:
-    #         response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
-    #     except requests.exceptions.ConnectionError as e:
-    #         rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
-    #         failed = True
-    #     else:
-    #         failed = False
-    #     if not failed:
-    #         rospy.sleep(self._on_off_delay)
-    #         try:
-    #             response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=0')
-    #         except requests.exceptions.ConnectionError as e:
-    #             rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
-    #             failed = True
-    #     #rospy.sleep(self._on_off_delay)
-    #     return not failed
-
     def power_on(self, power_ip):
         responses = []
         response = self.requests_retry_session().get('http://' + power_ip + '/setpara[45]=1')
@@ -140,25 +100,6 @@ class PowerControlCommon(object):
         rospy.sleep(self._on_off_delay)
         return responses
 
-    # def power_off(self, power_ip):
-    #     try:
-    #         response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=1')
-    #     except requests.exceptions.ConnectionError as e:
-    #         rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
-    #         failed = True
-    #     else:
-    #         failed = False
-    #     if not failed:
-    #         rospy.sleep(self._on_off_delay)
-    #         try:
-    #             response = self.requests_retry_session().get('http://' + power_ip + '/setpara[46]=0')
-    #             failed = False
-    #         except requests.exceptions.ConnectionError as e:
-    #             rospy.logerr("Could not reach %s. Exception: %s", str(power_ip), e)
-    #             failed = True
-    #         #rospy.sleep(self._on_off_delay)
-    #     return not failed
-
 
 class RemotePowerControl(PowerControlCommon):
     _feedback = sr_utilities_common.msg.PowerManagerFeedback()
@@ -168,7 +109,6 @@ class RemotePowerControl(PowerControlCommon):
         self._action_name = name
         self._devices = devices
         self._CONST_ALL_THREADS_FINISHED_TIMEOUT = 200
-        self.goal = PowerManagerGoal()
         self._as = actionlib.SimpleActionServer(self._action_name, PowerManagerAction, execute_cb=self.execute_cb,
                                                 auto_start=False)
         self._custom_relay_service = rospy.Service('custom_power_relay_command', CustomRelayCommand,
@@ -194,69 +134,51 @@ class RemotePowerControl(PowerControlCommon):
         return CustomRelayCommandResponse(response_content)
 
     def execute_cb(self, goal):
-        rospy.logwarn("cb")
-        self.goal = goal
-        # helper variables
-        r = rospy.Rate(1)
-
-        # publish info to the console for the user
-        rospy.logwarn('%s: Executing. \nPower on list: %s \nPower off list: %s' % (
-        self._action_name, goal.power_on, goal.power_off))
-
+        rospy.loginfo('%s: Executing. \nPower on list: %s \nPower off list: %s' % (
+                        self._action_name, goal.power_on, goal.power_off))
         threads = {}
         thread_id_counter = 1
-
         for power_on_goal in goal.power_on:
             for device in self._devices:
                 if device['name'] == power_on_goal:
-                    if not 'arm' in device['name'] or self.is_arm_off(device['data_ip']):
-                        rospy.loginfo("powering on...")
-                        threads[device['name']] = BootMonitor(thread_id_counter, device, self._as,
-                                                              self._feedback, self._result, "on")
-                        thread_id_counter = thread_id_counter + 1
-                        threads[device['name']].start()
-                        #self.power_on(device['power_ip'])
+                    rospy.loginfo("powering on...")
+                    threads[device['name']] = BootMonitor(thread_id_counter, device, self._as,
+                                                          self._feedback, self._result, "on")
+                    thread_id_counter = thread_id_counter + 1
+                    threads[device['name']].start()
 
         for power_off_goal in goal.power_off:
             for device in self._devices:
                 if device['name'] == power_off_goal:
-                    if not 'arm' in device['name'] or self.is_arm_on(device['data_ip']):
-                        rospy.loginfo("powering off...")
-                        #self.power_off(device['power_ip'])
-                        threads[device['name']] = BootMonitor(thread_id_counter, device, self._as,
-                                                              self._feedback, self._result, "off")
-                        thread_id_counter = thread_id_counter + 1
-                        threads[device['name']].start()
+                    rospy.loginfo("powering off...")
+                    threads[device['name']] = BootMonitor(thread_id_counter, device, self._as,
+                                                          self._feedback, self._result, "off")
+                    thread_id_counter = thread_id_counter + 1
+                    threads[device['name']].start()
 
-        all_finished = False
         now = rospy.get_rostime()
-        rospy.logwarn("pre not finished")
-        while not all_finished:
-            if not all(thread.is_alive() for name, thread in threads.iteritems()):
-                all_finished = True
+        rospy.logwarn("waiting for threads to complete...")
+        while any(thread.is_alive() for name, thread in threads.iteritems()):
             if (now.secs + self._CONST_ALL_THREADS_FINISHED_TIMEOUT) < rospy.get_rostime().secs:
                 break
-        rospy.logwarn("finished")
+        rospy.loginfo("All goal tasks processed")
 
-        if all_finished:
+        if not any(thread.is_alive() for name, thread in threads.iteritems()):
             self._as.set_succeeded(self._result)
-            #self._feedback.feedback.append(self._feedback.feedback[i].status + self._feedback.feedback[i - 1].status)
-            # publish the feedback
-            #self._as.publish_feedback(self._feedback)
-            # this step is not necessary, the sequence is computed at 1 Hz for demonstration purposes
-        r.sleep()
-
-        # if success:
-        #     self._result.results.append(self._feedback.feedback[0])
-        #     rospy.loginfo('%s: Succeeded' % self._action_name)
-        #     self._as.set_succeeded(self._result)
+        else:
+            rospy.logerr("something went wrong, a thread has hung")
+            for name, thread in threads.iteritems():
+                if thread.is_alive():
+                    rospy.logwarn("thread is alive: %s", name)
+        self._feedback = sr_utilities_common.msg.PowerManagerFeedback()
+        self._result = sr_utilities_common.msg.PowerManagerResult()
 
 
 class BootMonitor(threading.Thread, PowerControlCommon):
-    def __init__(self, threadID, device, action_server, feedback, result, on_off):
+    def __init__(self, thread_id, device, action_server, feedback, result, on_off):
         threading.Thread.__init__(self)
         self._on_off = on_off
-        self.threadID = threadID
+        self.threadID = thread_id
         self._feedback = feedback
         self._CONST_UR_ARM_SSH_USERNAME = 'root'
         self._CONST_UR_ARM_SSH_PASSWORD = 'easybot'
@@ -400,7 +322,7 @@ class BootMonitor(threading.Thread, PowerControlCommon):
             return False
 
     def add_feedback(self, status_message, boot_status, finished=False, failed=False):
-        rospy.loginfo("%s", status_message)
+        rospy.loginfo("%s: %s", self._device_name, status_message)
         fb = sr_utilities_common.msg.sr_power_feedback()
         fb.status = self._device_name + " " + status_message
         fb.name = self._device_name
@@ -426,7 +348,6 @@ class BootMonitor(threading.Thread, PowerControlCommon):
 
 threadLock = threading.Lock()
 
-
 if __name__ == "__main__":
     rospy.init_node('remote_power_control', anonymous=False)
     config_file = 'power_devices.yaml'
@@ -436,5 +357,4 @@ if __name__ == "__main__":
         dataMap = yaml.safe_load(f)
 
     remote_power_control = RemotePowerControl(rospy.get_name(), dataMap)
-
 
