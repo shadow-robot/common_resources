@@ -172,7 +172,7 @@ To start the node:
 rosrun sr_utilities_common remote_power_control.py
 ```
 
-Then pass a list of device names (as specified in `power_devices.yaml` to `power_on` and/or `power_off`) to the `/remote_power_control/goal` topic. E.g, to power the `right_arm` and `left_arm` on and the `right_hand` off, do:
+Then pass a list of device names (as specified in `power_devices.yaml`) to `power_on` and/or `power_off` of the `/remote_power_control/goal` topic. E.g, to power the `right_arm` and `left_arm` on and the `right_hand` off, do:
 
 ```bash
 rostopic pub /remote_power_control/goal sr_utilities_common/PowerManagerActionGoal "header:
