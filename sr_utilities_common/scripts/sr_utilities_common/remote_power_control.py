@@ -115,9 +115,18 @@ class RemotePowerControl(PowerControlCommon):
                                                    self.handle_custom_relay_request)
         self._as.start()
         self.check_relays_connected()
+        self.print_config()
         self.set_relays_to_default()
         while not rospy.is_shutdown():
             rospy.spin()
+
+    def print_config(self):
+        rospy.loginfo("Devices in config:")
+        for device in self._devices:
+            rospy.loginfo("Name: %s", device['name'])
+            for key, value in device.iteritems():
+                if 'name' != key:
+                    rospy.loginfo("  %s: %s", key, value)
 
     def handle_custom_relay_request(self, req):
         if 'get' in req.request_type.lower():
