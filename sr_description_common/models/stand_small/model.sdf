@@ -10,7 +10,7 @@
         <pose>0.0 0.0 0.0 1.5707 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://stand_small/meshes/Robot_Stand_ASM_01_metres.STL</uri>
+            <uri>model://stand_small/meshes/Robot_Stand_ASM_01_metres_no_feet.STL</uri>
           </mesh>
         </geometry>
       </collision>
@@ -18,7 +18,7 @@
         <pose>0.0 0.0 0.0 1.5707 0.0 0.0</pose>
         <geometry>
           <mesh>
-            <uri>model://stand_small/meshes/Robot_Stand_ASM_01_metres.STL</uri>
+            <uri>model://stand_small/meshes/Robot_Stand_ASM_01_metres_no_feet.STL</uri>
           </mesh>
         </geometry>
       </visual>
