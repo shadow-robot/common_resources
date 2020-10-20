@@ -5,6 +5,7 @@ request_firmware_version(){
 }
 
 check_firmware_from_ip(){
+  CONST_DRIVER_MINIMAL_REQUIRED_VERSION="5.1"
   responded=false
   export -f request_firmware_version
   current_dir=$(dirname "$0")
@@ -14,13 +15,17 @@ check_firmware_from_ip(){
       while read firmware; do
         if [[ $firmware != "" ]]; then
           if [[ $cmd =~ $firmware ]]; then
-            echo -e "\e[32mUR version $cmd is supported by Shadow\e[0m"
+            echo -e "\e[32mUR version $cmd is supported by Shadow.\e[0m"
             responded=true
             break 2
           fi
         fi
       done <$good_firmware
-      echo -e "\e[33mUR version $cmd is NOT supported by Shadow. Use our software at your own risk\e[0m"
+        if [ "$(printf '%s\n' "$CONST_DRIVER_MINIMAL_REQUIRED_VERSION" "$cmd" | sort -V | head -n1)" = "$CONST_DRIVER_MINIMAL_REQUIRED_VERSION" ]; then 
+            echo -e "\e[32mUR version $cmd has not been tested by Shadow but is supported by the driver.\e[0m"
+        else
+            echo -e "\e[33mUR version $cmd is NOT supported by Shadow. Use our software at your own risk.\e[0m"
+        fi
       responded=true
       break
     fi
