@@ -37,8 +37,8 @@ class RosElementsHandler(object):
             # Loop through a copy of missing elements; we're removing items from it within the loop
             for element in list(self.missing_elements):
                 if element and type(element) == str:
-                    if any(element in sublist for sublist in roscore_published_elements):
-                        rospy.loginfo("Found %s", element)
+                    if element in roscore_published_elements:
+                        rospy.loginfo("%s: Found %s", rospy.get_name(), element)
                         self.missing_elements.remove(element)
                 else:
                     raise ValueError("{}: Required element is not a string".format(rospy.get_name()))
