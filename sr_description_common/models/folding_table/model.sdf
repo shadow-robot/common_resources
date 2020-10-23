@@ -1,19 +1,19 @@
 <?xml version='1.0'?>
 <sdf version="1.4">
-<model name="human">
+<model name="folding_table">
     <static>true</static>
     <link name="link">
-      <collision name="collision_human">
+      <collision name="collision_folding_table">
         <geometry>
           <box>
-            <size>1 0.75 0.75</size>
+            <size>0.74 1.8 0.7</size>
           </box>
         </geometry>
       </collision>
-      <visual name="visual_human">
+      <visual name="visual_folding_table">
         <geometry>
           <box>
-            <size>1.75 0.75 0.75</size>
+            <size>0.74 1.8 0.7</size>
           </box>
         </geometry>
         <material>

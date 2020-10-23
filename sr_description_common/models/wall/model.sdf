@@ -6,14 +6,14 @@
       <collision name="collision_wall">
         <geometry>
           <box>
-            <size>5.0 0.01 2.0</size>
+            <size>5.0 0.01 2.7</size>
           </box>
         </geometry>
       </collision>
       <visual name="visual_wall">
         <geometry>
           <box>
-            <size>5.0 0.01 2.0</size>
+            <size>5.0 0.01 2.7</size>
           </box>
         </geometry>
         <material>
