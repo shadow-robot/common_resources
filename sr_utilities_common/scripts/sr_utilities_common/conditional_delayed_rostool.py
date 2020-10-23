@@ -29,9 +29,6 @@ class RosElementsHandler(object):
 
     def check_if_required_element_is_available(self):
         roscore_published_elements = self._retrieve_available_elements()
-        if not isinstance(self.missing_elements, list):
-            raise ValueError("{}: Required elements must be a list not a string, \
-                             check the required element list declaration".format(rospy.get_name()))
         # If there are missing elements, try to find them, else return true
         if self.missing_elements:
             # Loop through a copy of missing elements; we're removing items from it within the loop
@@ -49,7 +46,8 @@ class RosElementsHandler(object):
 
     def _retrieve_available_elements(self):
         if self._element_type == "topic":
-            return rospy.get_published_topics()
+            list_of_topics = [item[0] for item in rospy.get_published_topics()]
+            return list_of_topics
         elif self._element_type == "service":
             return rosservice.get_service_list()
         elif self._element_type == "param":
