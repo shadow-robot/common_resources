@@ -105,7 +105,7 @@ catkin_python_setup()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} wait_for_param
   CATKIN_DEPENDS
     roscpp
 #  DEPENDS system_lib
@@ -124,19 +124,21 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-  src/${PROJECT_NAME}/ros_heartbeat.cpp
+  src/${PROJECT_NAME}/wait_for_param.cpp
 )
-target_link_libraries(sr_utilities_common ${catkin_LIBRARIES})
+add_library(wait_for_param src/${PROJECT_NAME}/wait_for_param.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(wait_for_param ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(ros_heartbeat_server_example scripts/${PROJECT_NAME}/ros_heartbeat_server_example.cpp)
+add_executable(relay src/${PROJECT_NAME}/relay.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -149,13 +151,13 @@ add_executable(ros_heartbeat_server_example scripts/${PROJECT_NAME}/ros_heartbea
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+target_link_libraries(sr_utilities_common ${catkin_LIBRARIES})
 target_link_libraries(ros_heartbeat_server_example
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
-
-add_executable(relay src/${PROJECT_NAME}/relay.cpp)
 target_link_libraries(relay ${catkin_LIBRARIES})
+target_link_libraries(wait_for_param ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -172,7 +174,7 @@ target_link_libraries(relay ${catkin_LIBRARIES})
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} wait_for_param relay
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
