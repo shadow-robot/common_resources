@@ -32,6 +32,12 @@
       <pose>-0.338887 -0.447438 0 0 0 0</pose>
     </include>
     <include>
+      <uri>model://stand_small</uri>
+      <static>true</static>
+      <name>stand_small_1</name>
+      <pose>-0.338887 1.047624 0 0 0 0</pose>
+    </include>
+    <include>
       <uri>model://folding_table</uri>
       <static>true</static>
       <name>folding_table</name>
