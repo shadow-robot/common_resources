@@ -9,7 +9,7 @@
     </include>
     <include>
       <uri>model://ground</uri>
-      <name>ceiling</name>
+      <name>ground_1</name>
       <pose>-0.20 0.60 2.7 0 0 0</pose>
     </include>
     <light type="directional" name="lab_light">
