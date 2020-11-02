@@ -67,13 +67,14 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
             all_conditions_satisfied_list.append(condition.check_if_required_element_is_available())
         if all(satisfied for satisfied in all_conditions_satisfied_list):
             all_conditions_satisfied = True
-        if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
-            rospy.logerr("Timeout of {}s exceeded".format(timeout))
-            for condition_type, condition in conditions_to_satisfy.iteritems():
-                if condition.missing_elements:
-                    rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
-                                                                               condition.missing_elements))
-            break
+        if timeout > 0:
+            if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
+                rospy.logerr("Timeout of {}s exceeded".format(timeout))
+                for condition_type, condition in conditions_to_satisfy.iteritems():
+                    if condition.missing_elements:
+                        rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
+                                                                                condition.missing_elements))
+                break
     return all_conditions_satisfied
 
 
@@ -85,7 +86,7 @@ if __name__ == "__main__":
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
     arguments_list = rospy.get_param("~launch_args_list")
-    timeout = rospy.get_param("~timeout")
+    timeout = rospy.get_param("~timeout", 0)
 
     if rospy.has_param('~topics_list'):
         topics_list = rospy.get_param("~topics_list")
