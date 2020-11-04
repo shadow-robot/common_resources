@@ -58,7 +58,7 @@ class RosElementsHandler(object):
 
 
 def wait_for_conditions(conditions_to_satisfy, timeout):
-    time = rospy.Time.now() + rospy.Duration(timeout)
+    start_time = rospy.Time.now()
     all_conditions_satisfied = False
 
     while not all_conditions_satisfied:
@@ -69,7 +69,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
             all_conditions_satisfied = True
         if timeout <= 0:
             continue
-        elif (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
+        if (rospy.Time.now().to_sec() - start_time.to_sec() >= timeout):
             rospy.logerr("Timeout of {}s exceeded".format(timeout))
             for condition_type, condition in conditions_to_satisfy.iteritems():
                 if condition.missing_elements:
