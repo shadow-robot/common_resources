@@ -137,7 +137,7 @@ This script allows to delay the launch of ros launch files and nodes. It checks 
 The node **requires** the following parameters:
 - package_name: the package in which the executable is stored
 - executable_name: this is the name of the launch file we want to launch (must end with .launch) or the name of the node we want to run
-- timeout: after how long the script should give up waiting for the required conditions. If not set the script will wait forever for the condition to be met.
+- timeout: after how long the script should give up waiting for the required conditions. If not set or set to zero or less, the script will wait indefinitely for the condition to be met.
 - launch_args_list: the list of arguments that has to be passed to the launch file or node
 
 The following are not mandatory and allows to define the conditions necessary to launch the wanted executable:
