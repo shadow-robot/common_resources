@@ -1,10 +1,16 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <world name="default">
-    <!-- Floor -->
+    <!-- Floor and Ceiling -->
     <include>
       <uri>model://ground</uri>
+      <name>ground</name>
       <pose>-0.20 0.60 0.0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://ground</uri>
+      <name>ground_1</name>
+      <pose>-0.20 0.60 2.7 0 0 0</pose>
     </include>
     <light type="directional" name="lab_light">
       <pose>0.86 1.96 2.5 -1.55 0 0</pose>
@@ -20,30 +26,42 @@
       <cast_shadows>true</cast_shadows>
     </light>
     <include>
-      <uri>model://shadow_table_2017_full_simplified</uri>
+      <uri>model://stand_small</uri>
       <static>true</static>
-      <name>shadow_table_2017_full_simplified</name>
-      <pose>0.0 0.0 0.750 0 0 0</pose>
+      <name>stand_small</name>
+      <pose>-0.338887 -0.447438 0 0 0 0</pose>
     </include>
     <include>
-      <uri>model://ar_marker_a4</uri>
+      <uri>model://stand_small</uri>
       <static>true</static>
-      <name>ar_marker_a4</name>
-      <pose>0.725 0.17 0.762 0.0 -1.57079632679 0</pose>
+      <name>stand_small_1</name>
+      <pose>-0.338887 1.047624 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://human</uri>
+      <static>true</static>
+      <name>human</name>
+      <pose>-0.72 0.75 0.89 3.145 1.57079632679 3.1451</pose>
+    </include>
+    <include>
+      <uri>model://folding_table</uri>
+      <static>true</static>
+      <name>folding_table</name>
+      <pose>0.713196 0.75 0.369 0 0 0</pose>
+    </include>
+    <!-- Right wall -->
+    <include>
+      <uri>model://wall</uri>
+      <static>true</static>
+      <name>wall_1</name>
+      <pose>-0.19 -1.1 1.34 0 0 0</pose>
     </include>
     <!-- Rear wall -->
     <include>
       <uri>model://wall</uri>
       <static>true</static>
-      <name>wall_1</name>
-      <pose>-0.2 -0.5 1.0 0 0 0</pose>
-    </include>
-    <!-- Left wall: Modified to allow full extension of arm at startup. Real wall at 0.46315 instead of 1.26315 -->
-    <include>
-      <uri>model://wall</uri>
-      <static>true</static>
       <name>wall_2</name>
-      <pose>-0.7 0.6 1.0 0 0 1.57079632679</pose>
+      <pose>-2.2 0.59 1.34 0 0 1.57079632679</pose>
     </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
@@ -61,7 +79,7 @@
           <contact_surface_layer>0.00000</contact_surface_layer>
         </constraints>
       </ode>
-      <real_time_update_rate>1000.0</real_time_update_rate>
+      <real_time_update_rate>0.000000</real_time_update_rate>
       <max_step_size>0.001000</max_step_size>
     </physics>
     <scene>
@@ -74,6 +92,6 @@
         <pose frame=''>2.8784 4.2586 1.43117 0 0.083643 -2.30699</pose>
         <view_controller>orbit</view_controller>
       </camera>
-    </gui>
+    </gui>		
   </world>
 </sdf>
