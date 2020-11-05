@@ -63,7 +63,7 @@ To get one, you need to install your container by running the following command:
 **N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
 
 ```sh
-bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
+bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_right_hand=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
 ```
 
 Where:
@@ -137,7 +137,7 @@ This script allows to delay the launch of ros launch files and nodes. It checks 
 The node **requires** the following parameters:
 - package_name: the package in which the executable is stored
 - executable_name: this is the name of the launch file we want to launch (must end with .launch) or the name of the node we want to run
-- timeout: after how long the script should give up waiting for the required conditions
+- timeout: after how long the script should give up waiting for the required conditions. If not set or set to zero or less, the script will wait indefinitely for the condition to be met.
 - launch_args_list: the list of arguments that has to be passed to the launch file or node
 
 The following are not mandatory and allows to define the conditions necessary to launch the wanted executable:
