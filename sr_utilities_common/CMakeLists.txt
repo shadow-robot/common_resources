@@ -105,7 +105,7 @@ catkin_python_setup()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME} wait_for_param
+  LIBRARIES wait_for_param ros_heartbeat
   CATKIN_DEPENDS
     roscpp
 #  DEPENDS system_lib
