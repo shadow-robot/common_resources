@@ -61,12 +61,6 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
         result = self.ros_topic_handler_class._retrieve_available_elements()
         self.assertIsNone(result)
 
-    def test_check_if_required_elements_is_a_list(self):
-        required_topics_list = "required_topic"
-        ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
-        with self.assertRaises(ValueError):
-            ros_topic_handler_class.check_if_required_element_is_available()
-
     def test_check_if_required_element_is_available_list(self):
         required_topics_list = ["/test_mocap_topic"]
         ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
@@ -124,7 +118,7 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     def test_requested_service_available(self):
         conditions_to_satisfy = {}
         timeout = 0.1
-        services_list = ["test_mocap_service"]
+        services_list = ["/test_mocap_service"]
         conditions_to_satisfy["service"] = RosElementsHandler("service", services_list)
         all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
         self.assertTrue(all_conditions_satisfied)
@@ -140,7 +134,7 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     def test_requested_param_available(self):
         conditions_to_satisfy = {}
         timeout = 0.1
-        params_list = ["test_mocap_param"]
+        params_list = ["/test_mocap_param"]
         conditions_to_satisfy["param"] = RosElementsHandler("param", params_list)
         all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
         self.assertTrue(all_conditions_satisfied)

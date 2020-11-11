@@ -6,7 +6,7 @@
       <collision name="collision_human">
         <geometry>
           <box>
-            <size>1 0.75 0.75</size>
+            <size>1.75 0.75 0.75</size>
           </box>
         </geometry>
       </collision>
