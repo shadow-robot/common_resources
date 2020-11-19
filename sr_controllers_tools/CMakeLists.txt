@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_python_setup()
 
 catkin_package(
-  CATKIN_DEPENDS rospy
+  CATKIN_DEPENDS rospy sr_robot_msgs
 )
 
 include_directories(
