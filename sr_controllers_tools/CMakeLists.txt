@@ -9,6 +9,7 @@ project(sr_controllers_tools)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  sr_robot_msgs
 )
 
 ## Uncomment this if the package has a setup.py. This macro ensures
