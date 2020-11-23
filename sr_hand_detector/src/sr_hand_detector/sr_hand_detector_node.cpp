@@ -14,37 +14,33 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ros/ros.h"
 #include "sr_hand_detector/sr_hand_detector.h"
 #include <string>
 #include <map>
 #include <utility>
+#include <iostream>
+#include <fstream>
+#include "yaml-cpp/yaml.h"
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "sr_hand_detector");
-  ros::NodeHandle nh;
-
   sr_hand_detector::SrHandDetector sr_hand_detector;
   sr_hand_detector.run();
 
   if (sr_hand_detector.hand_serial_and_port_map_.empty())
   {
-    ROS_WARN_STREAM("No hand detected on any of the ports!");
-    return 1;
+    std::cout << "No hand detected on any of the ports!" << std::endl;
   }
 
-  std::map<std::string, std::string> hand_serial_and_port_map_strings;
+  YAML::Node hand_serial_to_port_map;
   for (auto const& x : sr_hand_detector.hand_serial_and_port_map_)
   {
-    ROS_INFO_STREAM("Detected hand on port: " << x.second);
-    ROS_INFO_STREAM("Hand's serial number: " << x.first);
-
-    hand_serial_and_port_map_strings.insert(std::pair<std::string, std::string>(std::to_string(x.first),
-                                                                                x.second));
+    std::cout << "Detected hand on port: " << x.second << std::endl;
+    std::cout << "Hand's serial number: " << x.first << std::endl;
+    hand_serial_to_port_map[x.first] = x.second;
   }
 
-  nh.setParam("hand/eth_port", hand_serial_and_port_map_strings);
-
+  std::ofstream fout("/tmp/sr_hand_detector.yaml");
+  fout << hand_serial_to_port_map;
   return 0;
 }

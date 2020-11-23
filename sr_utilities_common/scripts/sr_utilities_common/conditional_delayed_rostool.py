@@ -24,33 +24,30 @@ from multiprocessing import Process
 class RosElementsHandler(object):
     def __init__(self, element_type, required_elements_list):
         self._element_type = element_type
-        self._required_elements_list = required_elements_list
-        self._found_elements = []
-        self.missing_elements = []
+        # De-duplicate and make a copy of the required elements list
+        self.missing_elements = list(set(required_elements_list))
 
     def check_if_required_element_is_available(self):
         roscore_published_elements = self._retrieve_available_elements()
-        if not isinstance(self._required_elements_list, list):
-            raise ValueError("{}: Required elements must be a list not a string, \
-                             check the required element list declaration".format(rospy.get_name()))
-        if self._required_elements_list:
-            for element in self._required_elements_list:
+        # If there are missing elements, try to find them, else return true
+        if self.missing_elements:
+            # Loop through a copy of missing elements; we're removing items from it within the loop
+            for element in list(self.missing_elements):
                 if element and type(element) == str:
-                    if any(element in sublist for sublist in roscore_published_elements):
-                        rospy.loginfo("Found %s", element)
-                        self._found_elements.append(element)
+                    if element in roscore_published_elements:
+                        rospy.loginfo("%s: Found %s", rospy.get_name(), element)
+                        self.missing_elements.remove(element)
                 else:
                     raise ValueError("{}: Required element is not a string".format(rospy.get_name()))
-            if len(self._found_elements) == len(self._required_elements_list):
-                return True
-            self.missing_elements = list(set(self._required_elements_list) - set(self._found_elements))
+            # Return true if there are no more missing elements
+            return not self.missing_elements
         else:
             return True
-        return False
 
     def _retrieve_available_elements(self):
         if self._element_type == "topic":
-            return rospy.get_published_topics()
+            list_of_topics = [item[0] for item in rospy.get_published_topics()]
+            return list_of_topics
         elif self._element_type == "service":
             return rosservice.get_service_list()
         elif self._element_type == "param":
@@ -61,7 +58,7 @@ class RosElementsHandler(object):
 
 
 def wait_for_conditions(conditions_to_satisfy, timeout):
-    time = rospy.Time.now() + rospy.Duration(timeout)
+    start_time = rospy.Time.now()
     all_conditions_satisfied = False
 
     while not all_conditions_satisfied:
@@ -70,7 +67,9 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
             all_conditions_satisfied_list.append(condition.check_if_required_element_is_available())
         if all(satisfied for satisfied in all_conditions_satisfied_list):
             all_conditions_satisfied = True
-        if (round(rospy.Time.now().to_sec(), 1) == round(time.to_sec(), 1)):
+        if timeout <= 0:
+            continue
+        if (rospy.Time.now().to_sec() - start_time.to_sec() >= timeout):
             rospy.logerr("Timeout of {}s exceeded".format(timeout))
             for condition_type, condition in conditions_to_satisfy.iteritems():
                 if condition.missing_elements:
@@ -88,7 +87,7 @@ if __name__ == "__main__":
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
     arguments_list = rospy.get_param("~launch_args_list")
-    timeout = rospy.get_param("~timeout")
+    timeout = rospy.get_param("~timeout", 0)
 
     if rospy.has_param('~topics_list'):
         topics_list = rospy.get_param("~topics_list")
