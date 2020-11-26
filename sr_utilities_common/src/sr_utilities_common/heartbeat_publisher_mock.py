@@ -45,6 +45,7 @@ class HeartbeatPublisherMock(object):
             rate.sleep()
 
     def _start_heartbeat_publishing_thread(self):
+        rospy.loginfo("Starting /teleop_heartbeat thread...")
         self._threads_running = True
         self._heartbeat_thread = Thread(target=self._heartbeat_publishing_thread)
         self._heartbeat_thread.start()
@@ -66,7 +67,7 @@ class HeartbeatPublisherMock(object):
         return ch
 
     def stop(self):
-        rospy.loginfo("Stopping all threads...")
+        rospy.loginfo("Stopping /teleop_heartbeat thread...")
         self._threads_running = False
         self._heartbeat_thread.join()
 
@@ -83,8 +84,8 @@ if __name__ == "__main__":
             heartbeat.stop()
             sys.exit(0)
         else:
-            if heartbeat._heartbeat_status == False:
-                heartbeat._heartbeat_status = True
-            else:
+            if heartbeat._heartbeat_status:
                 heartbeat._heartbeat_status = False
+            else:
+                heartbeat._heartbeat_status = True
             heartbeat.change_heartbeat_status(heartbeat._heartbeat_status)
