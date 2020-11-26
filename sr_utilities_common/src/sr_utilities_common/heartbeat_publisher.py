@@ -16,7 +16,6 @@
 
 import rospy
 import rospkg
-import sys
 import argparse
 from std_msgs.msg import Bool
 from threading import Thread, Lock
@@ -24,7 +23,7 @@ from threading import Thread, Lock
 
 class HeartbeatPublisher(object):
     def __init__(self, topic_name='heartbeat'):
-        self._publishing_thread_running = None
+        self._publishing_thread_running = False
         self._heartbeat_status = False
 
         self._threading_lock = Lock()
@@ -67,6 +66,9 @@ if __name__ == "__main__":
 
     status = False
     while not rospy.is_shutdown():
-        raw_input("Press [RETURN] to toggle /%s. CTRL+Z to terminate." % args.topic_name)
-        heartbeat.change_heartbeat_status(status)
+        input_val = raw_input("Press [RETURN] to toggle /%s. Type 'exit' and execute to terminate. \n" % args.topic_name)
+        if input_val == 'exit':
+            break
         status = not status
+        heartbeat.change_heartbeat_status(status)
+    heartbeat.stop()
