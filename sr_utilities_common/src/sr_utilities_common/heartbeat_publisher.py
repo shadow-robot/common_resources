@@ -66,7 +66,8 @@ if __name__ == "__main__":
 
     status = False
     while not rospy.is_shutdown():
-        input_val = raw_input("Press [RETURN] to toggle /%s. Type 'exit' and execute to terminate. \n" % args.topic_name)
+        input_val = raw_input("Press [RETURN] to toggle /%s." + 
+                              "Type 'exit' and execute to terminate. \n" % args.topic_name)
         if input_val == 'exit':
             break
         status = not status
