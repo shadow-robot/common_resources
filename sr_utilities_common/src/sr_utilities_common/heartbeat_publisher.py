@@ -56,17 +56,17 @@ class HeartbeatPublisher(object):
 if __name__ == "__main__":
     rospy.init_node('heartbeat_publisher_node', anonymous=True)
 
-    parser = argparse.ArgumentParser(description='A script to publish and toggle a heartbeat topic publishing bool values.',
-                                 add_help=True, usage='%(prog)s [-h] --topic_name TOPIC_NAME',
-                                 formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description='A script to publish and toggle a heartbeat topic.',
+                                     add_help=True, usage='%(prog)s [-h] --topic_name TOPIC_NAME',
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--topic_name', dest='topic_name',
-                    default='heartbeat',
-                    help="TOPIC_NAME is the topic you want to publish Bool data to.")
+                        default='heartbeat',
+                        help="TOPIC_NAME is the topic you want to publish Bool data to.")
     args = parser.parse_args()
     heartbeat = HeartbeatPublisher(args.topic_name)
 
     status = False
     while not rospy.is_shutdown():
-        raw_input("Press [RETURN] to toggle /%s. CTRL+Z to terminate." % args.topic_name) 
+        raw_input("Press [RETURN] to toggle /%s. CTRL+Z to terminate." % args.topic_name)
         heartbeat.change_heartbeat_status(status)
-        status = not status          
+        status = not status
