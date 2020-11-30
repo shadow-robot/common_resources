@@ -9,7 +9,7 @@ Calling `get_calibration_files()` will also push the retrieved calibration files
 ### Unimanual
 ```python
 arm_type='UR10e'
-ra_arm = {'prefix': 'ra', 'ip_address': '192.168.1.1', 'arm_type': arm_type}
+ra_arm = {'prefix': 'ra', 'ip_address': '10.8.1.1', 'arm_type': arm_type}
 sr_ur_load_calibration = SrUrLoadCalibration([ra_arm])
 arm_info = sr_ur_load_calibration.get_calibration_files()
 
@@ -19,7 +19,7 @@ for key, value in arm_info[0].items():
 
 output:
 ```
-arm_ip 192.168.1.1
+arm_ip 10.8.1.1
 arm_serial 2018301649
 arm_side ra
 kinematics_config /home/user/projects/shadow_robot/base/src/common_resources/sr_ur_arm_calibration_loader/calibrations/2018301649.yaml
@@ -29,8 +29,8 @@ kinematics_config /home/user/projects/shadow_robot/base/src/common_resources/sr_
 ### Bimanual
 ```python
 arm_type='UR10'
-ra_arm = {'prefix': 'ra', 'ip_address': '192.168.1.1', 'arm_type': arm_type}
-la_arm = {'prefix': 'la', 'ip_address': '192.168.2.1', 'arm_type': arm_type}
+ra_arm = {'prefix': 'ra', 'ip_address': '10.8.1.1', 'arm_type': arm_type}
+la_arm = {'prefix': 'la', 'ip_address': '10.8.2.1', 'arm_type': arm_type}
 sr_ur_load_calibration = SrUrLoadCalibration([ra_arm, la_arm])
 
 for arm in arms_info:
@@ -40,11 +40,11 @@ for arm in arms_info:
 
 output:
 ```
-arm_ip 192.168.1.1
+arm_ip 10.8.1.1
 arm_serial 2018301649
 arm_side ra
 kinematics_config /home/user/projects/shadow_robot/base/src/common_resources/sr_ur_arm_calibration_loader/calibrations/2018301649.yaml
-arm_ip 192.168.2.1
+arm_ip 10.8.2.1
 arm_serial 2018301236
 arm_side la
 kinematics_config /home/user/projects/shadow_robot/base/src/common_resources/sr_ur_arm_calibration_loader/calibrations/2018301236.yaml
