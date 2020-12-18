@@ -86,12 +86,9 @@ if __name__ == "__main__":
 
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
+    arguments_list = rospy.get_param("~launch_args_list", "")
     timeout = rospy.get_param("~timeout", 0)
 
-    if rospy.has_param("~launch_args_list"):
-        arguments_list = rospy.get_param("~launch_args_list")
-    else:
-        arguments_list = ""
     if rospy.has_param('~topics_list'):
         topics_list = rospy.get_param("~topics_list")
         conditions_to_satisfy["topic"] = RosElementsHandler("topic", topics_list)
