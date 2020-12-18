@@ -91,7 +91,7 @@ if __name__ == "__main__":
     if rospy.has_param("~launch_args_list"):
         arguments_list = rospy.get_param("~launch_args_list")
     else:
-        arguments_list = [""]
+        arguments_list = ""
     if rospy.has_param('~topics_list'):
         topics_list = rospy.get_param("~topics_list")
         conditions_to_satisfy["topic"] = RosElementsHandler("topic", topics_list)
