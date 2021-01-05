@@ -36,7 +36,7 @@ class CheckResultWrongFormat(SrWatchdogExceptions):
 
 
 class SrWatchdog(object):
-    def __init__(self, tested_system_name="tested system", checks_classes_list=[], initial_wait_for_checks=20):
+    def __init__(self, tested_system_name="tested system", checks_classes_list=[], initial_wait_for_checks=60):
         self.tested_system_name = tested_system_name
         self.checks_classes_list = checks_classes_list
         self.initial_wait_for_checks = initial_wait_for_checks
