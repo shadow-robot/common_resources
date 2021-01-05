@@ -186,7 +186,7 @@ class SrWatchdog(object):
 
             if check_return_value['result'] != check.result:
                 if rospy.Time.now().to_sec() - self.start_time.to_sec() < self.initial_wait_for_checks and \
-                    self.demo_status == SystemStatus.PENDING:
+                   self.demo_status == SystemStatus.PENDING:
                     return
                 self._add_system_log_on_check_result_change(check, check_return_value['result'],
                                                             check_return_value['error_msg'])
