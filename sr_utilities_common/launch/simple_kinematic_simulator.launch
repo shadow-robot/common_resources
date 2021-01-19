@@ -1,0 +1,38 @@
+<launch>
+  <arg name="robot_description" default="'$(find sr_description)/robots/shadowhand_motor_plus.urdf.xacro'"/>
+  <arg name="remapped_joint_states_topic_name" default="remapped_joint_states"/>
+  <arg name="trajectory_cmd_topic_name" default="/rh_trajectory_controller/command"/>
+  <arg name="joints_to_move" default="[rh_FFJ1, rh_FFJ2, rh_FFJ3, rh_FFJ4,
+                                       rh_MFJ1, rh_MFJ2, rh_MFJ3, rh_MFJ4,
+                                       rh_RFJ1, rh_RFJ2, rh_RFJ3, rh_RFJ4,
+                                       rh_LFJ1, rh_LFJ2, rh_LFJ3, rh_LFJ4, rh_LFJ5,
+                                       rh_THJ1, rh_THJ2, rh_THJ3, rh_THJ4, rh_THJ5,
+                                       rh_WRJ1, rh_WRJ2]"/>
+  <!-- If a robot_side "right" is specified, any joint in the trajecotry cmd that has a prefix lh or la will be 
+      republished as rh and ra
+       If a robot side "left" is specified, any joint in the trajecotry cmd that has a prefix rh or ra will be 
+      republished as lh and la
+       If robot_side is empty "", then joints will be published without name changes -->
+  <arg name="robot_side" default="right"/>
+
+  <param name="robot_description" command="xacro --inorder $(arg robot_description)"/>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen" >
+    <rosparam subst_value="True">
+      source_list:
+        - $(arg remapped_joint_states_topic_name)
+    </rosparam>
+  </node>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="200.0" />
+    <param name="tf_prefix" type="string" value="" />
+  </node>
+
+  <node name="trajectory_republisher" pkg="sr_utilities_common" type="republish_trajectory_as_joint_states.py">
+    <param name="remapped_joint_states_topic_name" type="string" value="/$(arg remapped_joint_states_topic_name)" />
+    <param name="trajectory_cmd_topic_name" type="string" value="$(arg trajectory_cmd_topic_name)" />
+    <param name="robot_side" type="string" value="$(arg robot_side)" />
+    <rosparam param="joints_to_move" subst_value="True">$(arg joints_to_move)</rosparam>
+  </node>
+</launch>
