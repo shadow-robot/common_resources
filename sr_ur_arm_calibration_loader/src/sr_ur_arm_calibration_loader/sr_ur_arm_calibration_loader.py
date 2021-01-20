@@ -92,7 +92,7 @@ class SrUrLoadCalibration(object):
         except (paramiko.BadHostKeyException, paramiko.AuthenticationException, paramiko.SSHException):
             ssh_exception_message = "Failed to SSH into arm. Load default calibration."
             if not rospy.get_param('~sim'):
-                ssh_exception_message += " Skip this if running in simulation."
+                ssh_exception_message += " Skip this if running in simulation!"
             rospy.logwarn(ssh_exception_message)
 
         if '' == arm_serial_number:
