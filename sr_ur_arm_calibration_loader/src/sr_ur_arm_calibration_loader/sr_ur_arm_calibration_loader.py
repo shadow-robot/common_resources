@@ -89,14 +89,12 @@ class SrUrLoadCalibration(object):
             stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
             arm_serial_number = stdout.readline()
             client.close()
-        except paramiko.BadHostKeyException:
-            print("BadHostKeyException")
-        except paramiko.AuthenticationException:
-            print("AuthenticationException")
-        except paramiko.SSHException:
-            print("SSHException")
-        except socket.error:
-            print("socket.error exception")
+        except (paramiko.BadHostKeyException, paramiko.AuthenticationException, paramiko.SSHException):
+            ssh_exception_message = "Failed to SSH into arm. Load default calibration."
+            if not rospy.get_param('~sim'):
+                ssh_exception_message += " Skip this if running in simulation."
+            rospy.logwarn(ssh_exception_message)
+
         if '' == arm_serial_number:
             rospy.logwarn("Could not retrieve arm serial number via SSH, arm will NOT be calibrated.")
             arm_serial_number = self._default_kinematics_config
@@ -155,10 +153,7 @@ class SrUrLoadCalibration(object):
             if not calibration_exists:
                 calibration_exists = self._generate_new_arm_calibration(arm_ip, arm_serial)
             if calibration_exists:
-                if "yaml" not in arm_serial:
-                    calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
-                else:
-                    calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial)
+                calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial)
             else:
                 calibration_file_location = self._default_kinematics_config
             kinematics_config = self._get_yaml(calibration_file_location)
