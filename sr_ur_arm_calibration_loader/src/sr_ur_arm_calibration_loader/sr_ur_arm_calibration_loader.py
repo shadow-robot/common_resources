@@ -23,7 +23,6 @@ import tkMessageBox as messageBox
 import paramiko
 import sys
 import yaml
-import time
 import socket
 from rosparam import upload_params
 
@@ -73,8 +72,7 @@ class SrUrLoadCalibration(object):
         else:
             self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_description'),
                                                            'config', CONST_ARM_TYPE + '_default.yaml')
-        
-        print("PATH:"+self._default_kinematics_config)    
+            
         if not os.path.isfile(self._default_kinematics_config):
             raise ArmTypeNotRecognised('Cannot find default config for ' + CONST_ARM_TYPE)
 
