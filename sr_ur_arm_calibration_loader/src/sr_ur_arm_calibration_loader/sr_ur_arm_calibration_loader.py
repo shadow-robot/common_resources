@@ -96,7 +96,7 @@ class SrUrLoadCalibration(object):
             if rospy.get_param('~sim'):
                 rospy.loginfo("Running in simulation, ignoring the ssh failure.")
             else:
-                rospy.logwarn("Could not retrieve arm serial number, reason: {}." \
+                rospy.logwarn("Could not retrieve arm serial number, reason: {}."
                               "Arm will NOT be calibrated".format(ssh_exception_message))
             arm_serial_number = self._default_kinematics_config
         return arm_serial_number
