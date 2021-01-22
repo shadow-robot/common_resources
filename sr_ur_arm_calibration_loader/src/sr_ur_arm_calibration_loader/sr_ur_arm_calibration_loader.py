@@ -90,10 +90,10 @@ class SrUrLoadCalibration(object):
             arm_serial_number = stdout.readline()
             client.close()
         except (paramiko.BadHostKeyException, paramiko.AuthenticationException, paramiko.SSHException) as e:
-            ssh_exception_message = "Failed to SSH into arm ({})".format(e.__class__.__name__)
+            ssh_exception_message = "Failed to SSH into arm - {}".format(e.message)
 
         if '' == arm_serial_number:
-            rospy.logwarn("Could not retrieve arm serial number. {}."
+            rospy.logwarn("Could not retrieve arm serial number. {}"
                           " Arm will NOT be calibrated. Ignore if running URSim.".format(ssh_exception_message))
             arm_serial_number = self._default_kinematics_config
         return arm_serial_number
