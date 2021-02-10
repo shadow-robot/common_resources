@@ -46,8 +46,8 @@ class RePubTrajectoryAsJointStates(object):
         self._joints_to_move = joints_to_move
         self._right_hand_prefix = "rh_"
         self._left_hand_prefix = "lh_"
-        self._right_arm_prefix = "rh_"
-        self._left_arm_prefix = "lh_"
+        self._right_arm_prefix = "ra_"
+        self._left_arm_prefix = "la_"
         self._robot_side = robot_side
 
     def _traj_cb(self, data):
