@@ -14,7 +14,6 @@
     <arg name="scene" value="$(arg scene)"/>
     <arg name="world" default="$(arg world)" if="$(arg sim)"/>
     <arg name="initial_z" default="0.7621" />
-    <arg name="include_wrist_in_arm_controller" value="true"/>
     <arg name="eth_port" value="enx000ec6ac260a" />
     <arg name="hand_serial" value="1130" />
     <arg name="start_home" value="true" />

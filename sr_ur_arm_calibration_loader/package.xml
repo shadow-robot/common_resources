@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sr_ur_arm_calibration_loader</name>
+  <version>0.0.0</version>
+  <description>The sr_ur_arm_calibration_loader package</description>
+  <author email="tom@shadowrobot.com">Tom Queen</author>
+  <maintainer email="software@shadowrobot.com">Shadow Robot Software Team</maintainer>
+  <license>GPLv2</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <export>
+
+  </export>
+</package>

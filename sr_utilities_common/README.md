@@ -51,17 +51,19 @@ rostopic pub /example_heartbeat std_msgs/Bool "data: true" -r 20
 ```
 will set the value to `true`. The value is `true` or `false` depending on the value within the publisher's message. If the heartbeat object doesn't hear anything within it's set timeframe (`0.1c` above), user will be warned and `enabled` will be set to `false`.
 
-## AWS manager
+## AWS Access Keys
 
-### Getting AWS key
+If you wish to use the AWS CLI or our AWS Manager, you must have an AWS Access Key.
 
-`aws_manager.py` is a script allowing files to be uploaded to and download from AWS. 
+### In a new container
 
-In order for the script to work, you first need to get the AWS Access Key. To do that, you need to install your container by running the following command: 
+If you are yet to set up a container, you should do so as follows to ensure you have a customer key.
+
+To get one, you need to install your container by running the following command: 
 **N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
 
 ```sh
-bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
+bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_right_hand=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
 ```
 
 Where:
@@ -72,13 +74,33 @@ During installation you will be prompted for a AWS customer key. This key can be
 
 If you can't open the link contact the software team at software@shadowrobot.com.
 
+### In an existing container
+
 **If you already have a container installed which does not contain an AWS key**, retrieve one of the keys from the link above and within your container run the following command:
 
 ```sh
 echo "<your_aws_customer_key>" | sudo tee /usr/local/bin/customer.key
 ```
 
+### AWS CLI Setup
+
+If you wish to use the AWS CLI, you can either put your access key in the file above then run:
+
+```sh
+rosrun sr_utilities_common aws_login.py
+```
+
+Or use the access key directly:
+
+```sh
+rosrun sr_utilities_common aws_login.py --api_key <YOUR_ACCESS_KEY>
+```
+
 If you have doubts about this process, contact the software team at software@shadowrobot.com.
+
+## AWS manager
+
+Follow the steps above to obtain an AWS access key before attempting to use the AWS manager. It assumes you have an access key stored in `/usr/local/bin/customer.key`.
 
 ### Uploading and downloading files
 
@@ -105,3 +127,36 @@ An example launch file using this script could look like the one below:
 ```
 
 Launching the above file would upload files `example_file_0` and `example_file_1` located in package `example_package` within folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
+
+## Conditional Delayed Ros Tool
+
+This script allows to delay the launch of ros launch files and nodes. It checks on the roscore whether the required conditions have been correctly initialized until the timout exceeds.
+
+### Fields
+
+The node **requires** the following parameters:
+- package_name: the package in which the executable is stored
+- executable_name: this is the name of the launch file we want to launch (must end with .launch) or the name of the node we want to run
+- timeout: after how long the script should give up waiting for the required conditions. If not set or set to zero or less, the script will wait indefinitely for the condition to be met.
+- launch_args_list: the list of arguments that has to be passed to the launch file or node
+
+The following are not mandatory and allows to define the conditions necessary to launch the wanted executable:
+- topics_list: the list of topics that should be available on roscore before launching
+- params_list: the list of parameters that should be available on roscore before launching
+- services_list: the list of services that should be advertised before launching
+
+You only need to specify the list you want. For instance, if there are no topics to wait for, you don't need to pass an empty list.
+
+### Real code example
+
+```xml
+<node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen">
+  <param name="package_name" value="sr_teleop_launch" />
+  <param name="executable_name" value="teleop_core_nodes.launch" />
+  <rosparam param="topics_list">[/rh_trajectory_controller/command, /ros_heartbeat]</rosparam>
+  <rosparam param="params_list">[/robot_description]</rosparam>
+  <rosparam param="services_list">[/get_planning_scene]</rosparam>
+  <param name="launch_args_list" value="sim:=$(arg sim) hand:=$(arg hand) vive:=$(arg vive) jog_arm:=$(arg jog_arm) moveit_arm:=$(arg moveit_arm) moley_arm:=$(arg moley_arm) tracker:=$(arg tracker) tracker_id:=$(arg tracker_id) wrist_wand_id:=$(arg wrist_wand_id) control_wand_id:=$(arg control_wand_id) soft_start_time:=$(arg soft_start_time) local_vive_prefix:=$(arg local_vive_prefix) user_root_tf_name:=$(arg user_root_tf_name) user_forearm_tf_name:=$(arg user_forearm_tf_name) user_wrist_tf_name:=$(arg user_wrist_tf_name) dataflow_handler_config_file_path:=$(arg dataflow_handler_config_file_path) log_topics:='$(arg log_topics)' log_bag_prefix:=$(arg log_bag_prefix) require_trigger:=$(arg require_trigger) require_pedal:=$(arg require_pedal) pedal:=$(arg pedal) side:=$(arg side) wrist_zero:=$(arg wrist_zero)" />
+  <param name="timeout" value="60.0" />
+</node>
+```

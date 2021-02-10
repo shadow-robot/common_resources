@@ -21,12 +21,15 @@
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>rostest</build_depend>
+  <build_depend>topic_tools</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>python3-boto3</run_depend>
   <run_depend>python-requests</run_depend>
   <run_depend>sensor_msgs</run_depend>
+  <run_depend>topic_tools</run_depend>
   <run_depend>trajectory_msgs</run_depend>
 
 </package>

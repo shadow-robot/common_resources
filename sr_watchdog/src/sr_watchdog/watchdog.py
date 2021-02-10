@@ -36,9 +36,10 @@ class CheckResultWrongFormat(SrWatchdogExceptions):
 
 
 class SrWatchdog(object):
-    def __init__(self, tested_system_name="tested system", checks_classes_list=[]):
+    def __init__(self, tested_system_name="tested system", checks_classes_list=[], initial_wait_for_checks=60):
         self.tested_system_name = tested_system_name
         self.checks_classes_list = checks_classes_list
+        self.initial_wait_for_checks = initial_wait_for_checks
         self.logs_remembered = rospy.get_param('~logs_remembered', 10)
 
         self.watchdog_publisher = rospy.Publisher('sr_watchdog', SystemStatus, queue_size=10)
@@ -46,10 +47,12 @@ class SrWatchdog(object):
         self.watchdog_logs = []
         self.checks_list = []
         self.checks_done_in_current_cycle = 0
+        self.start_time = None
 
         self._parse_checks()
 
     def run(self):
+        self.start_time = rospy.Time.now()
         main_thread = Thread(target=self._report_thread_method).start()
         checks_thread = Thread(target=self._checks_thread_method).start()
 
@@ -182,17 +185,21 @@ class SrWatchdog(object):
                 continue
 
             if check_return_value['result'] != check.result:
+                if rospy.Time.now().to_sec() - self.start_time.to_sec() < self.initial_wait_for_checks and \
+                   self.demo_status == SystemStatus.PENDING:
+                    return
                 self._add_system_log_on_check_result_change(check, check_return_value['result'],
                                                             check_return_value['error_msg'])
                 self._update_check_result(check.check_name, check_return_value['result'])
-
-            self._refresh_system_status()
+                self._refresh_system_status()
 
             self.checks_done_in_current_cycle += 1
 
         for check_name in checks_blacklist:
             self.checks_done_in_current_cycle -= 1
             self._blacklist_single_check(check_name)
+
+        self._refresh_system_status()
         rospy.sleep(1)
 
 
