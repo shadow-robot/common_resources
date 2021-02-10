@@ -1,0 +1,25 @@
+<launch>
+  <arg name="robot_description" default="'$(find sr_description)/robots/shadowhand_motor_plus.urdf.xacro'"/>
+
+  <param name="robot_description" command="xacro --inorder $(arg robot_description)"/>
+
+  <include file="$(find sr_utilities_common)/launch/single_robot_position_republisher.launch">
+    <arg name="node_name" value="rh_trajectory_republisher"/>
+    <arg name="remapped_joint_states_topic_name" value="rh_remapped_joint_states"/>
+    <arg name="trajectory_cmd_topic_name" value="/rh_trajectory_controller/command"/>
+    <arg name="joints_to_move" value="[]"/>s
+    <arg name="robot_side" value=""/>
+  </include>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen" >
+    <rosparam subst_value="True">
+      source_list:
+        - rh_remapped_joint_states
+    </rosparam>
+  </node>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="200.0" />
+    <param name="tf_prefix" type="string" value="" />
+  </node>
+</launch>
