@@ -8,9 +8,9 @@
                                        rh_LFJ1, rh_LFJ2, rh_LFJ3, rh_LFJ4, rh_LFJ5,
                                        rh_THJ1, rh_THJ2, rh_THJ3, rh_THJ4, rh_THJ5,
                                        rh_WRJ1, rh_WRJ2]"/>
-  <!-- If a robot_side "right" is specified, any joint in the trajecotry cmd that has a prefix lh or la will be 
+  <!-- If a robot_side "right" is specified, any joint in the trajectory cmd that has a prefix lh or la will be 
       republished as rh and ra
-       If a robot side "left" is specified, any joint in the trajecotry cmd that has a prefix rh or ra will be 
+       If a robot side "left" is specified, any joint in the trajectory cmd that has a prefix rh or ra will be 
       republished as lh and la
        If robot_side is empty "", then joints will be published without name changes -->
   <arg name="robot_side" default="right"/>

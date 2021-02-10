@@ -51,8 +51,8 @@ class RePubTrajectoryAsJointStates(object):
         self._robot_side = robot_side
 
     def _traj_cb(self, data):
-        new_traj = JointState()
-        new_traj.header = data.header
+        new_state = JointState()
+        new_state.header = data.header
         for index, joint_name in enumerate(data.joint_names):
             if (joint_name in self._joints_to_move) or (not self._joints_to_move):
                 if self._robot_side == "left":
@@ -61,10 +61,10 @@ class RePubTrajectoryAsJointStates(object):
                 elif self._robot_side == "right":
                     joint_name = joint_name.replace(self._left_hand_prefix, self._right_hand_prefix)
                     joint_name = joint_name.replace(self._left_arm_prefix, self._right_arm_prefix)
-                new_traj.name.append(joint_name)
-                new_traj.position.append(data.points[0].positions[index])
-        new_traj.header.stamp = rospy.Time.now()
-        self._joint_states_pub.publish(new_traj)
+                new_state.name.append(joint_name)
+                new_state.position.append(data.points[0].positions[index])
+        new_state.header.stamp = rospy.Time.now()
+        self._joint_states_pub.publish(new_state)
 
 
 if __name__ == "__main__":
