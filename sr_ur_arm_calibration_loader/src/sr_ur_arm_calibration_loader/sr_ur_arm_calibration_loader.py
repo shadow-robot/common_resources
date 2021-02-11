@@ -24,7 +24,6 @@ import paramiko
 import sys
 import yaml
 from rosparam import upload_params
-
 from paramiko.ssh_exception import *
 
 class SrUrLoadCalibrationExceptions(Exception):
