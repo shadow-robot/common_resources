@@ -99,7 +99,7 @@ class SrUrLoadCalibration(object):
         if '' == arm_serial_number:
             rospy.logwarn("Could not retrieve arm serial number.{}"
                           " Arm will NOT be calibrated. Ignore if running URSim.".format(ssh_exception_message))
-            arm_serial = self._default_kinematics_config.replace(".yaml",'')
+            arm_serial_number = self._default_kinematics_config.replace(".yaml",'')
         return arm_serial_number
 
     def _check_arm_calibration_exists(self, arm_serial):
