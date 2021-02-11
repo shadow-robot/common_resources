@@ -25,6 +25,7 @@ import sys
 import yaml
 from rosparam import upload_params
 
+from paramiko.ssh_exception import *
 
 class SrUrLoadCalibrationExceptions(Exception):
     pass
@@ -67,11 +68,11 @@ class SrUrLoadCalibration(object):
         self._setup_folders()
         if CONST_ARM_TYPE in CONST_E_SERIES_ARMS:
             self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_e_description'),
-                                                           'config', CONST_ARM_TYPE + '_default.yaml')
+                                                           'config', CONST_ARM_TYPE + '_default')
         else:
             self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_description'),
-                                                           'config', CONST_ARM_TYPE + '_default.yaml')
-        if not os.path.isfile(self._default_kinematics_config):
+                                                           'config', CONST_ARM_TYPE + '_default')
+        if not os.path.isfile(self._default_kinematics_config + '.yaml'):
             raise ArmTypeNotRecognised('Cannot find default config for ' + CONST_ARM_TYPE)
 
     def _setup_folders(self):
@@ -89,13 +90,17 @@ class SrUrLoadCalibration(object):
             stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
             arm_serial_number = stdout.readline()
             client.close()
-        except (paramiko.BadHostKeyException, paramiko.AuthenticationException, paramiko.SSHException) as e:
-            ssh_exception_message = "Failed to SSH into arm - {}".format(e.message)
+        except (BadHostKeyException, AuthenticationException, SSHException) as e:
+            ssh_exception_message = " Failed to SSH into arm - {}".format(e.message)
+        except NoValidConnectionsError as e:
+            ssh_exception_message = " Failed to SSH into arm - {}".format(e.errors)
+        except Exception as e:
+            ssh_exception_message = " Failed to SSH into arm - {}.".format(e.message)
 
         if '' == arm_serial_number:
-            rospy.logwarn("Could not retrieve arm serial number. {}"
+            rospy.logwarn("Could not retrieve arm serial number.{}"
                           " Arm will NOT be calibrated. Ignore if running URSim.".format(ssh_exception_message))
-            arm_serial_number = self._default_kinematics_config
+            arm_serial = self._default_kinematics_config.replace(".yaml",'')
         return arm_serial_number
 
     def _check_arm_calibration_exists(self, arm_serial):
