@@ -68,11 +68,11 @@ class SrUrLoadCalibration(object):
         self._setup_folders()
         if CONST_ARM_TYPE in CONST_E_SERIES_ARMS:
             self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_e_description'),
-                                                           'config', CONST_ARM_TYPE + '_default')
+                                                           'config', CONST_ARM_TYPE + '_default.yaml')
         else:
             self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_description'),
-                                                           'config', CONST_ARM_TYPE + '_default')
-        if not os.path.isfile(self._default_kinematics_config + '.yaml'):
+                                                           'config', CONST_ARM_TYPE + '_default.yaml')
+        if not os.path.isfile(self._default_kinematics_config):
             raise ArmTypeNotRecognised('Cannot find default config for ' + CONST_ARM_TYPE)
 
     def _setup_folders(self):
@@ -100,7 +100,6 @@ class SrUrLoadCalibration(object):
         if '' == arm_serial_number:
             rospy.logwarn("Could not retrieve arm serial number.{}"
                           " Arm will NOT be calibrated. Ignore if running URSim.".format(ssh_exception_message))
-            arm_serial_number = self._default_kinematics_config.replace(".yaml", '')
         return arm_serial_number
 
     def _check_arm_calibration_exists(self, arm_serial):
@@ -152,11 +151,12 @@ class SrUrLoadCalibration(object):
             arm_ip = arm_info['ip_address']
             arm_side = arm_info['prefix']
             arm_serial = self._get_serial_from_arm(arm_ip)
-            calibration_exists = self._check_arm_calibration_exists(arm_serial)
-            if not calibration_exists:
-                calibration_exists = self._generate_new_arm_calibration(arm_ip, arm_serial)
-            if calibration_exists:
-                calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
+            if '' != arm_serial:
+                calibration_exists = self._check_arm_calibration_exists(arm_serial)
+                if not calibration_exists:
+                    calibration_exists = self._generate_new_arm_calibration(arm_ip, arm_serial)
+                if calibration_exists:
+                    calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
             else:
                 calibration_file_location = self._default_kinematics_config
             kinematics_config = self._get_yaml(calibration_file_location)
