@@ -8,4 +8,3 @@ Code Coverage|[<img src="https://codebuild.eu-west-2.amazonaws.com/badges?uuid=e
 
 # common_resources
 This repository contains resources that are common to all Shadow Robot's robots
-
