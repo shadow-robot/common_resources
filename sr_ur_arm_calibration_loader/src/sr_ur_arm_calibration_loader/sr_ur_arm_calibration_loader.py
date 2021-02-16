@@ -94,7 +94,7 @@ class SrUrLoadCalibration(object):
             ssh_exception_message = " Failed to SSH into arm - {}".format(e.message)
         except NoValidConnectionsError as e:
             ssh_exception_message = " Failed to SSH into arm - {}".format(e.errors)
-        except Exception as e:
+        except socket.error as e:
             ssh_exception_message = " Failed to SSH into arm - {}.".format(e.message)
 
         if '' == arm_serial_number:
