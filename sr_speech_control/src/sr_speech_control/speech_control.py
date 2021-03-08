@@ -20,6 +20,7 @@ import speech_recognition as sr
 from difflib import get_close_matches
 from std_msgs.msg import String
 
+
 class SpeechControl(object):
     def __init__(self, trigger_word, command_words, command_topic='speech_control',
                  non_speaking_duration=0.1, pause_threshold=0.2):
@@ -54,7 +55,7 @@ class SpeechControl(object):
             if command in self.command_words:
                 self.command_to_be_executed = command
 
-    def _filter_word(self, word, dictionary, offset = 0.5):
+    def _filter_word(self, word, dictionary, offset=0.5):
         result = get_close_matches(word, dictionary, 1, offset)
         if not result:
             return word
