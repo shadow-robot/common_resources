@@ -6,7 +6,7 @@
   <maintainer email="software@shadowrobot.com">Shadow's Software Team</maintainer>
 
 
-  <license>GPLv3</license>
+  <license>GPLv2</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>python-speechrecognition-pip</buildtool_depend>
