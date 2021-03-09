@@ -160,3 +160,17 @@ You only need to specify the list you want. For instance, if there are no topics
   <param name="timeout" value="60.0" />
 </node>
 ```
+
+## Killing ROS node
+
+A `kill_node.sh` script is available to kill the node as soon as it starts. It can be used to both kill already running nodes but also to prevent nodes from starting at all and taking effect on the system. Usage:
+
+```sh
+./kill_node.sh <node_name>
+```
+
+In order to make sure that the node takes no effect on the system at all, e.g. static tfs do not appear in the tf tree, increase the priority of the process:
+
+```sh
+sudo nice -n -18 ./kill_node.sh <node_name>
+```
