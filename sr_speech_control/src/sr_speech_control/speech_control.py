@@ -15,9 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-import time
 import speech_recognition as sr
-from difflib import get_close_matches
 from std_msgs.msg import String
 
 
