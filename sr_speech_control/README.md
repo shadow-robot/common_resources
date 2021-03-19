@@ -1,16 +1,47 @@
 # sr_speech_control
 
-Package for controlling various systems using speech. Commands are being sent to a topic (default: `speech_control`) in a form of std_msgs String and can be intercepted by other nodes in order to execute actions.
+A node for controlling various systems using speech.
+Commands are being sent to a topic `sr_speech_control` in a form of std_msgs
+String and can be intercepted by other nodes in order to execute actions.
 
-# Usage
+## Usage
 
-Create a `SpeechControl` class object and run it using the `run()` method. Depending on the trigger word that you have chosed, commands (from the commands list specified in the class constructor) proceeded by that word will be executed, and all other words and phrases will be ignored. E.g., if your trigger word is `Shadow` and you say `execute grasp`, no messages will be send to the topic. On the other hand, if you say `shadow grasp`, a `grasp` message will be sent.
-
-Example class implementation:
-
-```python
-    trigger_word = "shadow"
-    command_words = ["grasp", "release", "disable", "enable"]
-    sc = SpeechControl(trigger_word, command_words)
-    sc.run()
+To start the node run:
 ```
+rosrun sr_speech_control speech_control.py
+```
+
+The node will permanenly listen to the microphone input, will use Google speech
+recognition to translate audio to text, check if text starts with a trigger
+word `shadow` and if so will publish text after the trigger word to topic
+`sr_speech_control`.
+
+## Known problems
+
+Testing revealed that microphone devices available within Docker container are
+significantly worse than on the host machine. That can be easily demonstrated
+by testing Google Chrome browser speech recognition on the host and inside
+Docker container. Known workaround for that is to use pulseaudio server on host
+machine for sound capture. For that install `paprefs` program on the host:
+```
+sudo apt-get install paprefs
+```
+and run it. In "Network Server" tab, and check the "Enable network access to
+local sound devices" checkbox and other two sub-checkboxes in order not to
+require authentications. You might need to reboot host machine for this setting
+to be used.
+Run `pax11publish` utility program to find out pulseaudio server port (most
+likely 4713).
+On the container run:
+```
+export "PULSE_SERVER=tcp:<host IP address>:<host pulseaudio port>"
+```
+For example if your host IP address is `192.168.1.2`, then run:
+```
+export "PULSE_SERVER=tcp:192.168.1.2:4713"
+```
+`sr_speech_control` node is already configured to use microphone containing
+`pulse` in its name so steps above should be sufficiend to use host microphone.
+
+Alternatively it is possible to map unix sockets instead of tcp but it requires
+adding new parameters when launching Docker container.
