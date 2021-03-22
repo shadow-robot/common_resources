@@ -62,15 +62,11 @@ class SpeechControl(object):
             return word
         return result[0]
 
-    def run(self):
-        rospy.loginfo("Started speech control. Trigger word: {}, command words: {}".format(
-            self.trigger_word, self.command_words))
-        rospy.spin()
-        self._stop_listening(wait_for_stop=False)
-
-
 if __name__ == "__main__":
     rospy.init_node('sr_speech_control', anonymous=True)
 
     sc = SpeechControl()
-    sc.run()
+    rospy.loginfo("Started speech control. Trigger word: {}, command words: {}".format(
+        sc.trigger_word, sc.command_words))
+    rospy.spin()
+    sc._stop_listening(wait_for_stop=False)
