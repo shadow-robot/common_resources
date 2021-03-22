@@ -52,9 +52,10 @@ class SpeechControl(object):
             rospy.logwarn("Could not request results from Google Speech Recognition service: {}".format(e))
             return
 
-        result = [self._filter_word(str(x).lower(), self.command_words) for x in result.split(' ')]
-        if result[0] == self.trigger_word:
-            self.command_publisher.publish(' '.join(result[1:]))
+        result = [str(x).lower() for x in result.split(' ')]
+        if len(result) > 1:
+            if self._filter_word(result[0], [self.trigger_word]) == self.trigger_word:
+                self.command_publisher.publish(' '.join([self._filter_word(x, self.command_words) for x in result[1:]]))
 
     def _filter_word(self, word, dictionary, offset=0.5):
         result = get_close_matches(word, dictionary, 1, offset)
