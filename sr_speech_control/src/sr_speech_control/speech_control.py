@@ -34,6 +34,7 @@ class SpeechControl(object):
         self.recognizer = sr.Recognizer()
         self._set_param_if_provided(self.recognizer, 'non_speaking_duration')
         self._set_param_if_provided(self.recognizer, 'pause_threshold')
+        self.command_words = rospy.get_param('~command_words', [])
         topic = rospy.get_param('~topic', 'sr_speech_control')
         self.command_publisher = rospy.Publisher(topic, String, queue_size=1)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
@@ -51,12 +52,19 @@ class SpeechControl(object):
             rospy.logwarn("Could not request results from Google Speech Recognition service: {}".format(e))
             return
 
-        result = result.lower()
-        if result.startswith(self.trigger_word) and len(result) > len(self.trigger_word) + 1:
-            self.command_publisher.publish(result[len(self.trigger_word) + 1:])
+        result = [self._filter_word(str(x).lower(), self.command_words) for x in result.split(' ')]
+        if result[0] == self.trigger_word:
+            self.command_publisher.publish(' '.join(result[1:]))
+
+    def _filter_word(self, word, dictionary, offset=0.5):
+        result = get_close_matches(word, dictionary, 1, offset)
+        if not result:
+            return word
+        return result[0]
 
     def run(self):
-        rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
+        rospy.loginfo("Started speech control. Trigger word: {}, command words: {}"
+            .format(self.trigger_word, self.command_words))
         rospy.spin()
         self._stop_listening(wait_for_stop=False)
 
