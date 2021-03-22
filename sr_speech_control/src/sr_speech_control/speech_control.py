@@ -48,8 +48,7 @@ class SpeechControl(object):
 
     def run(self):
         rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
-        while not rospy.is_shutdown():
-            rospy.sleep(1)
+        rospy.spin()
         self._stop_listening(wait_for_stop=False)
 
 
