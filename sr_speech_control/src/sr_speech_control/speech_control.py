@@ -35,7 +35,6 @@ class SpeechControl(object):
     def _recognizer_callback(self, recognizer, audio):
         try:
             result = recognizer.recognize_google(audio)
-            rospy.loginfo("Recognition result: {}".format(result))
         except sr.UnknownValueError:
             return
         except sr.RequestError as e:
