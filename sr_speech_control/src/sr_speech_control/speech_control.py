@@ -15,6 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
+import argparse
 import speech_recognition as sr
 from std_msgs.msg import String
 
@@ -52,8 +53,11 @@ class SpeechControl(object):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Publish control commands using voice recognition.')
+    parser.add_argument('--trigger-word', default='shadow')
+    args = parser.parse_args(rospy.myargv()[1:])
+
     rospy.init_node('sr_speech_control', anonymous=True)
 
-    trigger_word = "shadow"
-    sc = SpeechControl(trigger_word)
+    sc = SpeechControl(args.trigger_word)
     sc.run()
