@@ -26,6 +26,7 @@ class SpeechControl(object):
             if "pulse" in microphone_name:
                 self.microphone = sr.Microphone(device_index=i)
                 rospy.loginfo("Using microphone: {}".format(microphone_name))
+                break
         self.trigger_word = trigger_word
         self.recognizer = sr.Recognizer()
         self.command_publisher = rospy.Publisher(command_topic, String, queue_size=1)
