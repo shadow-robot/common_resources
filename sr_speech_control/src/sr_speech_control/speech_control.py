@@ -21,12 +21,12 @@ from std_msgs.msg import String
 
 
 class SpeechControl(object):
-    def __init__(self, trigger_word, command_topic='sr_speech_control'):
+    def __init__(self, prefer_microphone, trigger_word, command_topic='sr_speech_control'):
         self.microphone = sr.Microphone()
         for i, microphone_name in enumerate(sr.Microphone.list_microphone_names()):
-            if "pulse" in microphone_name:
+            if prefer_microphone in microphone_name:
                 self.microphone = sr.Microphone(device_index=i)
-                rospy.loginfo("Using microphone: {}".format(microphone_name))
+                rospy.loginfo("Using preferred microphone: {}".format(microphone_name))
                 break
         self.trigger_word = trigger_word
         self.recognizer = sr.Recognizer()
@@ -55,9 +55,10 @@ class SpeechControl(object):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Publish control commands using voice recognition.')
     parser.add_argument('--trigger-word', default='shadow')
+    parser.add_argument('--prefer-microphone', default='pulse')
     args = parser.parse_args(rospy.myargv()[1:])
 
     rospy.init_node('sr_speech_control', anonymous=True)
 
-    sc = SpeechControl(args.trigger_word)
+    sc = SpeechControl(args.prefer_microphone, args.trigger_word)
     sc.run()
