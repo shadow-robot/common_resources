@@ -40,8 +40,10 @@ For example if your host IP address is `192.168.1.2`, then run:
 ```
 export "PULSE_SERVER=tcp:192.168.1.2:4713"
 ```
-`sr_speech_control` node is already configured to use microphone containing
-`pulse` in its name so steps above should be sufficiend to use host microphone.
-
 Alternatively it is possible to map unix sockets instead of tcp but it requires
 adding new parameters when launching Docker container.
+
+To use node with pulseaudio microphone specify `prefer_microphone` parameter:
+```
+rosrun sr_speech_control speech_control.py _prefer_microphone:=pulse
+```
