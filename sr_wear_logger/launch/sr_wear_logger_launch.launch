@@ -1,6 +1,6 @@
 <launch>
   <arg name="download" default="false"/>
-  <arg name="upload" default="true"/>
+  <arg name="upload" default="false"/>
   <arg name="bucket_name" default="shadowrobot.benchmarks"/>
 
   <arg name="files_base_path" default="$(find sr_wear_logger)"/>

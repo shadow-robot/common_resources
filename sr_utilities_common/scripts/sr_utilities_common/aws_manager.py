@@ -17,7 +17,7 @@
 import rospy
 import logging
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import *
 import subprocess
 import requests
 import re
@@ -73,19 +73,33 @@ if __name__ == "__main__":
     )
 
     if upload_param is True:
+        uploadSucceded = False
         for file_full_path, aws_path in zip(file_full_paths, aws_paths):
             rospy.loginfo("Uploading {} file..".format(file_full_path))
-            client.upload_file(file_full_path, bucket_name, aws_path)
-            rospy.loginfo("Completed file upload.")
+            try:
+                client.upload_file(file_full_path, bucket_name, aws_path)
+                rospy.loginfo("Completed file upload.")
+                uploadSucceded = True
+            except Exception as e:
+                rospy.loginfo("File upload failed")
+                print(e)
+        rospy.set_param('aws_upload_succeeded', uploadSucceded)
+            
 
     if download_param is True:
         directory = "{}/{}".format(files_base_path, files_folder_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
+        downloadSucceded = False
         for file_full_path, aws_path in zip(file_full_paths, aws_paths):
             rospy.loginfo("Downloading {} file.".format(aws_path))
-            client.download_file(bucket_name, aws_path, file_full_path)
-            rospy.loginfo("Completed file download.")
+            try:
+                client.download_file(bucket_name, aws_path, file_full_path)
+                rospy.loginfo("Completed file download.")
+                downloadSucceded = True
+            except Exception as e:
+                rospy.loginfo("File download failed")
+        rospy.set_param('aws_download_succeeded', downloadSucceded)
 
     rospy.signal_shutdown("")
