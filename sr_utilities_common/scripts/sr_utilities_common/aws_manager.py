@@ -105,3 +105,4 @@ if __name__ == "__main__":
         rospy.set_param('aws_download_succeeded', downloadSucceded)
 
     rospy.signal_shutdown("")
+    print("Finished operation!")

@@ -39,28 +39,29 @@ class WearLogger():
         launch_file_path = ('/home/user/projects/shadow_robot/base/src'
                             '/common_resources/sr_wear_logger/launch/sr_wear_logger_launch.launch')
         cli_args = [launch_file_path, 'upload:=true']
-        uuid = roslaunch.rlutil.get_or_generate_uuid(None, True)
+        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
         roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], cli_args[1:])]
         parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+        roslaunch.parent.pm = roslaunch.pmon.start_process_monitor() 
         parent.start()
-        rospy.sleep(2)
-        parent.shutdown()
-        rospy.sleep(2)        
+        rospy.sleep(5)
+        parent.shutdown()       
         return rospy.get_param('aws_upload_succeeded')
 
     def _downloadFromAWS(self):
+      
         launch_file_path = ('/home/user/projects/shadow_robot/base/src'
                             '/common_resources/sr_wear_logger/launch/sr_wear_logger_launch.launch')
         cli_args = [launch_file_path, 'download:=true']
-        uuid = roslaunch.rlutil.get_or_generate_uuid(None, True)
+        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
         roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], cli_args[1:])]
         parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+        roslaunch.parent.pm = roslaunch.pmon.start_process_monitor() 
         parent.start()
-        rospy.sleep(2)
+        rospy.sleep(5)
         parent.shutdown()
-        rospy.sleep(2)
         return rospy.get_param('aws_download_succeeded')
 
     def _saveData(self):
@@ -76,7 +77,7 @@ class WearLogger():
             print("File uploaded to AWS:" + str(self._uploadToAWS()))
 
     def __init__(self):
-        rospy.init_node('sr_wear_logger_node')
+        
         
         self.first_run = True
         self.previousValues = {}
@@ -102,11 +103,6 @@ class WearLogger():
         except (requests.ConnectionError, requests.Timeout) as exception:
             pass 
         return connected
-
-    def _verifyDataBeforeSave(self):
-        print("---VERIFICATION---")
-        print(self.currentValues)
-        print("---VERIFICATION END---")
 
 
     def _updateLog(self, fileName_1, fileName_2):
@@ -159,5 +155,7 @@ class WearLogger():
 
 
 if __name__ == "__main__":
+    rospy.init_node('sr_wear_logger_node')
     logger = WearLogger()
-    rospy.spin()
+    while not rospy.is_shutdown:
+        rospy.spin()
