@@ -35,17 +35,16 @@ class WearLogger():
         self.previousValues = hand_data
         self._updateAccumulatedValues(updates)
 
-    def _uploadToAWS(self):
+    def _uploadToAWS(self, event = None):
         launch_file_path = ('/home/user/projects/shadow_robot/base/src'
                             '/common_resources/sr_wear_logger/launch/sr_wear_logger_launch.launch')
-        cli_args = [launch_file_path, 'upload:=true']
+        cli_args = [launch_file_path, 'upload:=true', 'output:=log']
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
         roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], cli_args[1:])]
         parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
-        roslaunch.parent.pm = roslaunch.pmon.start_process_monitor() 
         parent.start()
-        rospy.sleep(5)
+        rospy.sleep(2)
         parent.shutdown()       
         return rospy.get_param('aws_upload_succeeded')
 
@@ -58,27 +57,20 @@ class WearLogger():
         roslaunch.configure_logging(uuid)
         roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], cli_args[1:])]
         parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
-        roslaunch.parent.pm = roslaunch.pmon.start_process_monitor() 
         parent.start()
-        rospy.sleep(5)
+        rospy.sleep(2)
         parent.shutdown()
         return rospy.get_param('aws_download_succeeded')
 
-    def _saveData(self):
-        f = open(self.logFilePath+self.logFileName, 'w')
-
-        yaml.safe_dump(self.currentValues, f)
-        f.close()
-
-        # checking if there's data to be saved and uploaded 
-        print(self.currentValues)
-        print("LEN:",len(self.currentValues)) 
-        if len(self.currentValues) > 2:
-            print("File uploaded to AWS:" + str(self._uploadToAWS()))
+    def _saveDataLocaly(self, event):
+        print("Data to save:",self._verifyData())
+        if self._verifyData():
+            f = open(self.logFilePath+self.logFileName, 'w')
+            yaml.safe_dump(self.currentValues, f)
+            print("Saved to file!")
+            f.close()
 
     def __init__(self):
-        
-        
         self.first_run = True
         self.previousValues = {}
         self.currentValues = {}
@@ -88,22 +80,15 @@ class WearLogger():
         self.logFileName = "wear_data.yaml"
         
         self._initLog()
-        rospy.sleep(1)
+        rospy.Timer(rospy.Duration(5),self._saveDataLocaly)
+        rospy.Timer(rospy.Duration(10),self._uploadToAWS)
+
         self.sub = rospy.Subscriber('/joint_states', JointState, self.callback)
 
-        rospy.on_shutdown(self._saveData)
-
-    def _checkInternetConnection(self):
-        connected = False
-        url = "http://www.google.com"
-        timeout = 2
-        try:
-            request = requests.get(url, timeout=timeout)
-            connected = True
-        except (requests.ConnectionError, requests.Timeout) as exception:
-            pass 
-        return connected
-
+    def _verifyData(self):
+        if len(self.currentValues.keys()) == 0:
+            return False
+        return True
 
     def _updateLog(self, fileName_1, fileName_2):
 
@@ -113,10 +98,12 @@ class WearLogger():
         l1 = yaml.load(f1)
         l2 = yaml.load(f2)
 
-        print(type(l1))
+        #print(l1)
         print("###################################")
-        for key in self.currentValues.keys():
-            self.currentValues[key] = max(l1[key], l2[key])
+        #print(l2)
+        #for key in self.currentValues.keys():
+            #self.currentValues[key] = max(l1[key], l2[key])
+            #print(l1[key], l2[key], max(l1[key], l2[key]))
         print("###################################")
 
         f1.close()
@@ -124,7 +111,7 @@ class WearLogger():
 
 
     def _initLog(self):
-        
+
         print("path exists?:"+str(os.path.exists(self.logFilePath)))
         if not os.path.exists(self.logFilePath):
             print("path doesn't exist. attempting to download from aws")
@@ -135,27 +122,36 @@ class WearLogger():
         if os.path.exists(self.logFilePath + self.logFileName):
             print("file exists - loading data")
 
-            shutil.copyfile(self.logFilePath + self.logFileName, self.logFilePath + "/wear_data2.yaml")
+            shutil.copyfile(self.logFilePath + self.logFileName, self.logFilePath + "/wear_data_copy.yaml")
             if not self._downloadFromAWS():
                 print("filed there - aws failed")
-            self._updateLog(self.logFilePath + self.logFileName, self.logFilePath + "/wear_data2.yaml")
+                
+            #self._updateLog(self.logFilePath + self.logFileName, self.logFilePath + "/wear_data_copy.yaml")
 
-            f = open(self.logFilePath+self.logFileName, 'r')
-            self.currentValues = yaml.load(f)
+            #f = open(self.logFilePath+self.logFileName, 'r')
+            #self.currentValues = yaml.load(f)
+            #f.close()
 
         else:
-            print("file doesnt exist - initiating new file")
+            print("Initiating new file!")
             f = open(self.logFilePath+self.logFileName, 'w')
             msg = rospy.wait_for_message('/joint_states', JointState)
+            print(msg)
             self.currentValues = dict.fromkeys(self._extractHandData(msg).keys(), 0)
-            yaml.safe_dump(self.currentValues, f)            
-        f.close()
-        print("initiated logfile")
+            yaml.safe_dump(self.currentValues, f)     
+            f.close()
+            self._uploadToAWS()       
+
+        print("Initiated logfile!")
 
 
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
     logger = WearLogger()
-    while not rospy.is_shutdown:
-        rospy.spin()
+
+    rospy.spin()
+
+    print("sleeping")
+    rospy.sleep(2)
+    rospy.signal_shutdown("")

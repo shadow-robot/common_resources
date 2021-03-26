@@ -75,7 +75,6 @@ if __name__ == "__main__":
     if upload_param is True:
         uploadSucceded = False
         rospy.set_param('aws_upload_succeeded', uploadSucceded)
-        print("ELO")
         for file_full_path, aws_path in zip(file_full_paths, aws_paths):
             rospy.loginfo("Uploading {} file..".format(file_full_path))
             try:
@@ -104,5 +103,5 @@ if __name__ == "__main__":
                 rospy.loginfo("File download failed")
         rospy.set_param('aws_download_succeeded', downloadSucceded)
 
-    rospy.signal_shutdown("")
+    #rospy.signal_shutdown("")
     print("Finished operation!")
