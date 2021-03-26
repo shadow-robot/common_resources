@@ -56,5 +56,5 @@ output = package_path + "\n"
 
 for directory in package_dirs:
     output = output + recursive_diff(directory)
-with gzip.open(output_path, 'wb') as f:
+with gzip.open(output_path, 'w') as f:
     f.write(str.encode(output))
