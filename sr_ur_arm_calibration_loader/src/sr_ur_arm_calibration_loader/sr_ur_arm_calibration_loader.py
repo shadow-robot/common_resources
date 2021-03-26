@@ -124,7 +124,7 @@ class SrUrLoadCalibration(object):
 
     def _get_yaml(self, filename):
         with open(filename) as f:
-            return yaml.load(f)
+            return yaml.safe_load(f)
 
     def _start_calibration(self, arm_ip, arm_serial):
         output_file = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")

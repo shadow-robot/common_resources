@@ -63,7 +63,7 @@ class SrRunTrajectories(object):
 
     def _parse_all_trajectories(self, trajectories_file_path):
         with open(trajectories_file_path, 'r') as stream:
-            trajectories_info = yaml.load(stream)
+            trajectories_info = yaml.safe_load(stream)
 
         if self.arm:
             arm_joints_order = trajectories_info['arm_joints_order']
