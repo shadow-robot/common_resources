@@ -46,8 +46,7 @@ class WearLogger():
         parent.start()
         rospy.sleep(2)
         parent.shutdown()
-        rospy.sleep(2)
-        
+        rospy.sleep(2)        
         return rospy.get_param('aws_upload_succeeded')
 
     def _downloadFromAWS(self):
@@ -62,14 +61,15 @@ class WearLogger():
         rospy.sleep(2)
         parent.shutdown()
         rospy.sleep(2)
-
         return rospy.get_param('aws_download_succeeded')
 
     def _saveData(self):
         f = open(self.logFilePath+self.logFileName, 'w')
-        self._verifyDataBeforeSave()
+
         yaml.safe_dump(self.currentValues, f)
         f.close()
+
+        # checking if there's data to be saved and uploaded 
         print(self.currentValues)
         print("LEN:",len(self.currentValues)) 
         if len(self.currentValues) > 2:
@@ -132,16 +132,16 @@ class WearLogger():
         print("path exists?:"+str(os.path.exists(self.logFilePath)))
         if not os.path.exists(self.logFilePath):
             print("path doesn't exist. attempting to download from aws")
-            #if not self._downloadFromAWS():
-                #print("no file - aws failed")
+            if not self._downloadFromAWS():
+                print("no file - aws failed")
             
             
         if os.path.exists(self.logFilePath + self.logFileName):
             print("file exists - loading data")
 
             shutil.copyfile(self.logFilePath + self.logFileName, self.logFilePath + "/wear_data2.yaml")
-            #if not self._downloadFromAWS():
-               # print("filed there - aws failed")
+            if not self._downloadFromAWS():
+                print("filed there - aws failed")
             self._updateLog(self.logFilePath + self.logFileName, self.logFilePath + "/wear_data2.yaml")
 
             f = open(self.logFilePath+self.logFileName, 'r')
