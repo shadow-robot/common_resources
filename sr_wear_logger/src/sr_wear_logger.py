@@ -89,67 +89,37 @@ class WearLogger():
 
     def _updateLog(self, local_file_path, aws_file_path):
         f_local = open(local_file_path, 'rw')
-        f_aws  = open(aws_file_path, 'rw')
-
         data_local = yaml.load(f_local, Loader = yaml.SafeLoader)   
+        f_aws  = open(aws_file_path, 'rw')        
         data_aws = yaml.load(f_aws, Loader = yaml.SafeLoader)  
-
-        #print("### COMPARING ##")
-        #print("DATA_LOCAL")
-        #print(data_local)
-        #print("DATA_AWS")
-        #print(data_aws)
-        #print("RESULT")
-        #print(self._update_with_bigger(data_local, data_aws))
-        #print("### END ####")
-
         self.completeData = self._update_with_bigger(data_local, data_aws)
-        #print(self.completeData)
         self._saveDataLocaly(None)
-
         f_local.close()
         f_aws.close()
 
     def _initLog(self):
         if not os.path.exists(self.logFilePath):
-            print("Downloading from AWS")
-            if not self._downloadFromAWS():
-                pass #os.makedirs(self.logFilePath)
-
+            self._downloadFromAWS():
             
         if os.path.exists(self.logFilePath + self.logFileName):
-            print("File exists locally - loading data")
-
             shutil.copyfile(self.logFilePath + self.logFileName, self.logFilePath + "/wear_data_local.yaml")
-            rospy.sleep(1)
-            if not self._downloadFromAWS():
-                print("File exists localy. Downloading from AWS failed")  
-            #else   
-
-            print("UPDATING")
+            self._downloadFromAWS():
             rospy.sleep(1)
             self._updateLog(self.logFilePath + "/wear_data_local.yaml", self.logFilePath + "/wear_data.yaml")
-            print(self.completeData)
             rospy.sleep(1)
             self._loadDataFromYAML()
 
         else:
-            print("Initiating new file!")
             f = open(self.logFilePath+self.logFileName, 'w')
             msg = rospy.wait_for_message('/joint_states', JointState)
-
             self.currentValues = dict.fromkeys(self._extractHandData(msg).keys(), 0.0)
-            self.currentTime = 0
-            
+            self.currentTime = 0            
             completeData = dict()
             completeData['total_angles'] = self.currentValues
             completeData['total_time'] = 0
-
             yaml.safe_dump(completeData, f)     
             f.close()
             self._uploadToAWS() 
-                              
-        print("Initiated logfile!")
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
