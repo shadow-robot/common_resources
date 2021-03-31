@@ -47,11 +47,9 @@ class WearLogger():
     def _saveDataLocaly(self, event):
         if self._verifyData():
             f = open(self.logFilePath+self.logFileName, 'w')
-
-            passed_time = rospy.get_rostime() - self.startup_time
             completeData = dict()
             completeData['total_angles'] = self.currentValues
-            completeData['total_time'] = (rospy.get_rostime() - self.startup_time).secs
+            completeData['total_time'] = rospy.get_rostime().secs
             yaml.safe_dump(completeData, f)
             f.close()
 
@@ -67,7 +65,6 @@ class WearLogger():
         rospy.Timer(rospy.Duration(2), self._saveDataLocaly)
         rospy.Timer(rospy.Duration(5), self._uploadToAWS)
         rospy.Subscriber('/joint_states', JointState, self.callback)
-        self.startup_time = rospy.get_rostime()
 
     def _verifyData(self):
         if len(self.currentValues.keys()) == 0:
@@ -121,7 +118,7 @@ class WearLogger():
             completeData['total_time'] = 0
             yaml.safe_dump(completeData, f)
             f.close()
-            self._uploadToAWS()
+            self._uploadToAWS(None)
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
