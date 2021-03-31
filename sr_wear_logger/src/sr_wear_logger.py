@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
+#
 
 import rospy
 import rospkg
@@ -138,6 +138,7 @@ class WearLogger():
             rospy.sleep(1)
             f.close()
             self._uploadToAWS(None)
+
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
