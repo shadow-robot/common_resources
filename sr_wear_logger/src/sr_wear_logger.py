@@ -83,10 +83,9 @@ class WearLogger():
     def _loadDataFromYAML(self):
         self.current_values = self.complete_data['total_angles_[rad]']
         self.current_time = self.complete_data['total_time_[s]']
-        f = open(self.log_file_path+self.log_file_name, 'r')        
+        f = open(self.log_file_path+self.log_file_name, 'r')
         self.complete_data = yaml.load(f, Loader=yaml.SafeLoader)
         f.close()
-
 
     def _update_with_higher_values(self, local_data, aws_data):
         for k, v in local_data.items():
@@ -110,7 +109,6 @@ class WearLogger():
         f_local.close()
         f_aws.close()
 
-
     def _init_log(self):
         if not os.path.exists(self.log_file_path):
             self._download_from_AWS()
@@ -125,8 +123,8 @@ class WearLogger():
             f_aws = open(self.log_file_path + "/wear_data.yaml", 'rw')
             data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
             f_aws.close()
-            rospy.sleep(1)            
-            self._update_log(self.log_file_path + "/wear_data_local.yaml", self.log_file_path + "/wear_data.yaml")        
+            rospy.sleep(1)
+            self._update_log(self.log_file_path + "/wear_data_local.yaml", self.log_file_path + "/wear_data.yaml")
             rospy.sleep(1)
             self._loadDataFromYAML()
 
@@ -137,7 +135,7 @@ class WearLogger():
             self.complete_data = dict()
             self.complete_data['total_angles_[rad]'] = self.current_values
             self.complete_data['total_time_[s]'] = 0
-            f = open(self.log_file_path+self.log_file_name, 'w')    
+            f = open(self.log_file_path+self.log_file_name, 'w')
             yaml.safe_dump(self.complete_data, f)
             rospy.sleep(1)
             f.close()

@@ -24,6 +24,7 @@ import re
 import json
 import os
 
+
 class AWS_Manager(object):
     def __init__(self):
 
@@ -154,8 +155,6 @@ if __name__ == "__main__":
                 rospy.loginfo("Completed file upload.")
             except Exception as e:
                 rospy.loginfo("File upload failed")
-
-            
 
     if download_param is True:
         directory = "{}/{}".format(files_base_path, files_folder_path)
