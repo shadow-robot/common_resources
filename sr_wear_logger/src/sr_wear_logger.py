@@ -70,11 +70,14 @@ class WearLogger():
     def _save_data_localy(self, event):
         if self._verify_data_empty():
             print("Saving file localy")
-            f = open(self.log_file_path+self.log_file_name, 'w')
             self.complete_data['total_angles_[rad]'] = self.current_values
             self.complete_data['total_time_[s]'] = rospy.get_rostime().secs
-            yaml.safe_dump(self.complete_data, f)
-            f.close()
+            try:
+                f = open(self.log_file_path+self.log_file_name, 'w')
+                yaml.safe_dump(self.complete_data, f)
+                f.close()
+            except FileNotFoundError as e:
+                pass
 
     def _verify_data_empty(self):
         if len(self.current_values.keys()) == 0:
@@ -82,13 +85,14 @@ class WearLogger():
         return True
 
     def _loadDataFromYAML(self):
+        self.current_values = complete_data['total_angles_[rad]']
+        self.current_time = complete_data['total_time_[s]']
         try:
             f = open(self.log_file_path+self.log_file_name, 'r')        
             complete_data = yaml.load(f, Loader=yaml.SafeLoader)
-            self.current_values = complete_data['total_angles_[rad]']
-            self.current_time = complete_data['total_time_[s]']
             f.close()
         except FileNotFoundError as e:
+            pass
 
 
     def _update_with_higher_values(self, local_data, aws_data):
@@ -100,56 +104,63 @@ class WearLogger():
         return local_data
 
     def _update_log(self, local_file_path, aws_file_path):
-        f_local = open(local_file_path, 'rw')
-        data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
-        f_aws = open(aws_file_path, 'rw')
-        rospy.sleep(1)
-        data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-        rospy.sleep(1)
-        self.complete_data = self._update_with_higher_values(data_local, data_aws)
-        self._save_data_localy(None)
-        rospy.sleep(1)
-        f_local.close()
-        f_aws.close()
+        try:
+            f_local = open(local_file_path, 'rw')
+            data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
+            f_aws = open(aws_file_path, 'rw')
+            rospy.sleep(1)
+            data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
+            rospy.sleep(1)
+            self.complete_data = self._update_with_higher_values(data_local, data_aws)
+            self._save_data_localy(None)
+            rospy.sleep(1)
+            f_local.close()
+            f_aws.close()
+        except FileNotFoundError as e:
+            pass
 
     def _init_log(self):
         if not os.path.exists(self.log_file_path):
             self._download_from_AWS()
 
         if os.path.exists(self.log_file_path + self.log_file_name):
-
-            shutil.copyfile(self.log_file_path + self.log_file_name, self.log_file_path + "/wear_data_local.yaml")
-
-            f_local_copy = open(self.log_file_path + "/wear_data_local.yaml", 'rw')
-            data_local_copy = yaml.load(f_local_copy, Loader=yaml.SafeLoader)
-
-            print("Local copy")
-            print(data_local_copy)
-            rospy.sleep(1)
-            self._download_from_AWS()
-            f_aws = open(self.log_file_path + "/wear_data.yaml", 'rw')
-            data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-            print("AWS copy")
-            print(data_aws)
-            rospy.sleep(1)            
-            self._update_log(self.log_file_path + "/wear_data_local.yaml", self.log_file_path + "/wear_data.yaml")
-            print("Current_data")
-            print(self.complete_data)            
-            rospy.sleep(1)
+            try:
+                shutil.copyfile(self.log_file_path + self.log_file_name, self.log_file_path + "/wear_data_local.yaml")
+                f_local_copy = open(self.log_file_path + "/wear_data_local.yaml", 'rw')
+                data_local_copy = yaml.load(f_local_copy, Loader=yaml.SafeLoader)
+                print("Local copy")
+                print(data_local_copy)
+                rospy.sleep(1)
+                self._download_from_AWS()
+                f_aws = open(self.log_file_path + "/wear_data.yaml", 'rw')
+                data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
+                print("AWS copy")
+                print(data_aws)
+                rospy.sleep(1)            
+                self._update_log(self.log_file_path + "/wear_data_local.yaml", self.log_file_path + "/wear_data.yaml")
+                print("Current_data")
+                print(self.complete_data)            
+                rospy.sleep(1)
+            except FileNotFoundError as e:
+                pass
             self._loadDataFromYAML()
 
         else:
-            f = open(self.log_file_path+self.log_file_name, 'w')
-            msg = rospy.wait_for_message('/joint_states', JointState)
             self.current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
             self.current_time = 0
             self.complete_data = dict()
             self.complete_data['total_angles_[rad]'] = self.current_values
             self.complete_data['total_time_[s]'] = 0
-            yaml.safe_dump(self.complete_data, f)
-            rospy.sleep(1)
-            f.close()
-            self._upload_to_AWS(None)
+            
+            try:
+                f = open(self.log_file_path+self.log_file_name, 'w')
+                msg = rospy.wait_for_message('/joint_states', JointState)
+                yaml.safe_dump(self.complete_data, f)
+                rospy.sleep(1)
+                f.close()
+                self._upload_to_AWS(None)
+            except FileNotFoundError as e:
+                pass
 
 
 if __name__ == "__main__":
