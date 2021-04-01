@@ -33,7 +33,7 @@ class WearLogger():
         self.previous_values = {}
         self.current_values = {}
         self.threshold = 0.0175
-        self.log_file_path = "../data/"
+        self.log_file_path = rospack.get_path('sr_wear_logger') + "/data"
         self.log_file_name = "wear_data.yaml"
         self._init_log()
         rospy.Timer(rospy.Duration(2), self._save_data_localy)
@@ -82,11 +82,14 @@ class WearLogger():
         return True
 
     def _loadDataFromYAML(self):
-        f = open(self.log_file_path+self.log_file_name, 'r')
-        complete_data = yaml.load(f, Loader=yaml.SafeLoader)
-        self.current_values = complete_data['total_angles_[rad]']
-        self.current_time = complete_data['total_time_[s]']
-        f.close()
+        try:
+            f = open(self.log_file_path+self.log_file_name, 'r')        
+            complete_data = yaml.load(f, Loader=yaml.SafeLoader)
+            self.current_values = complete_data['total_angles_[rad]']
+            self.current_time = complete_data['total_time_[s]']
+            f.close()
+        except FileNotFoundError as e:
+
 
     def _update_with_higher_values(self, local_data, aws_data):
         for k, v in local_data.items():
