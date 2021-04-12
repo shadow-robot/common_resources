@@ -21,6 +21,7 @@ import yaml
 import roslaunch
 import requests
 import shutil
+import datetime 
 from sensor_msgs.msg import JointState
 from sr_utilities_common.aws_manager import AWS_Manager
 
@@ -29,15 +30,19 @@ class WearLogger():
 
     def __init__(self):
         self.aws_manager = AWS_Manager()
-        self.first_run = True
-        self.previous_values = {}
-        self.current_values = {}
-        self.threshold = 0.0175
-        self.log_file_path = rospkg.RosPack().get_path('sr_wear_logger') + "/data/"
-        self.log_file_name = "wear_data.yaml"
+        self._first_run = True
+        self._previous_values = {}
+        self._current_values = {}
+        self._threshold = 0.0175
+        self._hand_serial = rospy.get_param("~hand_serial")
+        self._log_file_path = rospkg.RosPack().get_path('sr_wear_logger') + "/" + self._hand_serial + "/"
+        self._log_file_name = "wear_data.yaml"
         self._init_log()
-        rospy.Timer(rospy.Duration(2), self._save_data_localy)
-        rospy.Timer(rospy.Duration(10), self._upload_to_AWS)
+
+        if self._hand_serial != "no_serial":
+            rospy.Timer(rospy.Duration(2), self._save_data_localy)
+            rospy.Timer(rospy.Duration(10), self._upload_to_AWS)
+
         rospy.Subscriber('/joint_states', JointState, self.callback)
 
     def _extract_hand_data(self, msg):
@@ -50,41 +55,80 @@ class WearLogger():
     def callback(self, msg):
         hand_data = self._extract_hand_data(msg)
         updates = dict.fromkeys(hand_data.keys(), 0)
-        if self.first_run:
-            self.previous_values = hand_data
-            self.first_run = False
+        if self._first_run:
+            self._previous_values = hand_data
+            self._first_run = False
         for key, value in hand_data.items():
-            value_difference = abs(self.previous_values[key] - value)
-            if value_difference > self.threshold:
-                self.current_values[key] += round(value_difference, 5)
-        self.previous_values = hand_data
+            value_difference = abs(self._previous_values[key] - value)
+            if value_difference > self._threshold:
+                self._current_values[key] += round(value_difference, 5)
+        self._previous_values = hand_data
+
+    def _get_latest_file_name_from_AWS(self):
+        files = self.aws_manager.get_bucket_structure("shadowrobot.benchmarks", self._hand_serial)
+        print("Files", type(files), files)
+        files.sort(key = lambda x: x['LastModified'])
+        last_file_path = files[-1]['Key']
+        latest_file_name_from_AWS = last_file_path[last_file_path.find("/")+1:]
+        print(latest_file_name_from_AWS)
+        return latest_file_name_from_AWS
 
     def _upload_to_AWS(self, event):
-        return self.aws_manager.upload("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
-                                       "data", ["wear_data.yaml"])
+        print("Uploading to AWS")
+
+        success = False
+        orignal_file = self._log_file_path + self._log_file_name
+
+        now = datetime.datetime.now()           
+        dated_file = now.strftime("%Y-%m-%d-%H-%M-%S") + ".yaml"     
+
+        shutil.copy(orignal_file, self._log_file_path + dated_file)
+        rospy.sleep(1)
+        
+        while os.stat(self._log_file_path + dated_file).st_size==0:
+            shutil.copy(orignal_file, self._log_file_path + dated_file)
+            rospy.sleep(0.5)
+
+        success = self.aws_manager.upload("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
+                                       self._hand_serial, [dated_file])  
+        rospy.sleep(1)
+
+        if os.path.exists(self._log_file_path + dated_file):
+            os.remove(self._log_file_path + dated_file)       
+            
+        return success
 
     def _download_from_AWS(self):
-        return self.aws_manager.download("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
-                                         "data", ["wear_data.yaml"])
+        success = False
+        success = self.aws_manager.download("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
+                                         self._hand_serial, [self._get_latest_file_name_from_AWS()])
+        rospy.sleep(1)
+        latest_file_name_from_AWS = self._get_latest_file_name_from_AWS()
+        shutil.copy(self._log_file_path + latest_file_name_from_AWS, self._log_file_path + self._log_file_name)
+        rospy.sleep(1)
+        if os.path.exists(self._log_file_path + latest_file_name_from_AWS):
+            os.remove(self._log_file_path + latest_file_name_from_AWS)   
+        return success
 
     def _save_data_localy(self, event):
         if self._verify_data_empty():
-            self.complete_data['total_angles_[rad]'] = self.current_values
-            self.complete_data['total_time_[s]'] = rospy.get_rostime().secs
-            f = open(self.log_file_path+self.log_file_name, 'w')
-            yaml.safe_dump(self.complete_data, f)
+            print("saving data locally")
+            self._complete_data['total_angles_[rad]'] = self._current_values
+            self._complete_data['total_time_[s]'] = rospy.get_rostime().secs
+            f = open(self._log_file_path+self._log_file_name, 'w')
+            yaml.safe_dump(self._complete_data, f)
             f.close()
 
     def _verify_data_empty(self):
-        if len(self.current_values.keys()) == 0:
+        if len(self._current_values.keys()) == 0:
             return False
         return True
 
-    def _loadDataFromYAML(self):
-        self.current_values = self.complete_data['total_angles_[rad]']
-        self.current_time = self.complete_data['total_time_[s]']
-        f = open(self.log_file_path+self.log_file_name, 'r')
-        self.complete_data = yaml.load(f, Loader=yaml.SafeLoader)
+    def _load_data_from_yaml(self):
+        self._current_values = self._complete_data['total_angles_[rad]']
+        self._current_time = self._complete_data['total_time_[s]']
+        f = open(self._log_file_path+self._log_file_name, 'r')
+        self._complete_data = yaml.load(f, Loader=yaml.SafeLoader)
         f.close()
 
     def _update_with_higher_values(self, local_data, aws_data):
@@ -96,49 +140,51 @@ class WearLogger():
         return local_data
 
     def _update_log(self, local_file_path, aws_file_path):
+        with open(local_file_path, 'r') as f_local:
+            data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
+        with open(aws_file_path, 'r') as f_aws:
+            data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
 
-        f_local = open(local_file_path, 'rw')
-        data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
-        f_aws = open(aws_file_path, 'rw')
-        rospy.sleep(1)
-        data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-        rospy.sleep(1)
-        self.complete_data = self._update_with_higher_values(data_local, data_aws)
+        self._complete_data = self._update_with_higher_values(data_local, data_aws)
         self._save_data_localy(None)
-        rospy.sleep(1)
-        f_local.close()
-        f_aws.close()
 
     def _init_log(self):
-        if not os.path.exists(self.log_file_path):
+        if not os.path.exists(self._log_file_path):
+            #if not self._download_from_AWS():
+            os.makedirs(self._log_file_path)
+
+        if os.path.exists(self._log_file_path + self._log_file_name):
+            rospy.loginfo("Comparing!")
+            shutil.copy(self._log_file_path + self._log_file_name, self._log_file_path + "/wear_data_local.yaml")
+
+            with open(self._log_file_path + "/wear_data_local.yaml", 'r') as f_local_copy:
+                data_local_copy = yaml.load(f_local_copy, Loader=yaml.SafeLoader)
+
             self._download_from_AWS()
 
-        if os.path.exists(self.log_file_path + self.log_file_name):
-            shutil.copyfile(self.log_file_path + self.log_file_name, self.log_file_path + "/wear_data_local.yaml")
-            f_local_copy = open(self.log_file_path + "/wear_data_local.yaml", 'rw')
-            data_local_copy = yaml.load(f_local_copy, Loader=yaml.SafeLoader)
-            f_local_copy.close()
-            self._download_from_AWS()
-            rospy.sleep(1)
-            f_aws = open(self.log_file_path + "/wear_data.yaml", 'rw')
-            data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-            f_aws.close()
-            rospy.sleep(1)
-            self._update_log(self.log_file_path + "/wear_data_local.yaml", self.log_file_path + "/wear_data.yaml")
-            rospy.sleep(1)
-            self._loadDataFromYAML()
+            with open(self._log_file_path + "/wear_data.yaml", 'r') as f_aws:
+                data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
+
+            self._update_log(self._log_file_path + "/wear_data_local.yaml", self._log_file_path + "/wear_data.yaml")
+            self._load_data_from_yaml()
+
+            if os.path.exists(self._log_file_path + "/wear_data_local.yaml"):
+                os.remove(self._log_file_path + "/wear_data_local.yaml")   
 
         else:
+            rospy.loginfo("Initiated a new log file!")
             msg = rospy.wait_for_message('/joint_states', JointState)
-            self.current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
-            self.current_time = 0
-            self.complete_data = dict()
-            self.complete_data['total_angles_[rad]'] = self.current_values
-            self.complete_data['total_time_[s]'] = 0
-            f = open(self.log_file_path+self.log_file_name, 'w')
-            yaml.safe_dump(self.complete_data, f)
-            rospy.sleep(1)
-            f.close()
+
+            self._current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
+            self._current_time = 0
+            self._complete_data = dict()
+            self._complete_data['total_angles_[rad]'] = self._current_values
+            self._complete_data['total_time_[s]'] = 0
+
+            with open(self._log_file_path+self._log_file_name, 'w') as f_init:
+                yaml.safe_dump(self._complete_data, f_init)
+
+            rospy.loginfo("Uploading!")
             self._upload_to_AWS(None)
 
 
