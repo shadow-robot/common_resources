@@ -62,7 +62,7 @@ class AWS_Manager(object):
     def get_bucket_structure_with_prefix(self, bucket_name, prefix):
         if prefix:
             if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
-                return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']    
+                return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']
         return None
 
     def _prepare_structure(self, bucket_name, files_base_path, files_folder_path, file_names):
