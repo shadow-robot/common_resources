@@ -21,7 +21,7 @@ import yaml
 import roslaunch
 import requests
 import shutil
-import datetime 
+import datetime
 from sensor_msgs.msg import JointState
 from sr_utilities_common.aws_manager import AWS_Manager
 
@@ -67,7 +67,7 @@ class WearLogger():
     def _get_latest_file_name_from_AWS(self):
         files = self.aws_manager.get_bucket_structure("shadowrobot.benchmarks", self._hand_serial)
         print("Files", type(files), files)
-        files.sort(key = lambda x: x['LastModified'])
+        files.sort(key=lambda x: x['LastModified'])
         last_file_path = files[-1]['Key']
         latest_file_name_from_AWS = last_file_path[last_file_path.find("/")+1:]
         print(latest_file_name_from_AWS)
@@ -79,35 +79,35 @@ class WearLogger():
         success = False
         orignal_file = self._log_file_path + self._log_file_name
 
-        now = datetime.datetime.now()           
-        dated_file = now.strftime("%Y-%m-%d-%H-%M-%S") + ".yaml"     
+        now = datetime.datetime.now()
+        dated_file = now.strftime("%Y-%m-%d-%H-%M-%S") + ".yaml"
 
         shutil.copy(orignal_file, self._log_file_path + dated_file)
         rospy.sleep(1)
-        
-        while os.stat(self._log_file_path + dated_file).st_size==0:
+
+        while os.stat(self._log_file_path + dated_file).st_size == 0:
             shutil.copy(orignal_file, self._log_file_path + dated_file)
             rospy.sleep(0.5)
 
         success = self.aws_manager.upload("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
-                                       self._hand_serial, [dated_file])  
+                                          self._hand_serial, [dated_file])
         rospy.sleep(1)
 
         if os.path.exists(self._log_file_path + dated_file):
-            os.remove(self._log_file_path + dated_file)       
-            
+            os.remove(self._log_file_path + dated_file)
+
         return success
 
     def _download_from_AWS(self):
         success = False
         success = self.aws_manager.download("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
-                                         self._hand_serial, [self._get_latest_file_name_from_AWS()])
+                                            self._hand_serial, [self._get_latest_file_name_from_AWS()])
         rospy.sleep(1)
         latest_file_name_from_AWS = self._get_latest_file_name_from_AWS()
         shutil.copy(self._log_file_path + latest_file_name_from_AWS, self._log_file_path + self._log_file_name)
         rospy.sleep(1)
         if os.path.exists(self._log_file_path + latest_file_name_from_AWS):
-            os.remove(self._log_file_path + latest_file_name_from_AWS)   
+            os.remove(self._log_file_path + latest_file_name_from_AWS)
         return success
 
     def _save_data_localy(self, event):
@@ -150,7 +150,7 @@ class WearLogger():
 
     def _init_log(self):
         if not os.path.exists(self._log_file_path):
-            #if not self._download_from_AWS():
+            # if not self._download_from_AWS():
             os.makedirs(self._log_file_path)
 
         if os.path.exists(self._log_file_path + self._log_file_name):
@@ -169,7 +169,7 @@ class WearLogger():
             self._load_data_from_yaml()
 
             if os.path.exists(self._log_file_path + "/wear_data_local.yaml"):
-                os.remove(self._log_file_path + "/wear_data_local.yaml")   
+                os.remove(self._log_file_path + "/wear_data_local.yaml")
 
         else:
             rospy.loginfo("Initiated a new log file!")
