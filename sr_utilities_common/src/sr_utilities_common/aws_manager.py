@@ -60,7 +60,7 @@ class AWS_Manager(object):
         )
 
     def get_bucket_structure(self, bucket_name, path=None):
-        return False, self._client.list_objects(Bucket=bucket_name, Prefix=path)['Contents']
+        return self._client.list_objects(Bucket=bucket_name, Prefix=path)['Contents']
 
     def _prepare_structure(self, bucket_name, files_base_path, files_folder_path, file_names):
         self.file_full_paths = []
