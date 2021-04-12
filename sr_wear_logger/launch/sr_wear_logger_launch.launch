@@ -1,18 +1,6 @@
 <launch>
-  <arg name="download" default="false"/>
-  <arg name="upload" default="false"/>
-  <arg name="bucket_name" default="shadowrobot.benchmarks"/>
-
-  <arg name="files_base_path" default="$(find sr_wear_logger)"/>
-  <arg name="files_folder_path" default="data"/>
-  <arg name="file_names" default="[wear_data.yaml]"/>
-
-  <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
-    <rosparam param="download" subst_value="True">$(arg download)</rosparam>
-    <rosparam param="upload" subst_value="True">$(arg upload)</rosparam>
-    <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
-    <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
-    <rosparam param="bucket_name" subst_value="True">$(arg bucket_name)</rosparam>
-    <rosparam param="file_names" subst_value="True">$(arg file_names)</rosparam>
+  <arg name="hand_serial" default="no_serial"/>
+  <node name="sr_wear_logger_node" pkg="sr_wear_logger" type="sr_wear_logger.py" output="screen">
+    <param name="/hand_serial" type="str" value="$(arg hand_serial)"/>
   </node>
 </launch>
