@@ -59,8 +59,11 @@ class AWS_Manager(object):
             aws_session_token=aws_session_token
         )
 
-    def get_bucket_structure(self, bucket_name, path=None):
-        return self._client.list_objects(Bucket=bucket_name, Prefix=path)['Contents']
+    def get_bucket_structure_with_prefix(self, bucket_name, prefix):
+        if prefix:
+            if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
+                return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']    
+        return None
 
     def _prepare_structure(self, bucket_name, files_base_path, files_folder_path, file_names):
         self.file_full_paths = []
