@@ -52,12 +52,22 @@ class AWS_Manager(object):
         result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
         aws_session_token = result.group(1)
 
-        self.client = boto3.client(
+        self._client = boto3.client(
             's3',
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
             aws_session_token=aws_session_token
         )
+
+    def get_bucket_structure(self, bucket_name, path=None):
+        if path:
+            print("Have path",path)
+            if self._client.list_objects(Bucket=bucket_name, Prefix=path).has_key('Contents'):
+                print("Have contents", self._client.list_objects(Bucket=bucket_name, Prefix=path))
+                return self._client.list_objects(Bucket=bucket_name, Prefix=path)['Contents']
+
+        print("AWS else:", self._client.list_objects(Bucket=bucket_name)['Contents'])
+        return self._client.list_objects(Bucket=bucket_name)['Contents']
 
     def _prepare_structure(self, bucket_name, files_base_path, files_folder_path, file_names):
         self.file_full_paths = []
@@ -75,7 +85,7 @@ class AWS_Manager(object):
         for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):
             rospy.loginfo("Downloading {} file.".format(self.aws_path))
             try:
-                self.client.download_file(bucket_name, self.aws_path, self.file_full_path)
+                self._client.download_file(bucket_name, self.aws_path, self.file_full_path)
                 rospy.loginfo("Completed file download.")
                 downloadSucceded = True
             except Exception as e:
@@ -89,7 +99,7 @@ class AWS_Manager(object):
         for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):
             rospy.loginfo("Uploading {} file..".format(self.file_full_path))
             try:
-                self.client.upload_file(self.file_full_path, bucket_name, self.aws_path)
+                self._client.upload_file(self.file_full_path, bucket_name, self.aws_path)
                 rospy.loginfo("Completed file upload.")
                 uploadSucceded = True
             except Exception as e:
