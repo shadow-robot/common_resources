@@ -26,9 +26,9 @@ from rospy import ROSException
 
 THRESHOLD = 0.0175
 
-class WearLogger():
 
-    def __init__(self, aws_save_period = 10, local_save_period = 2):
+class WearLogger():
+    def __init__(self, aws_save_period=10, local_save_period=2):
         self.aws_manager = AWS_Manager()
         self._first_run = True
         self._previous_values = {}
@@ -44,12 +44,12 @@ class WearLogger():
             self._aws_save_period = rospy.get_param("~aws_save_period")
         except ROSException as e1:
             rospy.logwarn("Parameter server error!")
-        except KeyError as e2:  
+        except KeyError as e2:
             rospy.logwarn("Missing parameter " + str(e2))
-            
+
         self._log_file_path = rospkg.RosPack().get_path('sr_wear_logger') + "/" + self._hand_serial + "/"
         self._log_file_name = "wear_data.yaml"
-        
+
         if self._hand_serial != "":
             self._init_log()
             rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
@@ -116,13 +116,13 @@ class WearLogger():
             data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
         with open(aws_file_path, 'r') as f_aws:
             data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-      
+
         self._complete_data = self._update_with_higher_values(data_local, data_aws)
         self._current_values = self._complete_data['total_angles_[rad]']
         self._current_time = self._complete_data['total_time_[s]']
         self._save_data_localy(None)
         rospy.loginfo("Log file updated.")
-    
+
     def _update_with_higher_values(self, local_data, aws_data):
         try:
             for k, v in local_data.items():
@@ -130,9 +130,9 @@ class WearLogger():
                     local_data[k] = self._update_with_higher_values(aws_data.get(k, {}), v)
                 else:
                     local_data[k] = max(local_data[k], aws_data[k])
-            return local_data        
+            return local_data
         except AttributeError as e:
-            rospy.logwarn("Could not perform update, data is empty!")        
+            rospy.logwarn("Could not perform update, data is empty!")
 
     def _save_data_localy(self, event):
         if not self._data_is_empty():
@@ -144,12 +144,12 @@ class WearLogger():
                     yaml.safe_dump(self._complete_data, f)
             except Exception as e:
                 rospy.logwarn("Failed to sava data." + str(e))
-    
+
     def _data_is_empty(self):
         is_empty = False
         if len(self._current_values.keys()) == 0:
             is_empty = True
-        if self._complete_data == None:
+        if self._complete_data is None:
             is_empty = True
         return is_empty
 
@@ -190,7 +190,7 @@ class WearLogger():
                 hand_data.pop(key, None)
         return hand_data
 
-        
+
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
     logger = WearLogger()
