@@ -1,7 +1,7 @@
 <launch>
   <arg name="hand_serial" default=""/>
   <arg name="aws_save_period" default="10"/>
-  <arg name="hand_serial" default="2"/>
+  <arg name="local_save_period" default="2"/>
 
   <node name="sr_wear_logger_node" pkg="sr_wear_logger" type="sr_wear_logger.py" output="screen">
     <param name="/hand_serial" type="str" value="$(arg hand_serial)"/>
