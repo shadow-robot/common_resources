@@ -2,14 +2,17 @@
 <package format="2">
   <name>sr_wear_logger</name>
   <version>0.0.0</version>
-  <description>The sr_wear_logger package is used to collect data from in order to estimate the Mean Time Before Failure.</description>
+  <description>The sr_wear_logger package</description>
   <maintainer email="software@shadowrobot.com">Shadow Robot's Software Team</maintainer>
 
-  <license>GPL</license>
+  <license>GPLv2</license>
 
-  <build_depend>roslib</build_depend>
-  <exec_depend>roslib</exec_depend>
-  
-  <export>
-  </export>
-</package>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospkg</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_export_depend>rospkg</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <exec_depend>rospkg</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+</package> 
