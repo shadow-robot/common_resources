@@ -8,7 +8,6 @@ project(sr_wear_logger)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  rospkg
   rospy
 )
 
@@ -104,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sr_wear_logger
-#  CATKIN_DEPENDS rospkg rospy
+#  CATKIN_DEPENDS rospy
 #  DEPENDS system_lib
 )
 
