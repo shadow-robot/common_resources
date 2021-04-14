@@ -78,29 +78,23 @@ class AWS_Manager(object):
         if not os.path.exists(directory):
             os.makedirs(directory)
         downloadSucceded = False
-        for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):
-            rospy.loginfo("Downloading {} file.".format(self.aws_path))
+        for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):            
             try:
                 self._client.download_file(bucket_name, self.aws_path, self.file_full_path)
-                rospy.loginfo("Completed file download.")
                 downloadSucceded = True
             except Exception as e:
-                rospy.loginfo("File download failed")
+                rospy.loginfo("File download failed" + str(e))
         return downloadSucceded
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names):
         self._prepare_structure(bucket_name, files_base_path, files_folder_path, file_names)
         uploadSucceded = False
-        rospy.set_param('aws_upload_succeeded', uploadSucceded)
         for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):
-            rospy.loginfo("Uploading {} file..".format(self.file_full_path))
             try:
                 self._client.upload_file(self.file_full_path, bucket_name, self.aws_path)
-                rospy.loginfo("Completed file upload.")
                 uploadSucceded = True
             except Exception as e:
-                rospy.loginfo("File upload failed")
-                print(e)
+                rospy.loginfo("File upload failed" + str(e))
         return uploadSucceded
 
 
@@ -117,9 +111,18 @@ if __name__ == "__main__":
     aws_manager = AWS_Manager()
 
     if upload_param is True:
-        aws_manager.download(bucket_name, files_base_path, files_folder_path, file_names)
+        status_msg = "File upload failed"
+        rospy.loginfo("Uploading {} file.".format(self.aws_path))
+        if aws_manager.download(bucket_name, files_base_path, files_folder_path, file_names):
+            status_msg = "Completed file upload."
+        rospy.loginfo(status_msg)
+
 
     if download_param is True:
-        aws_manager.upload(bucket_name, files_base_path, files_folder_path, file_names)
+        status_msg = "File download failed"
+        rospy.loginfo("Downloading {} file.".format(self.aws_path))
+        if aws_manager.upload(bucket_name, files_base_path, files_folder_path, file_names):
+            status_msg = "Completed file download."
+        rospy.loginfo(status_msg)
 
     rospy.signal_shutdown("")
