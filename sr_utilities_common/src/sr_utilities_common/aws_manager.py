@@ -78,7 +78,7 @@ class AWS_Manager(object):
         if not os.path.exists(directory):
             os.makedirs(directory)
         downloadSucceded = False
-        for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):            
+        for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):
             try:
                 self._client.download_file(bucket_name, self.aws_path, self.file_full_path)
                 downloadSucceded = True
@@ -116,7 +116,6 @@ if __name__ == "__main__":
         if aws_manager.download(bucket_name, files_base_path, files_folder_path, file_names):
             status_msg = "Completed file upload."
         rospy.loginfo(status_msg)
-
 
     if download_param is True:
         status_msg = "File download failed"

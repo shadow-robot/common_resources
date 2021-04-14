@@ -62,7 +62,6 @@ class SrWearLogger():
     def _init_log(self):
         if not os.path.exists(self._log_file_path):
             os.makedirs(self._log_file_path)
-            #self._download_from_AWS()
 
         if os.path.exists(self._log_file_path + self._log_file_name):
             shutil.copy(self._log_file_path + self._log_file_name, self._log_file_path + "/wear_data_local.yaml")
