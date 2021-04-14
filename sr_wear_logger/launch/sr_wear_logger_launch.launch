@@ -1,6 +1,0 @@
-<launch>
-  <arg name="hand_serial" default=""/>
-  <node name="sr_wear_logger_node" pkg="sr_wear_logger" type="sr_wear_logger.py" output="screen">
-    <param name="/hand_serial" type="str" value="$(arg hand_serial)"/>
-  </node>
-</launch>
