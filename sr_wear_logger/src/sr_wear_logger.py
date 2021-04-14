@@ -27,7 +27,7 @@ from rospy import ROSException
 THRESHOLD = 0.0175
 
 
-class WearLogger():
+class SrWearLogger():
     def __init__(self, aws_save_period=10, local_save_period=2):
         self.aws_manager = AWS_Manager()
         self._first_run = True
@@ -54,15 +54,15 @@ class WearLogger():
             self._init_log()
             rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
             rospy.Timer(rospy.Duration(self._aws_save_period), self._upload_to_AWS)
-            rospy.Subscriber('/joint_states', JointState, self.callback)
+            rospy.Subscriber('/joint_states', JointState, self._callback)
         else:
-            rospy.logwarn("Wear logger not initiated, missing hand serial!")
+            rospy.logwarn("SrWearLogger not initiated due to missing hand serial!")
             rospy.signal_shutdown("")
 
     def _init_log(self):
         if not os.path.exists(self._log_file_path):
             os.makedirs(self._log_file_path)
-            self._download_from_AWS()
+            #self._download_from_AWS()
 
         if os.path.exists(self._log_file_path + self._log_file_name):
             shutil.copy(self._log_file_path + self._log_file_name, self._log_file_path + "/wear_data_local.yaml")
@@ -83,11 +83,9 @@ class WearLogger():
             self._complete_data = dict()
             self._complete_data['total_angles_[rad]'] = self._current_values
             self._complete_data['total_time_[s]'] = 0
-            print(self._log_file_path+self._log_file_name)
-            with open(self._log_file_path+self._log_file_name, 'w') as f_init:
-                yaml.safe_dump(self._complete_data, f_init)
-            rospy.loginfo("Uploading!")
-            self._upload_to_AWS(None)
+
+            self._save_data_localy()
+            self._upload_to_AWS()
 
     def _download_from_AWS(self):
         success = False
@@ -112,16 +110,18 @@ class WearLogger():
         return latest_file_name_from_AWS
 
     def _update_log(self, local_file_path, aws_file_path):
-        with open(local_file_path, 'r') as f_local:
-            data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
-        with open(aws_file_path, 'r') as f_aws:
-            data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
+        try:
+            with open(local_file_path, 'r') as f_local:
+                data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
+            with open(aws_file_path, 'r') as f_aws:
+                data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
+        except FileNotFoundError:
+            rospy.loginfo("No log file found!")
 
         self._complete_data = self._update_with_higher_values(data_local, data_aws)
         self._current_values = self._complete_data['total_angles_[rad]']
         self._current_time = self._complete_data['total_time_[s]']
         self._save_data_localy(None)
-        rospy.loginfo("Log file updated.")
 
     def _update_with_higher_values(self, local_data, aws_data):
         try:
@@ -131,12 +131,11 @@ class WearLogger():
                 else:
                     local_data[k] = max(local_data[k], aws_data[k])
             return local_data
-        except AttributeError as e:
+        except AttributeError:
             rospy.logwarn("Could not perform update, data is empty!")
 
-    def _save_data_localy(self, event):
+    def _save_data_localy(self, event=None):
         if not self._data_is_empty():
-            rospy.loginfo("Saving data locally")
             self._complete_data['total_angles_[rad]'] = self._current_values
             self._complete_data['total_time_[s]'] = rospy.get_rostime().secs
             try:
@@ -153,7 +152,7 @@ class WearLogger():
             is_empty = True
         return is_empty
 
-    def _upload_to_AWS(self, event):
+    def _upload_to_AWS(self, event=None):
         success = False
         orignal_file = self._log_file_path + self._log_file_name
         now = datetime.datetime.now()
@@ -171,7 +170,7 @@ class WearLogger():
             os.remove(self._log_file_path + dated_file)
         return success
 
-    def callback(self, msg):
+    def _callback(self, msg):
         hand_data = self._extract_hand_data(msg)
         updates = dict.fromkeys(hand_data.keys(), 0)
         if self._first_run:
@@ -193,5 +192,5 @@ class WearLogger():
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
-    logger = WearLogger()
+    logger = SrWearLogger()
     rospy.spin()
