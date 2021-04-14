@@ -8,11 +8,8 @@
   <license>GPLv2</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>rospkg</build_depend>
   <build_depend>rospy</build_depend>
-  <build_export_depend>rospkg</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
-  <exec_depend>rospkg</exec_depend>
   <exec_depend>rospy</exec_depend>
 
 </package> 
