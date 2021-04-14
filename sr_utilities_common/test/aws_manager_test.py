@@ -21,6 +21,7 @@ from sr_utilities_common.manual_test_suite import ManualTestSuite
 from sr_utilities_common.aws_manager import AWS_Manager
 import os
 
+
 class Test_AWS_Manager(object):
     def __init__(self):
         self.aws_manager = AWS_Manager()
@@ -40,8 +41,8 @@ class Test_AWS_Manager(object):
 
     def aws_upload(self):
         self.aws_manager.upload("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_utilities_common'),
-                                  'test', ["test.txt"])
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix("shadowrobot.benchmarks",'test')
+                                'test', ["test.txt"])
+        folder_list = self.aws_manager.get_bucket_structure_with_prefix("shadowrobot.benchmarks", 'test')
         if folder_list is not None:
             for element in folder_list:
                 if element['Key'] == 'test/test.txt':
@@ -52,8 +53,6 @@ if __name__ == '__main__':
     rospy.init_node('aws_manager_test')
 
     test_aws_manager = Test_AWS_Manager()
-    method_list = [#'aws_get_bucket_structure_with_prefix', 
+    method_list = ['aws_get_bucket_structure_with_prefix',
                    'aws_download', 'aws_upload']
     test_suite = ManualTestSuite(test_aws_manager, method_list)
-
-    
