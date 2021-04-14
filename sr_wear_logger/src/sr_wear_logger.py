@@ -18,8 +18,6 @@ import rospy
 import rospkg
 import os
 import yaml
-import roslaunch
-import requests
 import shutil
 import datetime
 from sensor_msgs.msg import JointState
