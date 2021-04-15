@@ -5,7 +5,7 @@
 
   <node name="sr_wear_logger_node" pkg="sr_wear_logger" type="sr_wear_logger.py" output="screen">
     <param name="/hand_serial" type="str" value="$(arg hand_serial)"/>
-    <param name="/local_save_period" type="int" value="$(arg local_save_period)"/>
-    <param name="/aws_save_period" type="int" value="$(arg aws_save_period)"/>
+    <param name="/local_save_period" value="$(arg local_save_period)"/>
+    <param name="/aws_save_period" value="$(arg aws_save_period)"/>
   </node>
 </launch>

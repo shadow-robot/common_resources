@@ -85,6 +85,7 @@ class AWS_Manager(object):
             try:
                 self._client.download_file(bucket_name, self.aws_path, self.file_full_path)
                 downloadSucceded = True
+                rospy.loginfo("File download succeded.")
             except Exception as e:
                 rospy.logwarn("File download failed. " + str(e))
         return downloadSucceded
@@ -96,6 +97,7 @@ class AWS_Manager(object):
             try:
                 self._client.upload_file(self.file_full_path, bucket_name, self.aws_path)
                 uploadSucceded = True
+                rospy.loginfo("File upload succeded.")
             except Exception as e:
                 rospy.loginfo("File upload failed" + str(e))
         return uploadSucceded
