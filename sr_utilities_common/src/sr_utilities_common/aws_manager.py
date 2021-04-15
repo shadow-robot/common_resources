@@ -61,8 +61,11 @@ class AWS_Manager(object):
 
     def get_bucket_structure_with_prefix(self, bucket_name, prefix):
         if prefix:
-            if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
-                return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']
+            try:
+                if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
+                    return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']
+            except Exception as e:
+                rospy.logwarn("Failed listing bucket objects. " + str(e))
         return None
 
     def _prepare_structure(self, bucket_name, files_base_path, files_folder_path, file_names):
@@ -83,7 +86,7 @@ class AWS_Manager(object):
                 self._client.download_file(bucket_name, self.aws_path, self.file_full_path)
                 downloadSucceded = True
             except Exception as e:
-                rospy.loginfo("File download failed" + str(e))
+                rospy.logwarn("File download failed. " + str(e))
         return downloadSucceded
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names):

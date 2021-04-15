@@ -25,39 +25,50 @@ from sr_utilities_common.aws_manager import AWS_Manager
 from rospy import ROSException
 
 THRESHOLD = 0.0175
-
+BENCHMARK_NAME = "shadowrobot.benchmarks"
 
 class SrWearLogger():
-    def __init__(self, aws_save_period=10, local_save_period=2):
+    def __init__(self, hand_serial = "", aws_save_period = 10, local_save_period = 2):
         self.aws_manager = AWS_Manager()
         self._first_run = True
         self._previous_values = {}
         self._current_values = {}
 
+        self._hand_serial = hand_serial     
         self._local_save_period = local_save_period
         self._aws_save_period = aws_save_period
-        self._hand_serial = None
-
-        try:
-            self._hand_serial = rospy.get_param("~hand_serial")
-            self._local_save_period = rospy.get_param("~local_save_period")
-            self._aws_save_period = rospy.get_param("~aws_save_period")
-        except ROSException as e1:
-            rospy.logwarn("Parameter server error!")
-        except KeyError as e2:
-            rospy.logwarn("Missing parameter " + str(e2))
+        
+        self.check_parameters()
 
         self._log_file_path = rospkg.RosPack().get_path('sr_wear_logger') + "/" + self._hand_serial + "/"
         self._log_file_name = "wear_data.yaml"
 
-        if self._hand_serial != "":
-            self._init_log()
-            rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
-            rospy.Timer(rospy.Duration(self._aws_save_period), self._upload_to_AWS)
-            rospy.Subscriber('/joint_states', JointState, self._callback)
+        if self.check_parameters():
+            self.run()
         else:
             rospy.logwarn("SrWearLogger not initiated due to missing hand serial!")
             rospy.signal_shutdown("")
+
+    def check_parameters(self):
+        success = False
+        try:
+            self._hand_serial = rospy.get_param("~hand_serial")
+            self._local_save_period = rospy.get_param("~local_save_period")
+            self._aws_save_period = rospy.get_param("~aws_save_period")
+            success = True
+        except ROSException as e1:
+            rospy.logwarn("Parameter server error!")
+        except KeyError as e2:
+            rospy.logwarn("Missing parameter: " + str(e2))
+        finally:
+            return success
+
+    def run(self):
+        self._init_log()
+        rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
+        rospy.Timer(rospy.Duration(self._aws_save_period), self._upload_to_AWS)
+        rospy.Subscriber('/joint_states', JointState, self._callback)
+        rospy.logwarn("SrWearLogger initialized!")
 
     def _init_log(self):
         if not os.path.exists(self._log_file_path):
@@ -74,9 +85,10 @@ class SrWearLogger():
             if os.path.exists(self._log_file_path + "/wear_data_local.yaml"):
                 os.remove(self._log_file_path + "/wear_data_local.yaml")
 
-        else:
-            rospy.loginfo("Initiated a new log file!")
+        else:   
+            rospy.loginfo("Waiting")
             msg = rospy.wait_for_message('/joint_states', JointState)
+            rospy.loginfo("Initiated a new log file!")
             self._current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
             self._current_time = 0
             self._complete_data = dict()
@@ -88,7 +100,7 @@ class SrWearLogger():
 
     def _download_from_AWS(self):
         success = False
-        success = self.aws_manager.download("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
+        success = self.aws_manager.download(BENCHMARK_NAME, rospkg.RosPack().get_path('sr_wear_logger'),
                                             self._hand_serial, [self._get_latest_file_name_from_AWS()])
         if success:
             rospy.sleep(1)
@@ -100,7 +112,7 @@ class SrWearLogger():
         return success
 
     def _get_latest_file_name_from_AWS(self):
-        files = self.aws_manager.get_bucket_structure_with_prefix("shadowrobot.benchmarks", self._hand_serial)
+        files = self.aws_manager.get_bucket_structure_with_prefix(BENCHMARK_NAME, self._hand_serial)
         if files is None:
             return ""
         files.sort(key=lambda x: x['LastModified'])
@@ -135,6 +147,7 @@ class SrWearLogger():
 
     def _save_data_localy(self, event=None):
         if not self._data_is_empty():
+            rospy.loginfo("Saving data locally!")
             self._complete_data['total_angles_[rad]'] = self._current_values
             self._complete_data['total_time_[s]'] = rospy.get_rostime().secs
             try:
@@ -162,8 +175,9 @@ class SrWearLogger():
             shutil.copy(orignal_file, self._log_file_path + dated_file)
             rospy.sleep(0.5)
 
-        success = self.aws_manager.upload("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_wear_logger'),
+        success = self.aws_manager.upload(BENCHMARK_NAME, rospkg.RosPack().get_path('sr_wear_logger'),
                                           self._hand_serial, [dated_file])
+        rospy.loginfo("Uploading to AWS!")
         rospy.sleep(1)
         if os.path.exists(self._log_file_path + dated_file):
             os.remove(self._log_file_path + dated_file)
