@@ -22,6 +22,7 @@ from std_msgs.msg import Bool
 from sr_utilities_common.manual_test_suite import ManualTestSuite
 from sr_utilities_common.aws_manager import AWS_Manager
 from sr_wear_logger.sr_wear_logger import SrWearLogger
+from sr_wear_logger.dummy_publisher import DummyPublisher
 import os
 
 
@@ -54,7 +55,6 @@ class TestSrWearLogger(TestCase):
 
     def test_14_check_if_log_file_was_created(self):
         test_wear_logger = SrWearLogger("test", 10, 1)
-        rospy.logwarn("ENDED")
         test_wear_logger.run()
         path_to_test_file = rospkg.RosPack().get_path('sr_wear_logger') + "/test/wear_data.yaml"
         self.assertTrue(os.path.exists(path_to_test_file))
