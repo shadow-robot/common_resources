@@ -33,10 +33,14 @@ class SrWearLogger():
         self._first_run = True
         self._previous_values = {}
         self._current_values = {}
+        self._complete_data = 0
 
-        self._hand_serial = str(hand_serial)
+        self._hand_serial = hand_serial
         self._local_save_period = local_save_period
         self._aws_save_period = aws_save_period
+
+        self.t_local = None
+        self.t_aws = None
 
         self._log_file_path = rospkg.RosPack().get_path('sr_wear_logger') + "/" + str(self._hand_serial) + "/"
         self._log_file_name = "wear_data.yaml"
@@ -51,8 +55,8 @@ class SrWearLogger():
         if self.check_parameters():
             self.aws_manager = AWS_Manager()
             self._init_log()
-            rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
-            rospy.Timer(rospy.Duration(self._aws_save_period), self._upload_to_AWS)
+            self.t_local = rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
+            self.t_aws = rospy.Timer(rospy.Duration(self._aws_save_period), self._upload_to_AWS)
             rospy.Subscriber('/joint_states', JointState, self._callback)
             rospy.loginfo("SrWearLogger initialized!")
         else:
@@ -194,6 +198,9 @@ class SrWearLogger():
                 hand_data.pop(key, None)
         return hand_data
 
+    def stop(self):
+        self.t_local.shutdown()
+        self.t_aws.shutdown()
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')

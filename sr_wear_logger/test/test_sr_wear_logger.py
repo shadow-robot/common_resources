@@ -24,40 +24,73 @@ from sr_utilities_common.aws_manager import AWS_Manager
 from sr_wear_logger.sr_wear_logger import SrWearLogger
 from sr_wear_logger.dummy_publisher import DummyPublisher
 import os
+import yaml
 
 
 class TestSrWearLogger(TestCase):
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.path_to_test_folder = rospkg.RosPack().get_path('sr_wear_logger') + "/test"
+        cls.path_to_test_file = cls.path_to_test_folder + "/wear_data.yaml"
 
     @classmethod
     def tearDownClass(cls):
-        path_to_test_file = rospkg.RosPack().get_path('sr_wear_logger') + "/test/wear_data.yaml"
-        if os.path.exists(path_to_test_file):
-            os.remove(path_to_test_file)
+        for file in os.listdir(cls.path_to_test_folder):
+            if "test_sr_wear_logger" not in file:
+                os.remove(cls.path_to_test_folder + "/" + file)
 
-    def test_10_check_param_wrong_hand_serial(self):
+    @classmethod
+    def check_values_greater_than_zero(self, dictionary):
+        for k, v in dictionary.items():
+            if isinstance(v, dict):
+                dictionary[k] = self.check_values_greater_than_zero(v)
+            else:
+                if not(type(dictionary[k]) is float or type(dictionary[k]) is int):
+                    return False
+        return True
+
+    def test_10_check_param_case_wrong_hand_serial(self):
         test_wear_logger = SrWearLogger("", 1, 1)
         self.assertFalse(test_wear_logger.check_parameters())
 
-    def test_11_check_param_wrong_hand_time(self):
+    def test_11_check_param_case_wrong_time(self):
         test_wear_logger = SrWearLogger("test", 1.2, 1)
         self.assertFalse(test_wear_logger.check_parameters())
 
-    def test_12_check_param_wrong_hand_time(self):
-        test_wear_logger = SrWearLogger("test", 1.2, 1)
-        self.assertFalse(test_wear_logger.check_parameters())
-
-    def test_13_check_param_all_correct(self):
+    def test_12_check_param_case_all_correct(self):
         test_wear_logger = SrWearLogger("test", 10, 2)
         self.assertTrue(test_wear_logger.check_parameters())
 
-    def test_14_check_if_log_file_was_created(self):
-        test_wear_logger = SrWearLogger("test", 10, 1)
+    def test_13_check_log_file_existence(self):
+        test_wear_logger = SrWearLogger("test", 10, 2)
         test_wear_logger.run()
-        path_to_test_file = rospkg.RosPack().get_path('sr_wear_logger') + "/test/wear_data.yaml"
-        self.assertTrue(os.path.exists(path_to_test_file))
+        rospy.sleep(10)
+        test_wear_logger.stop()
+        self.assertTrue(os.path.exists(self.path_to_test_file))
+
+    def test_14_check_log_file_structure(self):
+        success = False
+        if os.path.exists(self.path_to_test_file):
+            try:
+                with open(self.path_to_test_file, 'r') as f:
+                    data = yaml.load(f, Loader=yaml.SafeLoader)
+                    success = all(k in data.keys() for k in ("total_time_[s]", "total_angles_[rad]"))
+            except Exception as e:
+                pass
+
+        self.assertTrue(success is True)
+
+    def test_15_check_log_file_values(self):
+        success = False
+        if os.path.exists(self.path_to_test_file):
+            try:
+                with open(self.path_to_test_file, 'r') as f:
+                    data = yaml.load(f, Loader=yaml.SafeLoader)
+                    success = self.check_values_greater_than_zero(data)
+            except Exception as e:
+                pass
+
+        self.assertTrue(success is True)
 
 
 if __name__ == '__main__':
