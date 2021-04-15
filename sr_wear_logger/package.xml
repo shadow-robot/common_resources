@@ -11,5 +11,5 @@
   <build_depend>rospy</build_depend>
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>rospy</exec_depend>
-
+  <test_depend>rostest</test_depend> 
 </package> 
