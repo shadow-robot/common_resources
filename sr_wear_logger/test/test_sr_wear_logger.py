@@ -32,6 +32,7 @@ class TestSrWearLogger(TestCase):
     def setUpClass(cls):
         cls.path_to_test_folder = rospkg.RosPack().get_path('sr_wear_logger') + "/test"
         cls.path_to_test_file = cls.path_to_test_folder + "/wear_data.yaml"
+        cls.log_file_key_list = ["total_time_[s]", "total_angles_[rad]"]
 
     @classmethod
     def tearDownClass(cls):
@@ -40,10 +41,10 @@ class TestSrWearLogger(TestCase):
                 os.remove(cls.path_to_test_folder + "/" + file)
 
     @classmethod
-    def check_values_greater_than_zero(self, dictionary):
+    def check_are_values_numeric(self, dictionary):
         for k, v in dictionary.items():
             if isinstance(v, dict):
-                dictionary[k] = self.check_values_greater_than_zero(v)
+                dictionary[k] = self.check_are_values_numeric(v)
             else:
                 if not(type(dictionary[k]) is float or type(dictionary[k]) is int):
                     return False
@@ -74,10 +75,9 @@ class TestSrWearLogger(TestCase):
             try:
                 with open(self.path_to_test_file, 'r') as f:
                     data = yaml.load(f, Loader=yaml.SafeLoader)
-                    success = all(k in data.keys() for k in ("total_time_[s]", "total_angles_[rad]"))
+                    success = all(k in data.keys() for k in self.log_file_key_list)
             except Exception as e:
                 pass
-
         self.assertTrue(success is True)
 
     def test_15_check_log_file_values(self):
@@ -86,10 +86,9 @@ class TestSrWearLogger(TestCase):
             try:
                 with open(self.path_to_test_file, 'r') as f:
                     data = yaml.load(f, Loader=yaml.SafeLoader)
-                    success = self.check_values_greater_than_zero(data)
+                    success = self.check_are_values_numeric(data)
             except Exception as e:
                 pass
-
         self.assertTrue(success is True)
 
 
