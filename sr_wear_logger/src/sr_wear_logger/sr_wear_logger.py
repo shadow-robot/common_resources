@@ -215,7 +215,7 @@ class SrWearLogger():
             self.t_aws.shutdown()
         else:
             rospy.logwarn("SrWearLogger is not running!")
-        
+
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
