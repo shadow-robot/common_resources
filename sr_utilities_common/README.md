@@ -63,7 +63,7 @@ To get one, you need to install your container by running the following command:
 **N.B. This command will overwrite your current container if you have one, if you don't want that to happen, add the name tag to this command. E.g. name=my_new_container**:
 
 ```sh
-bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_interface=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
+bash <(curl -Ls bit.ly/run-aurora) docker_deploy --read-secure customer_key use_aws=true product=hand_e ethercat_right_hand=<ethercat_port> config_branch=<demohand_serial> nvidia_docker=true reinstall=true tag=melodic-release image=shadowrobot/dexterous-hand
 ```
 
 Where:
@@ -137,7 +137,7 @@ This script allows to delay the launch of ros launch files and nodes. It checks 
 The node **requires** the following parameters:
 - package_name: the package in which the executable is stored
 - executable_name: this is the name of the launch file we want to launch (must end with .launch) or the name of the node we want to run
-- timeout: after how long the script should give up waiting for the required conditions
+- timeout: after how long the script should give up waiting for the required conditions. If not set or set to zero or less, the script will wait indefinitely for the condition to be met.
 - launch_args_list: the list of arguments that has to be passed to the launch file or node
 
 The following are not mandatory and allows to define the conditions necessary to launch the wanted executable:
@@ -159,4 +159,18 @@ You only need to specify the list you want. For instance, if there are no topics
   <param name="launch_args_list" value="sim:=$(arg sim) hand:=$(arg hand) vive:=$(arg vive) jog_arm:=$(arg jog_arm) moveit_arm:=$(arg moveit_arm) moley_arm:=$(arg moley_arm) tracker:=$(arg tracker) tracker_id:=$(arg tracker_id) wrist_wand_id:=$(arg wrist_wand_id) control_wand_id:=$(arg control_wand_id) soft_start_time:=$(arg soft_start_time) local_vive_prefix:=$(arg local_vive_prefix) user_root_tf_name:=$(arg user_root_tf_name) user_forearm_tf_name:=$(arg user_forearm_tf_name) user_wrist_tf_name:=$(arg user_wrist_tf_name) dataflow_handler_config_file_path:=$(arg dataflow_handler_config_file_path) log_topics:='$(arg log_topics)' log_bag_prefix:=$(arg log_bag_prefix) require_trigger:=$(arg require_trigger) require_pedal:=$(arg require_pedal) pedal:=$(arg pedal) side:=$(arg side) wrist_zero:=$(arg wrist_zero)" />
   <param name="timeout" value="60.0" />
 </node>
+```
+
+## Killing ROS node
+
+A `kill_node.sh` script is available to kill the node as soon as it starts. It can be used to both kill already running nodes but also to prevent nodes from starting at all and taking effect on the system. Usage:
+
+```sh
+./kill_node.sh <node_name>
+```
+
+In order to make sure that the node takes no effect on the system at all, e.g. static tfs do not appear in the tf tree, increase the priority of the process:
+
+```sh
+sudo nice -n -18 ./kill_node.sh <node_name>
 ```
