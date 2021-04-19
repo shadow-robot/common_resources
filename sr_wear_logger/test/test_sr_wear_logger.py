@@ -24,6 +24,7 @@ from sr_utilities_common.aws_manager import AWS_Manager
 from sr_wear_logger.sr_wear_logger import SrWearLogger
 from sr_wear_logger.dummy_publisher import DummyPublisher
 import os
+import re
 import yaml
 
 
@@ -37,7 +38,8 @@ class TestSrWearLogger(TestCase):
     @classmethod
     def tearDownClass(cls):
         for file in os.listdir(cls.path_to_test_folder):
-            if "test_sr_wear_logger" not in file:
+            pattern = "\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
+            if bool(re.match(pattern, file)):
                 os.remove(cls.path_to_test_folder + "/" + file)
 
     @classmethod
