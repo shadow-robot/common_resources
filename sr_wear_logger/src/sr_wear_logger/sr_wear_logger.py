@@ -17,6 +17,7 @@
 import rospy
 import rospkg
 import os
+import re
 import yaml
 import shutil
 import datetime
@@ -29,7 +30,7 @@ BENCHMARK_NAME = "shadowrobot.benchmarks"
 
 
 class SrWearLogger():
-    def __init__(self, hand_serial, aws_save_period, local_save_period):
+    def __init__(self, hand_serial, hand_id, aws_save_period, local_save_period):
         self._running = False
         self._first_run = True
         self._previous_values = {}
@@ -38,6 +39,7 @@ class SrWearLogger():
         self._time_counter = 0
 
         self._hand_serial = hand_serial
+        self._hand_id = hand_id
         self._local_save_period = local_save_period
         self._aws_save_period = aws_save_period
 
@@ -45,20 +47,22 @@ class SrWearLogger():
         self._log_file_name = "wear_data.yaml"
 
     def _clear_from_files(self):
+        pattern = "\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
         for file in os.listdir(cls.path_to_test_folder):
-            if "test_sr_wear_logger" not in file:
+            if bool(re.match(pattern, file)):
                 os.remove(cls.path_to_test_folder + "/" + file)
 
     def check_parameters(self):
-        serial = self._hand_serial is not None and self._hand_serial != ""
-        aws = self._aws_save_period is not None and type(self._aws_save_period) == int
-        local = self._local_save_period is not None and type(self._local_save_period) == int
-        return serial and aws and local
+        check_serial = self._hand_serial is not None and self._hand_serial != ""
+        check_hand_id = self._hand_id == "rh" or self._hand_id == "lh" 
+        check_aws = self._aws_save_period is not None and type(self._aws_save_period) == int
+        check_local = self._local_save_period is not None and type(self._local_save_period) == int
+        return check_serial and check_hand_id and check_aws and check_local
 
     def run(self):
         if self.check_parameters():
             self.aws_manager = AWS_Manager()
-            self._init_log()
+            self._verify_log_structure()
             self.t_local = rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
             self.t_aws = rospy.Timer(rospy.Duration(self._aws_save_period), self._upload_to_AWS)
             rospy.Subscriber('/joint_states', JointState, self._callback)
@@ -68,42 +72,63 @@ class SrWearLogger():
             rospy.logwarn("Can't run SrWearLogger. Wrong parameters!")
             rospy.signal_shutdown("")
 
-    def _init_log(self):
+    def _verify_log_structure(self):
         if not os.path.exists(self._log_file_path):
             os.makedirs(self._log_file_path)
+        if os.path.exists(self._log_file_path + self._log_file_name):
+            self._sync_and_update_log_file()
+        else:
+            self._generate_log_file()
 
+    def _sync_and_update_log_file(self):
         if os.path.exists(self._log_file_path + self._log_file_name):
             shutil.copy(self._log_file_path + self._log_file_name, self._log_file_path + "/wear_data_local.yaml")
-            with open(self._log_file_path + "/wear_data_local.yaml", 'r') as f_local_copy:
-                data_local_copy = yaml.load(f_local_copy, Loader=yaml.SafeLoader)
+            
+            local_file_path = self._log_file_path + "/wear_data_local.yaml"
+            aws_file_path = self._log_file_path + "/wear_data.yaml"
 
             if self._download_from_AWS():
-                with open(self._log_file_path + "/wear_data.yaml", 'r') as f_aws:
-                    data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-                self._update_log(self._log_file_path + "/wear_data_local.yaml", self._log_file_path + "/wear_data.yaml")
+                try:
+                    with open(local_file_path, 'r') as f_local, open(aws_file_path, 'r') as f_aws:
+                        data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
+                        data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
+                        self._complete_data = self._update_with_higher_values(data_local, data_aws)
+
+                    if self._complete_data is not None:
+                        self._current_values = self._complete_data['total_angles_[rad]']
+                        self._current_time = self._complete_data['total_time_[s]']
+                        self._save_data_localy()
+                        self._upload_to_AWS()
+
+                except Exception as e:
+                    rospy.loginfo("No local/AWS log file found!")
 
             if os.path.exists(self._log_file_path + "/wear_data_local.yaml"):
                 os.remove(self._log_file_path + "/wear_data_local.yaml")
-
+                
         else:
-            rospy.loginfo("Waiting for /joint_states topic!")
-            msg = rospy.wait_for_message('/joint_states', JointState)
+            rospy.logwarn("Log file doesn't exist!")
 
-            self._current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
-            self._current_time = rospy.get_rostime().secs
-            self._complete_data = dict()
-            self._complete_data['total_angles_[rad]'] = self._current_values
-            self._complete_data['total_time_[s]'] = self._current_time
+    def _generate_log_file(self):
+        rospy.loginfo("Waiting for /joint_states topic to create a log file..")
+        msg = rospy.wait_for_message('/joint_states', JointState)
 
-            if self._save_data_localy() and self._upload_to_AWS():
-                rospy.loginfo("New log file created!")
+        self._current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
+        self._current_time = rospy.get_rostime().secs
+        self._complete_data = dict()
+        self._complete_data['total_angles_[rad]'] = self._current_values
+        self._complete_data['total_time_[s]'] = self._current_time
+
+        if self._save_data_localy() and self._upload_to_AWS():
+            rospy.loginfo("New log file created!")
+        else:
+            rospy.logwarn("Could not create a new logfile. Failed to save data!")
 
     def _download_from_AWS(self):
         success = False
         success = self.aws_manager.download(BENCHMARK_NAME, rospkg.RosPack().get_path('sr_wear_logger'),
                                             self._hand_serial, [self._get_latest_file_name_from_AWS()])
         if success:
-            rospy.sleep(1)
             latest_file_name_from_AWS = self._get_latest_file_name_from_AWS()
             if os.path.exists(self._log_file_path + latest_file_name_from_AWS):
                 shutil.copy(self._log_file_path + latest_file_name_from_AWS, self._log_file_path + self._log_file_name)
@@ -119,22 +144,6 @@ class SrWearLogger():
         last_file_path = files[-1]['Key']
         latest_file_name_from_AWS = last_file_path[last_file_path.find("/")+1:]
         return latest_file_name_from_AWS
-
-    def _update_log(self, local_file_path, aws_file_path):
-        try:
-            with open(local_file_path, 'r') as f_local:
-                data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
-            with open(aws_file_path, 'r') as f_aws:
-                data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-        except FileNotFoundError:
-            rospy.loginfo("No log file found!")
-
-        self._complete_data = self._update_with_higher_values(data_local, data_aws)
-
-        if self._complete_data is not None:
-            self._current_values = self._complete_data['total_angles_[rad]']
-            self._current_time = self._complete_data['total_time_[s]']
-            self._save_data_localy(None)
 
     def _update_with_higher_values(self, local_data, aws_data):
         try:
@@ -205,7 +214,7 @@ class SrWearLogger():
     def _extract_hand_data(self, msg):
         hand_data = dict(zip(msg.name, msg.position))
         for key in hand_data.keys():
-            if key.startswith("ra") or key.startswith("la"):
+            if not key.startswith(self._hand_id):
                 hand_data.pop(key, None)
         return hand_data
 
@@ -216,15 +225,15 @@ class SrWearLogger():
         else:
             rospy.logwarn("SrWearLogger is not running!")
 
-
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')
 
     hand_serial = rospy.get_param("~hand_serial", "")
+    hand_id = rospy.get_param("~hand_id", "rh")
     local_save_period = rospy.get_param("~local_save_period", 2)
     aws_save_period = rospy.get_param("~aws_save_period", 10)
 
-    logger = SrWearLogger(hand_serial, aws_save_period, local_save_period)
+    logger = SrWearLogger(hand_serial, hand_id, aws_save_period, local_save_period)
     logger.run()
 
     rospy.spin()
