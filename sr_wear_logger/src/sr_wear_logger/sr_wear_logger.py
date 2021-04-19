@@ -54,7 +54,7 @@ class SrWearLogger():
 
     def check_parameters(self):
         check_serial = self._hand_serial is not None and self._hand_serial != ""
-        check_hand_id = self._hand_id == "rh" or self._hand_id == "lh" 
+        check_hand_id = self._hand_id == "rh" or self._hand_id == "lh"
         check_aws = self._aws_save_period is not None and type(self._aws_save_period) == int
         check_local = self._local_save_period is not None and type(self._local_save_period) == int
         return check_serial and check_hand_id and check_aws and check_local
@@ -83,7 +83,7 @@ class SrWearLogger():
     def _sync_and_update_log_file(self):
         if os.path.exists(self._log_file_path + self._log_file_name):
             shutil.copy(self._log_file_path + self._log_file_name, self._log_file_path + "/wear_data_local.yaml")
-            
+
             local_file_path = self._log_file_path + "/wear_data_local.yaml"
             aws_file_path = self._log_file_path + "/wear_data.yaml"
 
@@ -105,7 +105,7 @@ class SrWearLogger():
 
             if os.path.exists(self._log_file_path + "/wear_data_local.yaml"):
                 os.remove(self._log_file_path + "/wear_data_local.yaml")
-                
+
         else:
             rospy.logwarn("Log file doesn't exist!")
 
