@@ -53,21 +53,21 @@ class TestSrWearLogger(TestCase):
         return True
 
     def test_10_check_param_case_wrong_hand_serial(self):
-        test_wear_logger = SrWearLogger("", 1, 1)
+        test_wear_logger = SrWearLogger("", "rh", 1, 1)
         self.assertFalse(test_wear_logger.check_parameters())
 
     def test_11_check_param_case_wrong_time(self):
-        test_wear_logger = SrWearLogger("test", 1.2, 1)
+        test_wear_logger = SrWearLogger("test", "rh", 1.2, 1)
         self.assertFalse(test_wear_logger.check_parameters())
 
     def test_12_check_param_case_all_correct(self):
-        test_wear_logger = SrWearLogger("test", 10, 2)
+        test_wear_logger = SrWearLogger("test", "rh", 3, 1)
         self.assertTrue(test_wear_logger.check_parameters())
 
     def test_13_check_log_file_existence(self):
-        test_wear_logger = SrWearLogger("test", 10, 2)
+        test_wear_logger = SrWearLogger("test", "rh", 3, 1)
         test_wear_logger.run()
-        rospy.sleep(10)
+        rospy.sleep(5)
         test_wear_logger.stop()
         self.assertTrue(os.path.exists(self.path_to_test_file))
 
@@ -80,7 +80,7 @@ class TestSrWearLogger(TestCase):
                     success = all(k in data.keys() for k in self.log_file_key_list)
             except Exception as e:
                 pass
-        self.assertTrue(success is True)
+        self.assertTrue(success)
 
     def test_15_check_log_file_values(self):
         success = False
@@ -91,7 +91,7 @@ class TestSrWearLogger(TestCase):
                     success = self.check_are_values_numeric(data)
             except Exception as e:
                 pass
-        self.assertTrue(success is True)
+        self.assertTrue(success)
 
 
 if __name__ == '__main__':
