@@ -26,7 +26,7 @@ from sr_utilities_common.aws_manager import AWS_Manager
 from rospy import ROSException
 
 THRESHOLD = 0.0175
-BENCHMARK_NAME = "shadowrobot.benchmarks"
+BENCHMARK_NAME = "shadowrobot.wear"
 
 
 class SrWearLogger():
@@ -45,13 +45,15 @@ class SrWearLogger():
 
         self._log_file_path = rospkg.RosPack().get_path('sr_wear_logger') + "/" + str(self._hand_serial) + "/"
         self._log_file_name = "wear_data.yaml"
+        self._clear_from_files()
 
     def _clear_from_files(self):
         pattern = "\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
-        for file in os.listdir(cls.path_to_test_folder):
-            if bool(re.match(pattern, file)):
-                os.remove(cls.path_to_test_folder + "/" + file)
-
+        if (os.path.exists(self._log_file_path)):
+            for file in os.listdir(self._log_file_path):
+                if bool(re.match(pattern, file)):
+                    os.remove(cls.path_to_test_folder + "/" + file)
+        
     def check_parameters(self):
         check_serial = self._hand_serial is not None and self._hand_serial != ""
         check_hand_id = self._hand_id == "rh" or self._hand_id == "lh"
@@ -132,7 +134,7 @@ class SrWearLogger():
             latest_file_name_from_AWS = self._get_latest_file_name_from_AWS()
             if os.path.exists(self._log_file_path + latest_file_name_from_AWS):
                 shutil.copy(self._log_file_path + latest_file_name_from_AWS, self._log_file_path + self._log_file_name)
-                rospy.sleep(1)
+                rospy.sleep(0.5)
                 os.remove(self._log_file_path + latest_file_name_from_AWS)
         return success
 
@@ -160,7 +162,6 @@ class SrWearLogger():
     def _save_data_localy(self, event=None):
         success = False
         if not self._data_is_empty():
-            rospy.loginfo("Saving data locally!")
             self._complete_data['total_angles_[rad]'] = self._current_values
             self._complete_data['total_time_[s]'] += rospy.get_rostime().secs - self._time_counter
             self._time_counter = rospy.get_rostime().secs
@@ -172,6 +173,8 @@ class SrWearLogger():
             except Exception as e:
                 rospy.logwarn("Failed to sava data. " + str(e))
         return success
+
+
 
     def _data_is_empty(self):
         is_empty = False
@@ -187,21 +190,21 @@ class SrWearLogger():
         now = datetime.datetime.now()
         dated_file = now.strftime("%Y-%m-%d-%H-%M-%S") + ".yaml"
         shutil.copy(orignal_file, self._log_file_path + dated_file)
-        rospy.sleep(1)
+        rospy.sleep(0.5)
         while os.stat(self._log_file_path + dated_file).st_size == 0:
             shutil.copy(orignal_file, self._log_file_path + dated_file)
             rospy.sleep(0.5)
 
         success = self.aws_manager.upload(BENCHMARK_NAME, rospkg.RosPack().get_path('sr_wear_logger'),
                                           self._hand_serial, [dated_file])
-        rospy.sleep(1)
+        rospy.sleep(0.5)
         if os.path.exists(self._log_file_path + dated_file):
             os.remove(self._log_file_path + dated_file)
         return success
 
     def _callback(self, msg):
         hand_data = self._extract_hand_data(msg)
-        updates = dict.fromkeys(hand_data.keys(), 0)
+        updates = dict.fromkeys(hand_data.keys(), 0.0)
         if self._first_run:
             self._previous_values = hand_data
             self._first_run = False

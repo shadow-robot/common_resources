@@ -31,6 +31,10 @@ class AWS_Manager(object):
         self.file_full_paths = []
         self.aws_paths = []
 
+        aws_access_key_id = ""
+        aws_secret_access_key = ""
+        aws_session_token = ""
+
         try:
             with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
                 customer_key = customer_key_file.read()
@@ -43,14 +47,15 @@ class AWS_Manager(object):
         try:
             response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
         except:
-            rospy.logerr("Could request secret AWS access key, ask software team for help!")
+            rospy.logerr("Could not request secret AWS access key, ask software team for help!")
 
-        result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
-        aws_access_key_id = result.group(1)
-        result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
-        aws_secret_access_key = result.group(1)
-        result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
-        aws_session_token = result.group(1)
+        if response is not None:
+            result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
+            aws_access_key_id = result.group(1)
+            result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
+            aws_secret_access_key = result.group(1)
+            result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
+            aws_session_token = result.group(1)
 
         self._client = boto3.client(
             's3',
