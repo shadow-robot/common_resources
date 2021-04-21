@@ -10,7 +10,7 @@
     <arg name="node_name" value="rh_trajectory_republisher"/>
     <arg name="remapped_joint_states_topic_name" value="rh_remapped_joint_states"/>
     <arg name="trajectory_cmd_topic_name" value="/rh_trajectory_controller/command"/>
-    <arg name="joints_to_move" value="[]"/>s
+    <arg name="joints_to_move" value="[]"/>
     <arg name="robot_side" value=""/>
   </include>
 
@@ -19,7 +19,7 @@
     <arg name="node_name" value="lh_trajectory_republisher"/>
     <arg name="remapped_joint_states_topic_name" value="lh_remapped_joint_states"/>
     <arg name="trajectory_cmd_topic_name" value="/lh_trajectory_controller/command"/>
-    <arg name="joints_to_move" value="[]"/>s
+    <arg name="joints_to_move" value="[]"/>
     <arg name="robot_side" value=""/>
   </include>
 
@@ -28,7 +28,7 @@
     <arg name="node_name" value="ra_trajectory_republisher"/>
     <arg name="remapped_joint_states_topic_name" value="ra_remapped_joint_states"/>
     <arg name="trajectory_cmd_topic_name" value="/ra_trajectory_controller/command"/>
-    <arg name="joints_to_move" value="[]"/>s
+    <arg name="joints_to_move" value="[]"/>
     <arg name="robot_side" value=""/>
   </include>
 
@@ -37,7 +37,7 @@
     <arg name="node_name" value="la_trajectory_republisher"/>
     <arg name="remapped_joint_states_topic_name" value="la_remapped_joint_states"/>
     <arg name="trajectory_cmd_topic_name" value="/la_trajectory_controller/command"/>
-    <arg name="joints_to_move" value="[]"/>s
+    <arg name="joints_to_move" value="[]"/>
     <arg name="robot_side" value=""/>
   </include>
 
