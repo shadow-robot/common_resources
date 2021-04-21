@@ -53,7 +53,7 @@ class SrWearLogger():
             for file in os.listdir(self._log_file_path):
                 if bool(re.match(pattern, file)):
                     os.remove(cls.path_to_test_folder + "/" + file)
-        
+
     def check_parameters(self):
         check_serial = self._hand_serial is not None and self._hand_serial != ""
         check_hand_id = self._hand_id == "rh" or self._hand_id == "lh"
@@ -173,8 +173,6 @@ class SrWearLogger():
             except Exception as e:
                 rospy.logwarn("Failed to sava data. " + str(e))
         return success
-
-
 
     def _data_is_empty(self):
         is_empty = False
