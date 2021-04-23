@@ -114,7 +114,7 @@ class SrWearLogger():
         msg = rospy.wait_for_message('/joint_states', JointState)
 
         self._current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
-        self._current_time = rospy.get_rostime().secs        
+        self._current_time = rospy.get_rostime().secs
         self._complete_data = dict()
         self._complete_data['total_angles_[rad]'] = self._current_values
         self._complete_data['total_time_[s]'] = self._current_time
