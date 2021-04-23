@@ -37,10 +37,13 @@ class TestSrWearLogger(TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        rospy.loginfo("Cleaning up")
         for file in os.listdir(cls.path_to_test_folder):
             pattern = "\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
             if bool(re.match(pattern, file)):
                 os.remove(cls.path_to_test_folder + "/" + file)
+        if os.path.exists(cls.path_to_test_folder+"/wear_data.yaml"):
+            os.remove(cls.path_to_test_folder + "/wear_data.yaml")
 
     @classmethod
     def check_are_values_numeric(self, dictionary):
@@ -75,9 +78,11 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                with open(self.path_to_test_file, 'r') as f:
-                    data = yaml.load(f, Loader=yaml.SafeLoader)
-                    success = all(k in data.keys() for k in self.log_file_key_list)
+                f = open(self.path_to_test_file, 'r')
+                data = yaml.load(f, Loader=yaml.SafeLoader)
+                success = all(k in data.keys() for k in self.log_file_key_list)
+                f.close()
+                rospy.sleep(1)
             except Exception as e:
                 pass
         self.assertTrue(success)
@@ -86,9 +91,11 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                with open(self.path_to_test_file, 'r') as f:
-                    data = yaml.load(f, Loader=yaml.SafeLoader)
-                    success = self.check_are_values_numeric(data)
+                f = open(self.path_to_test_file, 'r')
+                data = yaml.load(f, Loader=yaml.SafeLoader)
+                success = self.check_are_values_numeric(data)
+                f.close()
+                rospy.sleep(1)
             except Exception as e:
                 pass
         self.assertTrue(success)
