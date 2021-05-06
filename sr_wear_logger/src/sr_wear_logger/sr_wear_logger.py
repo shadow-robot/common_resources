@@ -113,7 +113,7 @@ class SrWearLogger():
         rospy.loginfo(rospy.get_name() + " Waiting for /joint_states topic to create a log file..")
         msg = rospy.wait_for_message('/joint_states', JointState)
 
-        self._current_values = dict.fromkeys(self._extract_hand_data(msg).keys(), 0.0)
+        self._current_values = dict.fromkeys(list(self._extract_hand_data(msg).keys()), 0.0)
         self._current_time = rospy.get_rostime().secs
         self._complete_data = dict()
         self._complete_data['total_angles_[rad]'] = self._current_values
@@ -147,7 +147,7 @@ class SrWearLogger():
 
     def _update_with_higher_values(self, local_data, aws_data):
         try:
-            for k, v in local_data.items():
+            for k, v in list(local_data.items()):
                 if isinstance(v, dict):
                     local_data[k] = self._update_with_higher_values(aws_data.get(k, {}), v)
                 else:
@@ -173,7 +173,7 @@ class SrWearLogger():
 
     def _data_is_empty(self):
         is_empty = False
-        if len(self._current_values.keys()) == 0:
+        if len(list(self._current_values.keys())) == 0:
             is_empty = True
         if self._complete_data is None:
             is_empty = True
@@ -199,19 +199,19 @@ class SrWearLogger():
 
     def _callback(self, msg):
         hand_data = self._extract_hand_data(msg)
-        updates = dict.fromkeys(hand_data.keys(), 0.0)
+        updates = dict.fromkeys(list(hand_data.keys()), 0.0)
         if self._first_run:
             self._previous_values = hand_data
             self._first_run = False
-        for key, value in hand_data.items():
+        for key, value in list(hand_data.items()):
             value_difference = abs(self._previous_values[key] - value)
             if value_difference > THRESHOLD:
                 self._current_values[key] += round(value_difference, 5)
         self._previous_values = hand_data
 
     def _extract_hand_data(self, msg):
-        hand_data = dict(zip(msg.name, msg.position))
-        for key in hand_data.keys():
+        hand_data = dict(list(zip(msg.name, msg.position)))
+        for key in list(hand_data.keys()):
             if not key.startswith(self._hand_id):
                 hand_data.pop(key, None)
         return hand_data

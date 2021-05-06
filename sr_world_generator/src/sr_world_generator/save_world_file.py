@@ -82,7 +82,7 @@ class GazeboWorldSaver(object):
 
     def _save_models_to_world_file(self):
         all_objects_string = ''
-        for key, value in self.model_and_pose.iteritems():
+        for key, value in self.model_and_pose.items():
             all_objects_string += '    <include>\n'
             all_objects_string += '      <uri>model://' + re.sub(r'_\d+$', '', key) + '</uri>\n'
             all_objects_string += '      <static>true</static>\n'

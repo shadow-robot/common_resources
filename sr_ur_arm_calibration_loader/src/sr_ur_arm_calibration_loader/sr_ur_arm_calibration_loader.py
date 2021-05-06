@@ -18,8 +18,8 @@ import os
 import rospy
 import roslaunch
 import rospkg
-import Tkinter as tk
-import tkMessageBox as messageBox
+import tkinter as tk
+import tkinter.messagebox as messageBox
 import paramiko
 import sys
 import yaml

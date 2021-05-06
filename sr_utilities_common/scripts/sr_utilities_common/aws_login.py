@@ -36,14 +36,14 @@ if __name__ == "__main__":
         customer_key = "{}\n".format(args.api_key)
     else:
         customer_key_file_path = os.path.expanduser(args.api_key_file)
-        print("Reading API/customer key from: {}".format(customer_key_file_path))
+        print(("Reading API/customer key from: {}".format(customer_key_file_path)))
         try:
             with open(customer_key_file_path, 'r') as customer_key_file:
                 customer_key = customer_key_file.read()
         except:
-            print("Could not read API/customer key from {}, ask software team for help!".format(customer_key_file_path))
+            print(("Could not read API/customer key from {}, ask software team for help!".format(customer_key_file_path)))
             sys.exit(1)
-    print("Using API/customer key: {}".format(customer_key))
+    print(("Using API/customer key: {}".format(customer_key)))
 
     headers = {
         'x-api-key': '{}'.format(customer_key[:-1]),
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     aws_dir_path = os.path.expanduser("~/.aws")
     if os.path.exists(aws_dir_path):
         if os.path.isfile(aws_dir_path):
-            print("{} exists but it is not a directory.".format(aws_dir_path))
+            print(("{} exists but it is not a directory.".format(aws_dir_path)))
             sys.exit(1)
     else:
         os.mkdir(aws_dir_path)
@@ -88,5 +88,5 @@ if __name__ == "__main__":
         with open(aws_credentials_filename, "w+") as aws_credentials_file:
             aws_credentials_file.write(output)
     except Exception as e:
-        print("Failed to write to {}:\n{}".format(aws_credentials_filename, e))
+        print(("Failed to write to {}:\n{}".format(aws_credentials_filename, e)))
     print("Successfully obtained AWS credentials. You can now use the AWS CLI.")

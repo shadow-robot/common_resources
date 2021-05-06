@@ -47,7 +47,7 @@ class TestSrWearLogger(TestCase):
 
     @classmethod
     def check_are_values_numeric(self, dictionary):
-        for k, v in dictionary.items():
+        for k, v in list(dictionary.items()):
             if isinstance(v, dict):
                 dictionary[k] = self.check_are_values_numeric(v)
             else:
@@ -80,7 +80,7 @@ class TestSrWearLogger(TestCase):
             try:
                 f = open(self.path_to_test_file, 'r')
                 data = yaml.load(f, Loader=yaml.SafeLoader)
-                success = all(k in data.keys() for k in self.log_file_key_list)
+                success = all(k in list(data.keys()) for k in self.log_file_key_list)
                 f.close()
                 rospy.sleep(1)
             except Exception as e:

@@ -83,10 +83,10 @@ class SrRunTrajectories(object):
 
     def _parse_trajectories_dict(self, trajectories_dict, joints_order):
         parsed_trajectories_dict = {}
-        for traj_name, traj_waypoint in trajectories_dict.iteritems():
+        for traj_name, traj_waypoint in trajectories_dict.items():
             parsed_trajectory = []
             for waypoint in traj_waypoint:
-                joint_angles_dict = dict(zip(joints_order, waypoint['joint_angles']))
+                joint_angles_dict = dict(list(zip(joints_order, waypoint['joint_angles'])))
                 interpolate_time = waypoint['interpolate_time']
                 parsed_trajectory.append({'joint_angles': joint_angles_dict,
                                           'interpolate_time': interpolate_time})
@@ -108,7 +108,7 @@ class SrRunTrajectories(object):
         joint_prefix_dict = hand_finder.get_hand_parameters().joint_prefix
         if len(joint_prefix_dict) > 1:
             raise ValueError("More then one hand connected, unsupported!")
-        values_view = joint_prefix_dict.values()
+        values_view = list(joint_prefix_dict.values())
         value_iterator = iter(values_view)
         self.hand_prefix = next(value_iterator)
 

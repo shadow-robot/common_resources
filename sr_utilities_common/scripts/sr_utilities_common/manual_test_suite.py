@@ -36,7 +36,7 @@ class ManualTestSuite(object):
 
     def _create_test(self, test_method):
         if not self.unattended:
-            raw_input(self.color_codes['orange'] +
+            input(self.color_codes['orange'] +
                       'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'],
                                                                           test_method.__name__))
         self.test_results['total'] += 1

@@ -63,7 +63,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
 
     while not all_conditions_satisfied:
         all_conditions_satisfied_list = []
-        for condition in conditions_to_satisfy.values():
+        for condition in list(conditions_to_satisfy.values()):
             all_conditions_satisfied_list.append(condition.check_if_required_element_is_available())
         if all(satisfied for satisfied in all_conditions_satisfied_list):
             all_conditions_satisfied = True
@@ -71,7 +71,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
             continue
         if (rospy.Time.now().to_sec() - start_time.to_sec() >= timeout):
             rospy.logerr("Timeout of {}s exceeded".format(timeout))
-            for condition_type, condition in conditions_to_satisfy.iteritems():
+            for condition_type, condition in conditions_to_satisfy.items():
                 if condition.missing_elements:
                     rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
                                                                                condition.missing_elements))

@@ -42,7 +42,7 @@ def recursive_diff(path):
 rospy.init_node("ws_diff")
 
 package_path = os.environ['ROS_PACKAGE_PATH']
-package_dirs = filter(lambda x: ("/opt/ros" not in x), package_path.split(":"))
+package_dirs = [x for x in package_path.split(":") if ("/opt/ros" not in x)]
 
 run_time = datetime.datetime.fromtimestamp(rospy.get_rostime().secs)
 name_string = "ws_diff_%04d-%02d-%02d-%02d-%02d-%02d" % (
