@@ -2,3 +2,9 @@
     uri: https://github.com/shadow-robot/sr_common.git
     version: noetic-devel
     local-name: sr_common
+
+#checking
+- git:
+    uri: https://github.com/PortAudio/portaudio.git
+    version: master
+    local-name: portaudio
