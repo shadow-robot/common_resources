@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2019 Shadow Robot Company Ltd.
 #
@@ -29,9 +29,9 @@ def recursive_diff(path):
     output = ""
     if os.path.isdir("./.git"):
         output = "\n\n------------------" + path + "------------------\n\n"
-        output += subprocess.check_output(['git', 'show'])
-        output += subprocess.check_output(['git', 'status'])
-        output += subprocess.check_output(['git', 'diff'])
+        output += subprocess.check_output(['git', 'show']).decode("utf-8")
+        output += subprocess.check_output(['git', 'status']).decode("utf-8")
+        output += subprocess.check_output(['git', 'diff']).decode("utf-8")
 
     for subdir in filter(os.path.isdir, os.listdir(".")):
         output += recursive_diff(subdir)
@@ -56,5 +56,5 @@ output = package_path + "\n"
 
 for directory in package_dirs:
     output = output + recursive_diff(directory)
-with gzip.open(output_path, 'wb') as f:
-    f.write(output)
+with gzip.open(output_path, 'w') as f:
+    f.write(str.encode(output))

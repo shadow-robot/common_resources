@@ -45,7 +45,7 @@ def main(args):
 
     bagfile = args.bagfile[0]
 
-    info_dict = yaml.load(subprocess.Popen(
+    info_dict = yaml.safe_load(subprocess.Popen(
         ['rosbag', 'info', '--yaml', bagfile], stdout=subprocess.PIPE).communicate()[0])
     duration = info_dict['duration']
     start_time = info_dict['start']
