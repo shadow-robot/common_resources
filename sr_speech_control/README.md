@@ -47,3 +47,9 @@ To use node with pulseaudio microphone specify `prefer_microphone` parameter:
 ```
 rosrun sr_speech_control speech_control.py _prefer_microphone:=pulse
 ```
+
+On Ubuntu 20.04 "Network Server" tab is greyed out. It is a known [bug](https://bugs.launchpad.net/ubuntu/+source/paprefs/+bug/829051).
+Workarround is to run:
+```
+sudo ln -s /usr/lib/pulse-13.99.1 /usr/lib/pulse-13.99
+```
