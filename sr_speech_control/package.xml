@@ -11,8 +11,6 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>python-speechrecognition-pip</buildtool_depend>
   <exec_depend>python-speechrecognition-pip</exec_depend>
-  <buildtool_depend>portaudio19-dev</buildtool_depend>
-  <exec_depend>pportaudio19-dev</exec_depend>
   <buildtool_depend>python-pyaudio</buildtool_depend>
   <exec_depend>python-pyaudio</exec_depend>
   <buildtool_depend>python3-pyaudio</buildtool_depend>
