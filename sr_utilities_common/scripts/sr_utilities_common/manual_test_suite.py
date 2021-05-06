@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtin import input
 import rospy
 import argparse
 
@@ -38,7 +40,7 @@ class ManualTestSuite(object):
         if not self.unattended:
             input(self.color_codes['orange'] +
                   'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'],
-                  test_method.__name__))
+                                                                      test_method.__name__))
         self.test_results['total'] += 1
         result = test_method()
         if result:
@@ -75,7 +77,7 @@ class DummyClass(object):
             return True
 
     def dummy_method_2(self):
-            return 2 * self.dummy_variable
+        return 2 * self.dummy_variable
 
 
 class DummyClassClient(object):

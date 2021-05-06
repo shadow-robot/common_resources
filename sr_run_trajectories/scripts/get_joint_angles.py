@@ -15,7 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-from builtin import input
+from builtin import round, input 
 import os
 import rospy
 from sensor_msgs.msg import JointState

@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import rospy
 import logging
 import boto3
@@ -38,7 +39,7 @@ class AWS_Manager(object):
         try:
             with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
                 customer_key = customer_key_file.read()
-        except:
+        except Exception:
             rospy.logerr("Could not find customer key, ask software team for help!")
         headers = {
             'x-api-key': '{}'.format(customer_key[:-1]),
@@ -46,7 +47,7 @@ class AWS_Manager(object):
 
         try:
             response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-        except:
+        except Exception:
             rospy.logerr("Could not request secret AWS access key, ask software team for help!")
 
         if response is not None:

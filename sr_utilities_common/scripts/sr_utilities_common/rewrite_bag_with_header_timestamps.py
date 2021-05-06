@@ -8,7 +8,7 @@
 # Copied from http://wiki.ros.org/rosbag/Cookbook
 
 from __future__ import absolute_import, division
-from builtin import input
+from builtin import input, round
 import sys
 import rosbag
 import time
