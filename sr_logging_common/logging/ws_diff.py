@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import os
 import rospy
 import datetime
@@ -38,6 +39,7 @@ def recursive_diff(path):
 
     os.chdir(current_directory)
     return output
+
 
 rospy.init_node("ws_diff")
 

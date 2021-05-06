@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import os
 import rospy
 import roslaunch
@@ -91,9 +92,9 @@ class SrUrLoadCalibration(object):
             arm_serial_number = stdout.readline()
             client.close()
         except (BadHostKeyException, AuthenticationException, SSHException, socket.error) as e:
-            ssh_exception_message = " Failed to SSH into arm - {}".format(e.message)
+            ssh_exception_message = " Failed to SSH into arm - {}".format(str(e))
         except NoValidConnectionsError as e:
-            ssh_exception_message = " Failed to SSH into arm - {}".format(e.errors)
+            ssh_exception_message = " Failed to SSH into arm - {}".format(str(e))
 
         if '' == arm_serial_number:
             rospy.logwarn("Could not retrieve arm serial number.{}"

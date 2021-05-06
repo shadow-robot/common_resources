@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import argparse
 import os
 import re
@@ -36,12 +37,12 @@ if __name__ == "__main__":
         customer_key = "{}\n".format(args.api_key)
     else:
         customer_key_file_path = os.path.expanduser(args.api_key_file)
-        print(("Reading API/customer key from: {}".format(customer_key_file_path)))
+        print("Reading API/customer key from: {}".format(customer_key_file_path))
         try:
             with open(customer_key_file_path, 'r') as customer_key_file:
                 customer_key = customer_key_file.read()
-        except:
-            print(("Could not read API/customer key from {}, ask software team for help!".format(customer_key_file_path)))
+        except Exception:
+            print("Could not read API/customer key from {}, ask software team for help!".format(customer_key_file_path))
             sys.exit(1)
     print(("Using API/customer key: {}".format(customer_key)))
 
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 
     try:
         response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-    except:
+    except Exception:
         print("Couldn't request secret AWS access key, retry or ask software team for help!")
 
     result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     aws_dir_path = os.path.expanduser("~/.aws")
     if os.path.exists(aws_dir_path):
         if os.path.isfile(aws_dir_path):
-            print(("{} exists but it is not a directory.".format(aws_dir_path)))
+            print("{} exists but it is not a directory.".format(aws_dir_path))
             sys.exit(1)
     else:
         os.mkdir(aws_dir_path)

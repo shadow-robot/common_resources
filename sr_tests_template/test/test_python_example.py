@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import rospy
 import rostest
 from unittest import TestCase
@@ -30,6 +31,7 @@ class TestPythonExample(TestCase):
         tested_value = 0
 
         self.assertEqual(expected_value, tested_value)
+
 
 if __name__ == "__main__":
     rospy.init_node('test_python_example', anonymous=True)

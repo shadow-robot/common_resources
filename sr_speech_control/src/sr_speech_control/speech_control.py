@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import rospy
 import speech_recognition as sr
 from difflib import get_close_matches
@@ -62,6 +63,7 @@ class SpeechControl(object):
         if not result:
             return word
         return result[0]
+
 
 if __name__ == "__main__":
     rospy.init_node('sr_speech_control', anonymous=True)

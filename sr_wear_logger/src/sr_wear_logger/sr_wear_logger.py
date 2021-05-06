@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtin import round
 import rospy
 import rospkg
 import os
@@ -48,7 +50,7 @@ class SrWearLogger():
         self._clear_from_files()
 
     def _clear_from_files(self):
-        pattern = "\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
+        pattern = r"\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
         if (os.path.exists(self._log_file_path)):
             for file in os.listdir(self._log_file_path):
                 if bool(re.match(pattern, file)):
@@ -222,6 +224,7 @@ class SrWearLogger():
             self.t_aws.shutdown()
         else:
             rospy.logwarn(rospy.get_name() + " SrWearLogger is not running!")
+
 
 if __name__ == "__main__":
     rospy.init_node('sr_wear_logger_node')

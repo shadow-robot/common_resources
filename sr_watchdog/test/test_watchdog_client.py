@@ -50,6 +50,7 @@ class TestWatchdogClient(object):
         self.check_error_publisher.publish(bool_true)
         return True
 
+
 if __name__ == '__main__':
     rospy.init_node('watchdog_test_client')
 
