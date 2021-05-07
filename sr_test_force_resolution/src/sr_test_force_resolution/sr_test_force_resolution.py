@@ -40,22 +40,24 @@ class ControllerStateMonitor():
 class TestForceResolution():
     def __init__(self):
         self.active_tests = []
+        self._controller_subscribers = {}
+        self._last_joint_state = JointState()
         self.requested_joints = ['FFJ3', 'FFJ4', 'MFJ3', 'MFJ4', 'RFJ3', 'RFJ4', 'LFJ3', 'LFJ4']
         self._joint_states_zero = {'rh_FFJ1': 0, 'rh_FFJ2': 0, 'rh_FFJ3': 0, 'rh_FFJ4': 0,
-                         'rh_MFJ1': 0, 'rh_MFJ2': 0, 'rh_MFJ3': 0, 'rh_MFJ4': 0,
-                         'rh_RFJ1': 0, 'rh_RFJ2': 0, 'rh_RFJ3': 0, 'rh_RFJ4': 0,
-                         'rh_LFJ1': 0, 'rh_LFJ2': 0, 'rh_LFJ3': 0, 'rh_LFJ4': 0, 'rh_LFJ5': 0,
-                         'rh_THJ1': 0, 'rh_THJ2': 0, 'rh_THJ3': 0, 'rh_THJ4': 0, 'rh_THJ5': 0,
-                         'rh_WRJ1': 0, 'rh_WRJ2': 0}
-        self._joint_ranges = {'4': 
-                                 {
+                                   'rh_MFJ1': 0, 'rh_MFJ2': 0, 'rh_MFJ3': 0, 'rh_MFJ4': 0,
+                                   'rh_RFJ1': 0, 'rh_RFJ2': 0, 'rh_RFJ3': 0, 'rh_RFJ4': 0,
+                                   'rh_LFJ1': 0, 'rh_LFJ2': 0, 'rh_LFJ3': 0, 'rh_LFJ4': 0, 'rh_LFJ5': 0,
+                                   'rh_THJ1': 0, 'rh_THJ2': 0, 'rh_THJ3': 0, 'rh_THJ4': 0, 'rh_THJ5': 0,
+                                   'rh_WRJ1': 0, 'rh_WRJ2': 0}
+        self._joint_ranges = {'4':
+                              {
                                   'FF': {'min': -20, 'max': 20},
                                   'MF': {'min': -20, 'max': 20},
                                   'RF': {'min': -20, 'max': 20},
                                   'LF': {'min': -20, 'max': 20},
-                                  }, 
-                               '3':
-                                 {
+                                  },
+                              '3':
+                              {
                                   'FF': {'min': 0, 'max': 90},
                                   'MF': {'min': 0, 'max': 90},
                                   'RF': {'min': 0, 'max': 90},
@@ -65,12 +67,11 @@ class TestForceResolution():
         self._m_joint_ranges = {'4': {'min': -20, 'max': 20},
                                 '3': {'min':   0, 'max': 90}}
 
-        self._clear_j4 = { 'FF': {'MF': 'max', 'RF': 'min', 'LF': 'min'},
-                           'MF': {'FF': 'min', 'RF': 'min', 'LF': 'min'},
-                           'RF': {'FF': 'min', 'MF': 'min', 'LF': 'min'},
-                           'LF': {'FF': 'min', 'MF': 'min', 'RF': 'max'}}
-        self._controller_subscribers = {}
-        self._last_joint_state = JointState()
+        self._clear_j4 = {'FF': {'MF': 'max', 'RF': 'min', 'LF': 'min'},
+                          'MF': {'FF': 'min', 'RF': 'min', 'LF': 'min'},
+                          'RF': {'FF': 'min', 'MF': 'min', 'LF': 'min'},
+                          'LF': {'FF': 'min', 'MF': 'min', 'RF': 'max'}}
+
         self.joint_state_subscriber = rospy.Subscriber('/joint_states', JointState, self.joint_state_cb)
         self.hand_commander = SrHandCommander(name="right_hand")
         self.hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
@@ -90,7 +91,6 @@ class TestForceResolution():
             rospy.loginfo("moving %s to %s", key + 'J4', value)
             self.move_joint_minmax(key + 'J4', value, wait=False)
         self.move_joint_angle(joint, 0, wait=True)
-
 
     def all_minmax(self, minmax='min', wait=False):
         for joint in self.requested_joints:
@@ -121,7 +121,7 @@ class TestForceResolution():
 
     def go_to_zero_joint_state(self):
         self.hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
-        
+
     def move_joint_minmax(self, joint, min_max='min', wait=True):
         target_joint_states = {}
         joint_number = joint.split('J')[1]
@@ -149,7 +149,12 @@ class TestForceResolution():
             controller_state_monitor.new_data = True
             if controller_state_monitor.enable_output:
                 rospy.loginfo("name   command  setpoint  process  proc_dot")
-                rospy.loginfo("%s: %f %f %f %f", controller_state_monitor.name, controller_state_monitor.command, controller_state_monitor.set_point, controller_state_monitor.process_value, controller_state_monitor.process_value_dot)
+                rospy.loginfo("%s: %f %f %f %f",
+                              controller_state_monitor.name,
+                              controller_state_monitor.command,
+                              controller_state_monitor.set_point,
+                              controller_state_monitor.process_value,
+                              controller_state_monitor.process_value_dot)
 
         controller_state_monitor.sub.append(rospy.Subscriber(topic_name, JointControllerState, controller_subscriber))
         return controller_state_monitor
