@@ -159,6 +159,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
  catkin_install_python(PROGRAMS
    src/sr_wear_logger/sr_wear_logger.py
+   launch/sr_wear_logger.launch
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
