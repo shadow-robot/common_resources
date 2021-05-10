@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import argparse
 import rospy
 import unittest
@@ -138,6 +139,7 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
         conditions_to_satisfy["param"] = RosElementsHandler("param", params_list)
         all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
         self.assertTrue(all_conditions_satisfied)
+
 
 if __name__ == '__main__':
     PKGNAME = 'sr_utilities_common'

@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import re
 import os
 import rospy
@@ -59,7 +60,8 @@ class GazeboWorldSaver(object):
             raise IOError("Gazebo generated world file does not exist!")
 
     def _start_gazebo_with_newly_created_world(self):
-        self.process = subprocess.Popen(['xterm -e roslaunch sr_world_generator create_world_template.launch gui:=false \
+        self.process = subprocess.Popen(['xterm -e roslaunch sr_world_generator \
+                                        create_world_template.launch gui:=false \
                                         scene:=true world:={}'.format(self.gazebo_generated_world_file_path)],
                                         shell=True)
 
@@ -82,7 +84,7 @@ class GazeboWorldSaver(object):
 
     def _save_models_to_world_file(self):
         all_objects_string = ''
-        for key, value in self.model_and_pose.iteritems():
+        for key, value in self.model_and_pose.items():
             all_objects_string += '    <include>\n'
             all_objects_string += '      <uri>model://' + re.sub(r'_\d+$', '', key) + '</uri>\n'
             all_objects_string += '      <static>true</static>\n'
@@ -120,6 +122,7 @@ class GazeboWorldSaver(object):
         full_file_path = self.output_world_file_path
         if os.path.isfile(full_file_path):
             os.remove(full_file_path)
+
 
 if __name__ == '__main__':
     rospy.init_node('save_gazebo_world_file', anonymous=True)

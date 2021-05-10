@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import rospy
 from std_msgs.msg import Bool
 from sr_utilities_common.manual_test_suite import ManualTestSuite
@@ -49,6 +50,7 @@ class TestWatchdogClient(object):
         bool_true.data = True
         self.check_error_publisher.publish(bool_true)
         return True
+
 
 if __name__ == '__main__':
     rospy.init_node('watchdog_test_client')
