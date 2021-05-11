@@ -13,7 +13,7 @@ rosrun sr_test_force_resolution sr_test_force_resolution.py
 
 Type the joint you wish to move/test (e.g. `ffj3`)
 
-The joint will move and the program will generate two CSV files in `~/force_resolution_tests`, one called `jointstate_{JOINTNAME}_{DATETIME}.csv` and another called `controllerstate_{JOINTNAME}_{DATETIME}.csv`.
+The joint will move and the program will generate two CSV files in `~/force_resolution_tests`, one called `jointstate_{JOINTNAME}_{DATETIME}.csv` and another called `controllerstate_{JOINTNAME}_{DATETIME}.csv`
 
 The `jointstate_...` file has the following columns:      timestamp,position,velocity,effort
 
