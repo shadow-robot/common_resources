@@ -43,32 +43,63 @@ class ControllerStateMonitor():
 
 
 class TestForceResolution():
-    def __init__(self, keyboard_control=True):
+    def __init__(self, keyboard_control=True, side="right"):
         self.active_tests = []
         self._controller_subscribers = {}
         self._last_joint_state = JointState()
         self._output_jointstate = {}
+        self._hand_prefix = side[0] + 'h_'
         self._output_jointstate_keys = ['timestamp', 'position', 'velocity', 'effort']
-        self.requested_joints = ['FFJ3', 'FFJ4', 'MFJ3', 'MFJ4', 'RFJ3', 'RFJ4', 'LFJ3', 'LFJ4']
+        self.requested_joints = []
+        # burning test via PWM - when uncalibrated we still want to run burn test via PWM
+        #                      - for each joint in each finger, apply pwm of X
         self._joint_states_zero = {'rh_FFJ1': 0, 'rh_FFJ2': 0, 'rh_FFJ3': 0, 'rh_FFJ4': 0,
                                    'rh_MFJ1': 0, 'rh_MFJ2': 0, 'rh_MFJ3': 0, 'rh_MFJ4': 0,
                                    'rh_RFJ1': 0, 'rh_RFJ2': 0, 'rh_RFJ3': 0, 'rh_RFJ4': 0,
                                    'rh_LFJ1': 0, 'rh_LFJ2': 0, 'rh_LFJ3': 0, 'rh_LFJ4': 0, 'rh_LFJ5': 0,
                                    'rh_THJ1': 0, 'rh_THJ2': 0, 'rh_THJ3': 0, 'rh_THJ4': 0, 'rh_THJ5': 0,
                                    'rh_WRJ1': 0, 'rh_WRJ2': 0}
-        self._joint_ranges = {'4':
+        self._joint_ranges = {'TH':
                               {
-                                  'FF': {'min': -20, 'max': 20},
-                                  'MF': {'min': -20, 'max': 20},
-                                  'RF': {'min': -20, 'max': 20},
-                                  'LF': {'min': -20, 'max': 20},
+                                  '5': {'min': -60, 'max': 60},
+                                  '4': {'min': 0,   'max': 70},
+                                  '3': {'min': -12, 'max': 12},
+                                  '2': {'min': -40, 'max': 40},
+                                  '1': {'min': -15, 'max': 90},
                                   },
-                              '3':
+                              'FF':
                               {
-                                  'FF': {'min': 0, 'max': 90},
-                                  'MF': {'min': 0, 'max': 90},
-                                  'RF': {'min': 0, 'max': 90},
-                                  'LF': {'min': 0, 'max': 90},
+                                  '4': {'min': -20, 'max': 20},
+                                  '3': {'min': -15, 'max': 90},
+                                  '2': {'min': 0,   'max': 90},
+                                  '1': {'min': 0,   'max': 90},
+                                  },
+                              'MF':
+                              {
+                                  '4': {'min': -20, 'max': 20},
+                                  '3': {'min': -15, 'max': 90},
+                                  '2': {'min': 0,   'max': 90},
+                                  '1': {'min': 0,   'max': 90},
+                                  },
+                              'RF':
+                              {
+                                  '4': {'min': -20, 'max': 20},
+                                  '3': {'min': -15, 'max': 90},
+                                  '2': {'min': 0,   'max': 90},
+                                  '1': {'min': 0,   'max': 90},
+                                  },
+                              'LF':
+                              {
+                                  '5': {'min': 0,   'max': 45},
+                                  '4': {'min': -20, 'max': 20},
+                                  '3': {'min': -15, 'max': 90},
+                                  '2': {'min': 0,   'max': 90},
+                                  '1': {'min': 0,   'max': 90},
+                                  },
+                              'WR':
+                              {
+                                  '1': {'min': -40, 'max': 28},
+                                  '2': {'min': -30, 'max': 10},
                                   },
                               }
 
@@ -78,7 +109,10 @@ class TestForceResolution():
                           'LF': {'FF': 'min', 'MF': 'min', 'RF': 'max'}}
 
         self._joint_state_subscriber = rospy.Subscriber('/joint_states', JointState, self.joint_state_cb)
-        self._hand_commander = SrHandCommander(name="right_hand")
+        self._hand_commander = SrHandCommander(name=(side + "_hand"))
+        for key, value in self._hand_commander.get_current_state().iteritems():
+            requested_joint = key.replace(self._hand_prefix, "")
+            self.requested_joints.append(requested_joint)
         self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
         self.initialise_output_dictionary()
         self.setup_controller_subscribers()
@@ -110,7 +144,7 @@ class TestForceResolution():
         self.go_to_zero_joint_state()
 
     def test_joint(self, joint):
-        if '4' in joint:
+        if '4' in joint and 'th' not in joint.lower():
             self.free_j4(joint)
         rospy.loginfo("Testing joint %s:", joint)
         self.activate_output(joint, True)
@@ -157,7 +191,7 @@ class TestForceResolution():
         self._controller_subscribers[joint].enable_output = enable
 
     def store_joint_state(self, joint):
-        idx = self._last_joint_state.name.index("rh_" + joint)
+        idx = self._last_joint_state.name.index(self._hand_prefix + joint)
         position = self._last_joint_state.position[idx]
         velocity = self._last_joint_state.velocity[idx]
         effort = self._last_joint_state.effort[idx]
@@ -173,20 +207,21 @@ class TestForceResolution():
     def move_joint_minmax(self, joint, min_max='min', wait=True):
         target_joint_states = {}
         joint_number = joint.split('J')[1]
-        angle = self._joint_ranges[joint_number][joint.split('J')[0]][min_max]
+        finger = joint.split('J')[0]
+        angle = self._joint_ranges[finger][joint_number][min_max]
         rospy.loginfo("Moving: %s to %s (%s)", joint, min_max, str(angle))
-        target_joint_states["rh_" + joint.upper()] = float(angle)
+        target_joint_states[self._hand_prefix + joint.upper()] = float(angle)
         self._hand_commander.move_to_joint_value_target(target_joint_states, wait=wait, angle_degrees=True)
 
     def move_joint_angle(self, joint, angle, wait=True):
         target_joint_states = {}
-        target_joint_states["rh_" + joint.upper()] = angle
+        target_joint_states[self._hand_prefix + joint.upper()] = angle
         rospy.loginfo("Moving: %s  to: %s", joint, str(angle))
         self._hand_commander.move_to_joint_value_target(target_joint_states, wait=wait, angle_degrees=True)
 
     def create_controller_subscriber(self, key):
         controller_state_monitor = ControllerStateMonitor(key)
-        topic_name = "/sh_rh_" + key.lower() + "_position_controller/state"
+        topic_name = "/sh_" + self._hand_prefix + key.lower() + "_position_controller/state"
 
         def controller_subscriber(msg):
             if controller_state_monitor.enable_output:
