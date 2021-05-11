@@ -22,7 +22,11 @@ import datetime
 from pynput import keyboard
 from control_msgs.msg import JointControllerState
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64
 from sr_robot_commander.sr_hand_commander import SrHandCommander
+from sr_controllers_tools.sr_controller_helper import ControllerHelper
+from controller_manager_msgs.srv import (ListControllers, LoadController,
+                                         SwitchController, SwitchControllerRequest)
 
 
 class ControllerStateMonitor():
@@ -50,6 +54,9 @@ class TestForceResolution():
         self._output_jointstate = {}
         self._hand_prefix = side[0] + 'h_'
         self._output_jointstate_keys = ['timestamp', 'position', 'velocity', 'effort']
+        self._fingers_with_j0 = ['ff', 'mf', 'rf', 'lf']
+        self._mode = ''
+        self._j0_position_controllers = ["sh_{0}{1}j0_position_controller".format(self._hand_prefix, joint) for joint in self._fingers_with_j0]
         self.requested_joints = []
         # burning test via PWM - when uncalibrated we still want to run burn test via PWM
         #                      - for each joint in each finger, apply pwm of X
@@ -113,15 +120,21 @@ class TestForceResolution():
         for key, value in self._hand_commander.get_current_state().iteritems():
             requested_joint = key.replace(self._hand_prefix, "")
             self.requested_joints.append(requested_joint)
+        self._controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix], [joint.lower() for joint in self.requested_joints])
         self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
+        self._switch_controller_service = rospy.ServiceProxy('controller_manager/switch_controller', SwitchController)
+        self._pwm_command_publishers = {}
+        self.setup_pwm_publishers()
         self.initialise_output_dictionary()
         self.setup_controller_subscribers()
-        while not rospy.is_shutdown():
-            self.run()
+        # while not rospy.is_shutdown():
+        #     self.run()
 
     def run(self):
         CONST_EXIT_CHAR = 'Q'
         CONST_ALL_CHAR = 'A'
+        CONST_POSITION_CHAR = 'P'
+        CONST_EFFORT_CHAR = 'E'
         in_string = ""
         while in_string not in self.requested_joints:
                 print "Available joints: ", self.requested_joints
@@ -132,16 +145,50 @@ class TestForceResolution():
                     rospy.loginfo("running all")
                     for joint in self.requested_joints:
                         self.run_joint(joint)
+                if CONST_POSITION_CHAR.lower() == in_string.lower():
+                    rospy.loginfo("switching to position mode")
+                    self.switch_to_position()
+                if CONST_EFFORT_CHAR.lower() == in_string.lower():
+                    rospy.loginfo("switching to effort mode")
+                    self.switch_to_effort()
                 if (in_string not in self.requested_joints and
                         in_string not in CONST_EXIT_CHAR and
+                        in_string not in CONST_POSITION_CHAR and
+                        in_string not in CONST_EFFORT_CHAR and
                         in_string not in CONST_ALL_CHAR):
-                    rospy.logwarn("%s is not a valid joint", in_string)
+                    rospy.logwarn("%s is not a valid joint or command", in_string)
         self.run_joint(in_string)
 
+    def switch_to_effort(self):
+        self._controller_helper.change_hand_ctrl("effort")
+        try:
+            resp1 = self._switch_controller_service([], self._j0_position_controllers, SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+        except rospy.ServiceException:
+            rospy.logerr("Failed to stop joint zero position controllers")
+        self._mode = 'effort'
+
+    def switch_to_position(self):
+        self._controller_helper.change_hand_ctrl("position")
+        try:
+            resp1 = self._switch_controller_service(self._j0_position_controllers, [], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+        except rospy.ServiceException:
+            rospy.logerr("Failed to start joint zero position controllers")
+        self._mode = 'position'
+
+    def publish_pwm(self, joint, pwm):
+        if 'effort' in self._mode:
+            rospy.loginfo("Applying a PWM of %s to joint %s", str(pwm), joint)
+            self._pwm_command_publishers[joint.upper()].publish(Float64(pwm))
+        else:
+            rospy.logerr("Mode not set to effort, please change this before applying a PWM")
+
     def run_joint(self, joint):
-        self.go_to_zero_joint_state()
-        self.test_joint(joint)
-        self.go_to_zero_joint_state()
+        if 'position' not in self._mode:
+            self.go_to_zero_joint_state()
+            self.test_joint(joint)
+            self.go_to_zero_joint_state()
+        else:
+            rospy.logerr("Mode not set to position, please change this before requesting a joint position")
 
     def test_joint(self, joint):
         if '4' in joint and 'th' not in joint.lower():
@@ -183,7 +230,7 @@ class TestForceResolution():
 
     def activate_output(self, joint, enable):
         if enable:
-            self._controller_subscribers[joint].initialise_output_dictionary()
+            self._controller_subscribers[joint.upper()].initialise_output_dictionary()
             self.initialise_output_dictionary()
             self.active_tests.append(joint)
         else:
@@ -238,6 +285,10 @@ class TestForceResolution():
         for joint in self.requested_joints:
             self._controller_subscribers[joint] = self.create_controller_subscriber(joint)
 
+    def setup_pwm_publishers(self):
+        for joint in self.requested_joints:
+            self._pwm_command_publishers[joint] = rospy.Publisher("/sh_%s_effort_controller/command" %	(self._hand_prefix + joint.lower()), Float64, queue_size=2)
+
     def joint_state_cb(self, msg):
         self._joint_state_updated = True
         self._last_joint_state.header = msg.header
@@ -285,4 +336,5 @@ class TestForceResolution():
 
 if __name__ == '__main__':
     rospy.init_node("sr_test_force_resolution")
-    test_force_resolution = TestForceResolution()
+    tfr = TestForceResolution()
+    # test_force_resolution = TestForceResolution()
