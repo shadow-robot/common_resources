@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import os
 import rospy
 import datetime
@@ -39,10 +40,11 @@ def recursive_diff(path):
     os.chdir(current_directory)
     return output
 
+
 rospy.init_node("ws_diff")
 
 package_path = os.environ['ROS_PACKAGE_PATH']
-package_dirs = filter(lambda x: ("/opt/ros" not in x), package_path.split(":"))
+package_dirs = [x for x in package_path.split(":") if ("/opt/ros" not in x)]
 
 run_time = datetime.datetime.fromtimestamp(rospy.get_rostime().secs)
 name_string = "ws_diff_%04d-%02d-%02d-%02d-%02d-%02d" % (

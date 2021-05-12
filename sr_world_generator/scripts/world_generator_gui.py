@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import sys
 from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
@@ -152,6 +153,7 @@ class SrWorldGeneratorGui(Plugin):
         msg.setWindowTitle("Warning!")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
+
 
 if __name__ == "__main__":
     rospy.init_node("sr_gazebo_world_generator")

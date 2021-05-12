@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import argparse
 import os
 import re
@@ -40,10 +41,10 @@ if __name__ == "__main__":
         try:
             with open(customer_key_file_path, 'r') as customer_key_file:
                 customer_key = customer_key_file.read()
-        except:
+        except Exception:
             print("Could not read API/customer key from {}, ask software team for help!".format(customer_key_file_path))
             sys.exit(1)
-    print("Using API/customer key: {}".format(customer_key))
+    print(("Using API/customer key: {}".format(customer_key)))
 
     headers = {
         'x-api-key': '{}'.format(customer_key[:-1]),
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 
     try:
         response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-    except:
+    except Exception:
         print("Couldn't request secret AWS access key, retry or ask software team for help!")
 
     result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
@@ -88,5 +89,5 @@ if __name__ == "__main__":
         with open(aws_credentials_filename, "w+") as aws_credentials_file:
             aws_credentials_file.write(output)
     except Exception as e:
-        print("Failed to write to {}:\n{}".format(aws_credentials_filename, e))
+        print(("Failed to write to {}:\n{}".format(aws_credentials_filename, e)))
     print("Successfully obtained AWS credentials. You can now use the AWS CLI.")

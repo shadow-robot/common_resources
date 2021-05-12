@@ -28,6 +28,7 @@
 #
 # Your hand should be start moving.
 
+from __future__ import absolute_import
 import rospy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
