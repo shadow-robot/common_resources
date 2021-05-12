@@ -116,15 +116,11 @@ class TestForceResolution():
                           'LF': {'FF': 'min', 'MF': 'min', 'RF': 'max'}}
         self._joint_state_subscriber = rospy.Subscriber('/joint_states', JointState, self.joint_state_cb)
         self._hand_commander = SrHandCommander(name=(side + "_hand"))
-        print "here"
         for key, value in self._hand_commander.get_current_state().iteritems():
             requested_joint = key.replace(self._hand_prefix, "")
             self.requested_joints.append(requested_joint)
-        print "herek: ", key
         self._controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix], [joint.lower() for joint in self.requested_joints])
-        print "here2"
         self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
-        print "here3"
         self._switch_controller_service = rospy.ServiceProxy('controller_manager/switch_controller', SwitchController)
         self._pwm_command_publishers = {}
         self.setup_pwm_publishers()
