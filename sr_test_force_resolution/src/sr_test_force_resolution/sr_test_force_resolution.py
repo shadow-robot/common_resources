@@ -196,13 +196,25 @@ class TestForceResolution():
                     rospy.logwarn("%s is not a valid joint or command", in_string)
         self.run_joint(in_string)
 
+    def stop_j0_controllers(self):
+        try:
+            resp1 = self._switch_controller_service([], [joint for joint in self._j0_position_controllers if joint not in ['th', 'wr']], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+        except rospy.ServiceException:
+            rospy.logerr("Failed to stop joint zero position controllers")
+
+    def start_j0_controllers(self):
+        try:
+            resp1 = self._switch_controller_service(self._j0_position_controllers, [], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+        except rospy.ServiceException:
+            rospy.logerr("Failed to start joint zero position controllers")
+
     def switch_finger_to_effort(self, finger):
         joints_to_change = []
         for joint in self.requested_joints:
             if finger in joint:
                 joints_to_change.append(joint)
-        if finger not in ['th', 'wr']:
-            joints_to_change.append(finger + 'j0')
+        # if finger not in ['th', 'wr']:
+        #     joints_to_change.append(finger + 'j0')
         temp_controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix], [joint.lower() for joint in joints_to_change])
         temp_controller_helper.change_hand_ctrl("effort")
 
@@ -211,25 +223,19 @@ class TestForceResolution():
         for joint in self.requested_joints:
             if finger.lower() in joint.lower():
                 joints_to_change.append(joint)
-        if finger not in ['th', 'wr']:
-            joints_to_change.append(finger + 'j0')
+        # if finger not in ['th', 'wr']:
+        #     joints_to_change.append(finger + 'j0')
         temp_controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix], [joint.lower() for joint in joints_to_change])
         temp_controller_helper.change_hand_ctrl("position")
 
     def switch_to_effort(self):
         self._controller_helper.change_hand_ctrl("effort")
-        try:
-            resp1 = self._switch_controller_service([], [joint for joint in self._j0_position_controllers if joint not in ['th', 'wr']], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
-        except rospy.ServiceException:
-            rospy.logerr("Failed to stop joint zero position controllers")
+        self.stop_j0_controllers()
         self._mode = 'effort'
 
     def switch_to_position(self):
         self._controller_helper.change_hand_ctrl("position")
-        try:
-            resp1 = self._switch_controller_service(self._j0_position_controllers, [], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
-        except rospy.ServiceException:
-            rospy.logerr("Failed to start joint zero position controllers")
+        self.start_j0_controllers()
         self._mode = 'position'
 
     def publish_pwm(self, joint, pwm):
