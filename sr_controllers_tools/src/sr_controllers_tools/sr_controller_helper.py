@@ -61,10 +61,6 @@ class ControllerHelper(object):
         """
         Switch the current controller
         """
-        for val in controllers:
-            print "c: ", val
-        for val in managed_controllers:
-            print "mc: ", val
         success = True
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
@@ -76,13 +72,9 @@ class ControllerHelper(object):
         if success:
             controllers_to_stop = [
                 c.name for c in resp1.controller if c.state == "running" and c.name in managed_controllers]
-            for ctr in controllers_to_stop:
-                print "stopping: ", ctr
             all_loaded_controllers = [c.name for c in resp1.controller]
 
             controllers_to_start = controllers
-            for ctr in controllers_to_start:
-                print "starting: ", ctr
 
             for load_control in controllers_to_start:
                 if load_control not in all_loaded_controllers:
@@ -91,10 +83,8 @@ class ControllerHelper(object):
                             'controller_manager/load_controller', LoadController)
                         resp1 = load_controllers(load_control)
                     except rospy.ServiceException:
-                        print "exception on: ", load_control
                         success = False
                     if not resp1.ok:
-                        print "resp1 not ok on: ", load_control
                         success = False
 
             switch_controllers = rospy.ServiceProxy(
