@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import os
 import rospy
 import time
@@ -31,6 +32,7 @@ def getFolderSize(folder):
     else:
         total_size = 0
     return total_size
+
 
 if __name__ == '__main__':
     rospy.init_node('core_dump_limit', anonymous=True)

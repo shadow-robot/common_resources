@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtin import input
 import rospy
 import rospkg
 import argparse
@@ -70,9 +72,9 @@ if __name__ == "__main__":
 
     status = False
     while not rospy.is_shutdown():
-        input_val = raw_input("Press [RETURN] to toggle /" + args.topic_name +
-                              " at " + str(args.publishing_rate) + "Hz. " +
-                              "Type 'exit' and execute to terminate. \n")
+        input_val = input("Press [RETURN] to toggle /" + args.topic_name +
+                          " at " + str(args.publishing_rate) + "Hz. " +
+                          "Type 'exit' and execute to terminate. \n")
         if input_val == 'exit':
             break
         status = not status

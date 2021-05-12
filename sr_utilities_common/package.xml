@@ -28,6 +28,8 @@
   <run_depend>std_msgs</run_depend>
   <run_depend>python3-boto3</run_depend>
   <run_depend>python3-requests</run_depend>
+  <run_depend>sensor_msgs</run_depend>
   <run_depend>topic_tools</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
 
 </package>
