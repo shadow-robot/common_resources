@@ -202,7 +202,7 @@ class TestForceResolution():
             if finger in joint:
                 joints_to_change.append(joint)
         if finger not in ['th', 'wr']:
-            joints_to_change.append(self._hand_prefix + finger + 'j0')
+            joints_to_change.append(finger + 'j0')
         temp_controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix], [joint.lower() for joint in joints_to_change])
         temp_controller_helper.change_hand_ctrl("effort")
 
