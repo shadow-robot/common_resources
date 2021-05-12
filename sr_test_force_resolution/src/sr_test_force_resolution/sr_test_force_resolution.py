@@ -129,6 +129,44 @@ class TestForceResolution():
         # while not rospy.is_shutdown():
         #     self.run()
 
+    def run_2(self):
+        CONST_EXIT_CHAR = 'Q'
+        CONST_ALL_CHAR = 'A'
+        CONST_POSITION_CHAR = 'P'
+        CONST_EFFORT_CHAR = 'E'
+        in_string = raw_input("Please enter joint ('q' to exit, 'a' for all):").upper()
+        input_commnad = in_string.split('_')
+        command_type = input_commnad[0].upper()
+        joint = input_commnad[1].upper()
+        angle = input_commnad[2].lower()
+        if 'min' in angle:
+            angle = self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min']
+        elif 'max' in angle:
+            angle = self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max']
+        rospy.loginfo("type: %s joint: %s angle: %s", command_type, joint, angle)
+        if (command_type not in CONST_ALL_CHAR and
+            command_type not in CONST_EXIT_CHAR and
+            command_type not in CONST_EFFORT_CHAR and
+            command_type not in CONST_POSITION_CHAR):
+            rospy.logerr("command type %s not recognised", command_type)
+            return
+        if (joint not in self.requested_joints and
+            joint not in 'ALL'):
+            rospy.logerr("joint %s not recognised", joint)
+            return
+        if (float(angle) > self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max']):
+            rospy.logerr("angle outside range for %s: %s > %s", joint, angle, self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max'])
+            return
+        if (float(angle) < self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min']):
+            rospy.logerr("angle outside range for %s: %s < %s", joint, angle, self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min'])
+            return
+        if CONST_EXIT_CHAR in command_type:
+            rospy.loginfo("Quitting...")
+            sys.exit(0)
+        print "type: {type} joint: {joint} angle: {angle}".format(type=command_type, joint=joint, angle=angle)
+        rospy.loginfo("type: %s joint: %s angle: %s", command_type, joint, angle)
+        
+
     def run(self):
         CONST_EXIT_CHAR = 'Q'
         CONST_ALL_CHAR = 'A'
@@ -157,6 +195,22 @@ class TestForceResolution():
                         in_string not in CONST_ALL_CHAR):
                     rospy.logwarn("%s is not a valid joint or command", in_string)
         self.run_joint(in_string)
+
+    def switch_finger_to_effort(self, finger):
+        joints_to_change = []
+        for joint in self.requested_joints:
+            if finger in joint:
+                joints_to_change.append(joint)
+        temp_controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix], [joint.lower() for joint in joints_to_change])
+        temp_controller_helper.change_hand_ctrl("effort")
+
+    def switch_finger_to_position(self, finger):
+        joints_to_change = []
+        for joint in self.requested_joints:
+            if finger.lower() in joint.lower():
+                joints_to_change.append(joint)
+        temp_controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix], [joint.lower() for joint in joints_to_change])
+        temp_controller_helper.change_hand_ctrl("position")
 
     def switch_to_effort(self):
         self._controller_helper.change_hand_ctrl("effort")
