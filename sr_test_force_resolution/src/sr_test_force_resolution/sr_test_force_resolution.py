@@ -219,7 +219,7 @@ class TestForceResolution():
     def switch_to_effort(self):
         self._controller_helper.change_hand_ctrl("effort")
         try:
-            resp1 = self._switch_controller_service([], self._j0_position_controllers, SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+            resp1 = self._switch_controller_service([], [joint for joint in self._j0_position_controllers if joint not in ['th', 'wr']], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
         except rospy.ServiceException:
             rospy.logerr("Failed to stop joint zero position controllers")
         self._mode = 'effort'
