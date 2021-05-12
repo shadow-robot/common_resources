@@ -126,8 +126,8 @@ class TestForceResolution():
         self.setup_pwm_publishers()
         self.initialise_output_dictionary()
         self.setup_controller_subscribers()
-        # while not rospy.is_shutdown():
-        #     self.run()
+        while not rospy.is_shutdown():
+            self.run_2()
 
     def run_2(self):
         CONST_EXIT_CHAR = 'Q'
@@ -137,6 +137,12 @@ class TestForceResolution():
         in_string = raw_input("Please enter joint ('q' to exit, 'a' for all):").upper()
         input_commnad = in_string.split('_')
         command_type = input_commnad[0].upper()
+        if CONST_EXIT_CHAR in command_type:
+            rospy.loginfo("Quitting...")
+            sys.exit(0)
+        if CONST_ALL_CHAR in command_type:
+            rospy.loginfo("wtf bruh...")
+            sys.exit(0)
         joint = input_commnad[1].upper()
         angle = input_commnad[2].lower()
         if 'min' in angle:
@@ -154,18 +160,20 @@ class TestForceResolution():
             joint not in 'ALL'):
             rospy.logerr("joint %s not recognised", joint)
             return
-        if (float(angle) > self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max']):
-            rospy.logerr("angle outside range for %s: %s > %s", joint, angle, self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max'])
-            return
-        if (float(angle) < self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min']):
-            rospy.logerr("angle outside range for %s: %s < %s", joint, angle, self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min'])
-            return
-        if CONST_EXIT_CHAR in command_type:
-            rospy.loginfo("Quitting...")
-            sys.exit(0)
+        if CONST_POSITION_CHAR in command_type:
+            if (float(angle) > self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max']):
+                rospy.logerr("angle outside range for %s: %s > %s", joint, angle, self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max'])
+                return
+            if (float(angle) < self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min']):
+                rospy.logerr("angle outside range for %s: %s < %s", joint, angle, self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min'])
+                return
         print "type: {type} joint: {joint} angle: {angle}".format(type=command_type, joint=joint, angle=angle)
         rospy.loginfo("type: %s joint: %s angle: %s", command_type, joint, angle)
-        
+        if command_type.upper() == CONST_POSITION_CHAR:
+            self.test_joint_2(joint, mode='position', value=angle)
+        elif command_type.upper() == CONST_EFFORT_CHAR:
+            self.test_joint_2(joint, mode='PWM', value=angle)
+
 
     def run(self):
         CONST_EXIT_CHAR = 'Q'
@@ -197,12 +205,14 @@ class TestForceResolution():
         self.run_joint(in_string)
 
     def stop_j0_controllers(self):
+        return
         try:
             resp1 = self._switch_controller_service([], [joint for joint in self._j0_position_controllers if joint not in ['th', 'wr']], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
         except rospy.ServiceException:
             rospy.logerr("Failed to stop joint zero position controllers")
 
     def start_j0_controllers(self):
+        return
         try:
             resp1 = self._switch_controller_service(self._j0_position_controllers, [], SwitchControllerRequest.BEST_EFFORT, False, 0.0)
         except rospy.ServiceException:
@@ -241,7 +251,7 @@ class TestForceResolution():
     def publish_pwm(self, joint, pwm):
         if 'effort' in self._mode:
             rospy.loginfo("Applying a PWM of %s to joint %s", str(pwm), joint)
-            self._pwm_command_publishers[joint.upper()].publish(Float64(pwm))
+            self._pwm_command_publishers[joint.upper()].publish(Float64(float(pwm)))
         else:
             rospy.logerr("Mode not set to effort, please change this before applying a PWM")
 
@@ -261,6 +271,25 @@ class TestForceResolution():
         self.move_joint_minmax(joint, 'min')
         self.move_joint_minmax(joint, 'max')
         self.move_joint_angle(joint, 0)
+        self.activate_output(joint, False)
+        self.write_output_dictionaries(joint)
+        print
+        print
+
+    def test_joint_2(self, joint, mode='testing', value=0, sleep=3):
+        if '4' in joint and 'th' not in joint.lower():
+            self.free_j4(joint)
+        rospy.loginfo("Testing joint %s:", joint)
+        self.activate_output(joint, True)
+        if mode == 'testing':
+            self.move_joint_minmax(joint, 'min')
+            self.move_joint_minmax(joint, 'max')
+            self.move_joint_angle(joint, 0)
+        elif mode == 'PWM':
+            self.move_joint_pwm(joint, value)
+            rospy.sleep(sleep)
+        elif mode == 'position':
+            self.move_joint_angle(joint, float(value), wait=True)
         self.activate_output(joint, False)
         self.write_output_dictionaries(joint)
         print
@@ -314,7 +343,13 @@ class TestForceResolution():
     def go_to_zero_joint_state(self):
         self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
 
+    def move_joint_pwm(self, joint, pwm):
+        self.switch_to_effort()
+        self.publish_pwm(joint, pwm)
+        
+
     def move_joint_minmax(self, joint, min_max='min', wait=True):
+        self.switch_to_position()
         target_joint_states = {}
         joint_number = joint.split('J')[1]
         finger = joint.split('J')[0]
@@ -324,6 +359,7 @@ class TestForceResolution():
         self._hand_commander.move_to_joint_value_target(target_joint_states, wait=wait, angle_degrees=True)
 
     def move_joint_angle(self, joint, angle, wait=True):
+        self.switch_to_position()
         target_joint_states = {}
         target_joint_states[self._hand_prefix + joint.upper()] = angle
         rospy.loginfo("Moving: %s  to: %s", joint, str(angle))
@@ -369,7 +405,12 @@ class TestForceResolution():
         hour = datetime.datetime.now().hour
         minute = datetime.datetime.now().minute
         second = datetime.datetime.now().second
-        filename = joint + '_' + str(year) + '_' + str(month) + '_' +\
+        prefix = self._mode
+        if prefix == 'effort':
+            prefix = 'direct_PWM_'
+        else:
+            prefix = prefix + '_'
+        filename = prefix + joint + '_' + str(year) + '_' + str(month) + '_' +\
             str(day) + '_' + str(hour) + '_' + str(minute) +\
             '_' + str(second) + '.csv'
         return filename
