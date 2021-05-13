@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import input
 import rospy
 import argparse
 
@@ -31,14 +33,14 @@ class ManualTestSuite(object):
 
     def _create_all_tests(self):
         for test_method_name in self.ordered_test_method_list:
-                test_method = getattr(self.test_case_class, test_method_name)
-                self._create_test(test_method)
+            test_method = getattr(self.test_case_class, test_method_name)
+            self._create_test(test_method)
 
     def _create_test(self, test_method):
         if not self.unattended:
-            raw_input(self.color_codes['orange'] +
-                      'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'],
-                                                                          test_method.__name__))
+            input(self.color_codes['orange'] +
+                  'Test {}: {}. Press [RETURN] to continue...'.format(self.test_results['total'],
+                                                                      test_method.__name__))
         self.test_results['total'] += 1
         result = test_method()
         if result:
@@ -75,7 +77,7 @@ class DummyClass(object):
             return True
 
     def dummy_method_2(self):
-            return 2 * self.dummy_variable
+        return 2 * self.dummy_variable
 
 
 class DummyClassClient(object):
@@ -89,6 +91,7 @@ class DummyClassClient(object):
         if 2 == self.dummy_class_instance.dummy_method_2():
             return True
         return False
+
 
 if __name__ == '__main__':
     rospy.init_node('manual_test_suite')

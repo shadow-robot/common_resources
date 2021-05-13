@@ -1,0 +1,58 @@
+<launch>
+  <!-- Arm model: ur10 or ur10e -->
+  <arg name="robot_model" default="ur10e"/>
+  <arg name="robot_description" default="$(find sr_multi_description)/urdf/bimanual_srhand_$(arg robot_model).urdf.xacro"/>
+
+  <param name="robot_description" command="xacro --inorder $(arg robot_description)"/>
+
+  <!-- Right hand -->
+  <include file="$(find sr_utilities_common)/launch/single_robot_position_republisher.launch">
+    <arg name="node_name" value="rh_trajectory_republisher"/>
+    <arg name="remapped_joint_states_topic_name" value="rh_remapped_joint_states"/>
+    <arg name="trajectory_cmd_topic_name" value="/rh_trajectory_controller/command"/>
+    <arg name="joints_to_move" value="[]"/>
+    <arg name="robot_side" value=""/>
+  </include>
+
+  <!-- Left hand -->
+  <include file="$(find sr_utilities_common)/launch/single_robot_position_republisher.launch">
+    <arg name="node_name" value="lh_trajectory_republisher"/>
+    <arg name="remapped_joint_states_topic_name" value="lh_remapped_joint_states"/>
+    <arg name="trajectory_cmd_topic_name" value="/lh_trajectory_controller/command"/>
+    <arg name="joints_to_move" value="[]"/>
+    <arg name="robot_side" value=""/>
+  </include>
+
+  <!-- Right arm -->
+  <include file="$(find sr_utilities_common)/launch/single_robot_position_republisher.launch">
+    <arg name="node_name" value="ra_trajectory_republisher"/>
+    <arg name="remapped_joint_states_topic_name" value="ra_remapped_joint_states"/>
+    <arg name="trajectory_cmd_topic_name" value="/ra_trajectory_controller/command"/>
+    <arg name="joints_to_move" value="[]"/>
+    <arg name="robot_side" value=""/>
+  </include>
+
+  <!-- Left arm -->
+  <include file="$(find sr_utilities_common)/launch/single_robot_position_republisher.launch">
+    <arg name="node_name" value="la_trajectory_republisher"/>
+    <arg name="remapped_joint_states_topic_name" value="la_remapped_joint_states"/>
+    <arg name="trajectory_cmd_topic_name" value="/la_trajectory_controller/command"/>
+    <arg name="joints_to_move" value="[]"/>
+    <arg name="robot_side" value=""/>
+  </include>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen" >
+    <rosparam subst_value="True">
+      source_list:
+        - rh_remapped_joint_states
+        - lh_remapped_joint_states
+        - ra_remapped_joint_states
+        - la_remapped_joint_states
+    </rosparam>
+  </node>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="200.0" />
+    <param name="tf_prefix" type="string" value="" />
+  </node>
+</launch>

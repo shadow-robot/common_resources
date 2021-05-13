@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import os
 import time
 import rospy
@@ -30,6 +31,7 @@ def remover(desired_bag_number, path):
             sorted_bag_files.pop(0)
 
         time.sleep(1)
+
 
 if __name__ == '__main__':
     rospy.init_node('bag_rotate', anonymous=True)
