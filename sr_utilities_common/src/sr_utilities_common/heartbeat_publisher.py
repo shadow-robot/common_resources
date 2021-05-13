@@ -15,7 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-from builtin import input
+from builtins import input
 import rospy
 import rospkg
 import argparse
