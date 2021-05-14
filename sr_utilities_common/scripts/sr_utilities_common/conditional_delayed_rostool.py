@@ -76,6 +76,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
                     rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
                                                                                condition.missing_elements))
             break
+        rospy.Rate(1).sleep()
     return all_conditions_satisfied
 
 

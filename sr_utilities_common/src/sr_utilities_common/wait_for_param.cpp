@@ -20,6 +20,7 @@
 bool wait_for_param(ros::NodeHandle node_handle, std::string param_name, double timeout_in_secs)
 {
   ros::Time start_time = ros::Time::now();
+  ros::Rate r(1);
   if (timeout_in_secs <= 0)
   {
     const double TIME_BEFORE_INFO = 60;
@@ -34,6 +35,7 @@ bool wait_for_param(ros::NodeHandle node_handle, std::string param_name, double 
         ROS_INFO_STREAM("Still waiting for parameter: " << param_name);
         start_time = ros::Time::now();
       }
+      r.sleep();
     }
     return false;
   }
