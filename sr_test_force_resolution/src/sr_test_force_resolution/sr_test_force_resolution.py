@@ -138,6 +138,8 @@ class TestForceResolution():
         CONST_EFFORT_CHAR = 'E'
         self.print_help()
         in_string = raw_input("Please enter command:").upper()
+        if in_string == "":
+            return
         input_commnad = in_string.split('_')
         command_type = input_commnad[0].upper()
         if CONST_EXIT_CHAR in command_type:
@@ -179,7 +181,12 @@ class TestForceResolution():
             if command_type.upper() == CONST_POSITION_CHAR:
                 self.test_joint_2(joint, mode='position', value=angle)
             elif command_type.upper() == CONST_EFFORT_CHAR:
-                self.test_joint_2(joint, mode='PWM', value=angle)
+                file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
+                for i in range(0, 5):
+                    self.test_joint_2(joint, mode='PWM', value=str(float(angle)*1.0), prefix=file_prefix + '_plus')
+                    rospy.sleep(1)
+                    self.test_joint_2(joint, mode='PWM', value=str(float(angle)*-1.0), prefix=file_prefix + '_minus')
+                    rospy.sleep(1)
         else:
             # lst = [joint for j in ['FF', 'RF', 'MF', 'LF', 'TH'] if j in joint]:
             lst = [j for j in self.requested_joints if str(joint[1]) in j and j[0]+j[1] not in self._fingers_with_j0]
