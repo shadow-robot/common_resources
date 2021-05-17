@@ -129,11 +129,10 @@ class TestForceResolution():
         self.initialise_output_dictionary()
         self.setup_controller_subscribers()
         while not rospy.is_shutdown():
-            self.run_2()
+            self.run()
 
-    def run_2(self):
+    def run(self):
         CONST_EXIT_CHAR = 'Q'
-        CONST_ALL_CHAR = 'A'
         CONST_POSITION_CHAR = 'P'
         CONST_EFFORT_CHAR = 'E'
         self.print_help()
@@ -481,5 +480,4 @@ class TestForceResolution():
 
 if __name__ == '__main__':
     rospy.init_node("sr_test_force_resolution")
-    tfr = TestForceResolution()
-    # test_force_resolution = TestForceResolution()
+    test_force_resolution = TestForceResolution()
