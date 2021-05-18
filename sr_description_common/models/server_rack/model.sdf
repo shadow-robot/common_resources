@@ -60,8 +60,7 @@
       </visual>
     </link>
 
-    <link name="server_wall_back">
-      
+    <link name="server_wall_back">      
       <collision name="server_wall_back_col">
         <pose>0.3 1.1625 1.025 0 0 0 </pose>
         <geometry>
@@ -80,8 +79,7 @@
       </visual>
     </link>
 
-    <link name="server_wall_top">
-      
+    <link name="server_wall_top">      
       <collision name="server_wall_back_col">
         <pose>0.3 0.6 1.9375 0 0 0 </pose>
         <geometry>
