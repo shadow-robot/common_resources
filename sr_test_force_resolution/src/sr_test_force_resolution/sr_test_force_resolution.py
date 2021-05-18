@@ -59,8 +59,6 @@ class TestForceResolution():
         self._j0_position_controllers = ["sh_{0}{1}j0_position_controller".format(self._hand_prefix, joint)
                                          for joint in self._fingers_with_j0]
         self.requested_joints = []
-        # burning test via PWM - when uncalibrated we still want to run burn test via PWM
-        #                      - for each joint in each finger, apply pwm of X
         self._joint_states_zero = {'rh_FFJ1': 0, 'rh_FFJ2': 0, 'rh_FFJ3': 0, 'rh_FFJ4': 0,
                                    'rh_MFJ1': 0, 'rh_MFJ2': 0, 'rh_MFJ3': 0, 'rh_MFJ4': 0,
                                    'rh_RFJ1': 0, 'rh_RFJ2': 0, 'rh_RFJ3': 0, 'rh_RFJ4': 0,
@@ -144,9 +142,6 @@ class TestForceResolution():
         if CONST_EXIT_CHAR in command_type:
             rospy.loginfo("Quitting...")
             sys.exit(0)
-        if CONST_ALL_CHAR in command_type:
-            rospy.loginfo("wtf bruh...")
-            sys.exit(0)
         joint = input_commnad[1].upper()
         angle = input_commnad[2].lower()
         if 'min' in angle:
@@ -154,8 +149,7 @@ class TestForceResolution():
         elif 'max' in angle:
             angle = self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max']
         rospy.loginfo("type: %s joint: %s angle: %s", command_type, joint, angle)
-        if (command_type not in CONST_ALL_CHAR and
-            command_type not in CONST_EXIT_CHAR and
+        if (command_type not in CONST_EXIT_CHAR and
             command_type not in CONST_EFFORT_CHAR and
                 command_type not in CONST_POSITION_CHAR):
             rospy.logerr("command type %s not recognised", command_type)
@@ -178,16 +172,15 @@ class TestForceResolution():
         rospy.loginfo("type: %s joint: %s angle: %s", command_type, joint, angle)
         if [j for j in ['FF', 'RF', 'MF', 'LF', 'TH'] if j in joint]:
             if command_type.upper() == CONST_POSITION_CHAR:
-                self.test_joint_2(joint, mode='position', value=angle)
+                self.test_joint(joint, mode='position', value=angle)
             elif command_type.upper() == CONST_EFFORT_CHAR:
                 file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
                 for i in range(0, 5):
-                    self.test_joint_2(joint, mode='PWM', value=str(float(angle)*1.0), prefix=file_prefix + '_plus')
+                    self.test_joint(joint, mode='PWM', value=str(float(angle)*1.0), prefix=file_prefix + '_plus')
                     rospy.sleep(1)
-                    self.test_joint_2(joint, mode='PWM', value=str(float(angle)*-1.0), prefix=file_prefix + '_minus')
+                    self.test_joint(joint, mode='PWM', value=str(float(angle)*-1.0), prefix=file_prefix + '_minus')
                     rospy.sleep(1)
         else:
-            # lst = [joint for j in ['FF', 'RF', 'MF', 'LF', 'TH'] if j in joint]:
             lst = [j for j in self.requested_joints if str(joint[1]) in j and j[0]+j[1] not in self._fingers_with_j0]
             for l in lst:
                 rospy.logwarn("acting on: %s", l)
@@ -195,16 +188,18 @@ class TestForceResolution():
                 file_prefix = raw_input("enter file prefix:")
                 for j in lst:
                     if 'TH' not in j.upper():
-                        self.test_joint(j, prefix=file_prefix)
+                        if file_prefix == '':
+                            file_prefix = '_'
+                        self.test_joint(j, mode='testing', prefix=file_prefix)
             elif command_type.upper() == CONST_EFFORT_CHAR:
                 file_prefix = raw_input("enter file prefix:")
                 for j in lst:
                     if 'TH' not in j.upper():
                         if 'LF' in j.upper() or 'RF' in j.upper():
                             angle = str(float(angle)*(-1.0))
-                        self.test_joint_2(j, 'PWM', value=angle, prefix=file_prefix + '_plus')
+                        self.test_joint(j, 'PWM', value=angle, prefix=file_prefix + '_plus')
                         rospy.sleep(1)
-                        self.test_joint_2(j, 'PWM', value=str(float(angle)*(-1.0)), prefix=file_prefix + '_minus')
+                        self.test_joint(j, 'PWM', value=str(float(angle)*(-1.0)), prefix=file_prefix + '_minus')
                         rospy.sleep(1)
 
     def switch_finger_to_effort(self, finger):
@@ -212,8 +207,6 @@ class TestForceResolution():
         for joint in self.requested_joints:
             if finger in joint:
                 joints_to_change.append(joint)
-        # if finger not in ['th', 'wr']:
-        #     joints_to_change.append(finger + 'j0')
         temp_controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix],
                                                   [joint.lower() for joint in joints_to_change])
         temp_controller_helper.change_hand_ctrl("effort")
@@ -223,20 +216,16 @@ class TestForceResolution():
         for joint in self.requested_joints:
             if finger.lower() in joint.lower():
                 joints_to_change.append(joint)
-        # if finger not in ['th', 'wr']:
-        #     joints_to_change.append(finger + 'j0')
         temp_controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix],
                                                   [joint.lower() for joint in joints_to_change])
         temp_controller_helper.change_hand_ctrl("position")
 
     def switch_to_effort(self):
         self._controller_helper.change_hand_ctrl("effort")
-        # self.stop_j0_controllers()
         self._mode = 'effort'
 
     def switch_to_position(self):
         self._controller_helper.change_hand_ctrl("position")
-        # self.start_j0_controllers()
         self._mode = 'position'
 
     def publish_pwm(self, joint, pwm):
@@ -246,28 +235,7 @@ class TestForceResolution():
         else:
             rospy.logerr("Mode not set to effort, please change this before applying a PWM")
 
-    def run_joint(self, joint):
-        if 'position' not in self._mode:
-            self.go_to_zero_joint_state()
-            self.test_joint(joint)
-            self.go_to_zero_joint_state()
-        else:
-            rospy.logerr("Mode not set to position, please change this before requesting a joint position")
-
-    def test_joint(self, joint, prefix=''):
-        if '4' in joint and 'th' not in joint.lower():
-            self.free_j4(joint)
-        rospy.loginfo("Testing joint %s:", joint)
-        self.activate_output(joint, True)
-        self.move_joint_minmax(joint, 'min')
-        self.move_joint_minmax(joint, 'max')
-        self.move_joint_angle(joint, 0)
-        self.activate_output(joint, False)
-        self.write_output_dictionaries(joint, prefix)
-        print
-        print
-
-    def test_joint_2(self, joint, mode='testing', value=0, sleep=3, prefix=''):
+    def test_joint(self, joint, mode='testing', value=0, sleep=3, prefix=''):
         if '4' in joint and 'th' not in joint.lower():
             self.free_j4(joint)
             rospy.sleep(1.5)
