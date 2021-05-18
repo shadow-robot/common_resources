@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright 2019 Shadow Robot Company Ltd.
 #
@@ -15,7 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-from builtin import round
+from builtins import round
 import sys
 import rospy
 import psutil
