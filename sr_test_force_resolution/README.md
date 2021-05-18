@@ -11,7 +11,12 @@ cd force_resolution_tests
 rosrun sr_test_force_resolution sr_test_force_resolution.py
 ```
 
-Type the joint you wish to move/test (e.g. `ffj3`)
+Example commands: 
+using effort (PWM) mode, apply a pwm of -150 to rfj3: `e_rfj3_-150`
+
+using position mode, set all J3s to 60 degrees: `p_j3_60`
+
+Other examples are printed when the program starts
 
 The joint will move and the program will generate two CSV files in `~/force_resolution_tests`, one called `jointstate_{JOINTNAME}_{DATETIME}.csv` and another called `controllerstate_{JOINTNAME}_{DATETIME}.csv`
 
@@ -19,4 +24,4 @@ The `jointstate_...` file has the following columns:      timestamp,position,vel
 
 The `controllerstate_...` file has the following columns: timestamp,command,setpoint,process_value,process_value_dot
 
-Alternatively, instead of typing the joint you want to test, you can type the letter 'a' and press enter to perform tests on all of the hand joints
+To quit, type `q`
