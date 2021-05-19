@@ -46,6 +46,125 @@ class ControllerStateMonitor():
         self.subscriber.unsubscribe()
 
 
+class TestHandCommand():
+    def __init__(self, joint_ranges, requested_joints):
+        self.requested_joints = requested_joints
+	self._joint_ranges = joint_ranges
+        self.cmd = None
+        self.joint = None
+	self.finger = None
+        self.value = None
+        self.finger_joint = None
+        self.joints_list = []
+        self.all = False
+        self.CONST_EXIT_CHAR = 'Q'
+        self.CONST_POSITION_CHAR = 'P'
+        self.CONST_EFFORT_CHAR = 'E'
+        self.allowed_commands = [self.CONST_EXIT_CHAR, self.CONST_POSITION_CHAR, self.CONST_EFFORT_CHAR]
+
+    def validate(self):
+        if self.cmd not in self.allowed_commands:
+            rospy.logwarn("Invalid command character: %s", str(self.cmd))
+            return False
+
+    def quit(self):
+        if self.CONST_EXIT_CHAR in self.cmd:
+            return True
+        return False
+
+    def position_mode(self):
+        if self.CONST_POSITION_CHAR in self.cmd:
+            return True
+        return False
+
+    def effort_mode(self):
+        if self.CONST_EFFORT_CHAR in self.cmd:
+            return True
+        return False
+		
+    def parse(self, in_string):
+        if in_string == "":
+            return False
+        if self.CONST_EXIT_CHAR in in_string[0].upper():
+            self.cmd = 'Q'
+            return True
+        split_command = in_string.split('_')
+        if len(split_command) < 3:
+            rospy.logwarn("Invalid command: %s", str(in_string))
+            return False
+        self.cmd = split_command[0].upper()
+        if self.cmd not in self.allowed_commands:
+            rospy.logwarn("Invalid command character: %s", str(self.cmd))
+            return False
+	joint = split_command[1].upper()
+	if joint.split('J')[0] == '':
+            self.all = True
+            self.finger = 'ALL'
+	else:
+            self.all = False
+            self.finger = joint.split('J')[0].upper()
+        self.joint = joint.split('J')[1]
+        for t in split_command:
+            rospy.logwarn("t: %s", t)
+        if not self.all:
+            converted_value = self.convert_min_max(split_command[2])
+            if not converted_value:
+                return False
+            else:
+                self.value = converted_value
+            if self.CONST_POSITION_CHAR in self.cmd:
+                maximum = self._joint_ranges[self.finger][self.joint]['max']
+                minimun = self._joint_ranges[self.finger][self.joint]['min']
+                if float(self.value) > maximum:
+                    rospy.logerr("angle outside range for %s: %s > %s", self.joint, self.value, maximum)
+                    return False
+                if float(self.value) < minimun:
+                    rospy.logerr("angle outside range for %s: %s < %s", self.joint, self.value, minimun)
+                    return False
+            if self.finger + 'J' + self.joint not in self.requested_joints:
+                rospy.logerr("joint %s not recognised", self.finger + 'J' + self.joint)
+                for t in self.requested_joints:
+                    print "r: {}".format(t)
+                return False
+                self.finger_joint = self.finger + 'J' + self.joint
+        else:
+            if self.is_numeric(split_command[2]):
+                self.value = split_command[2]
+            else:
+                return False
+            self.joints_list = [x for x in self.requested_joints if 'J' + self.joint in x and 'TH' not in x]
+        return True
+
+    def convert_min_max(self, in_value):
+        if self.is_numeric(in_value):
+            return in_value
+        if 'min' in in_value.lower():
+            out_value = self._joint_ranges[self.finger][self.joint]['min']
+            rospy.loginfo("joint %s to %s is %s degrees", self.joint, 'min', str(out_value))
+        elif 'max' in in_value.lower():
+            out_value = self._joint_ranges[self.finger][self.joint]['max']
+            rospy.loginfo("joint %s to %s is %s degrees", self.joint, 'max', str(out_value))
+        else:
+            rospy.logwarn("{VALUE} is not numeric, or 'min' or 'max'. Please try again")
+            return False
+        return out_value
+
+    def is_numeric(self, value):
+        unicode_value = unicode(value)
+        if unicode_value.count('-') > 1 or unicode_value.count('.') > 1:
+            return False
+        return unicode_value.replace('-', '').replace('.', '').isnumeric()
+
+    def reset(self):
+        self.cmd = None
+        self.joint = None
+	self.finger = None
+        self.value = None
+        self.all = False
+        self.finger_joint = None
+        self.joint_list = []
+
+
 class TestForceResolution():
     def __init__(self, keyboard_control=True, side="right"):
         self.active_tests = []
@@ -56,6 +175,9 @@ class TestForceResolution():
         self._output_jointstate_keys = ['timestamp', 'position', 'velocity', 'effort']
         self._fingers_with_j0 = ['ff', 'mf', 'rf', 'lf']
         self._mode = ''
+        self._CONST_EXIT_CHAR = 'Q'
+        self._CONST_POSITION_CHAR = 'P'
+        self._CONST_EFFORT_CHAR = 'E'
         self._j0_position_controllers = ["sh_{0}{1}j0_position_controller".format(self._hand_prefix, joint)
                                          for joint in self._fingers_with_j0]
         self.requested_joints = []
@@ -118,6 +240,7 @@ class TestForceResolution():
         for key, value in self._hand_commander.get_current_state().iteritems():
             requested_joint = key.replace(self._hand_prefix, "")
             self.requested_joints.append(requested_joint)
+            print requested_joint
         self._controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix],
                                                    [joint.lower() for joint in self.requested_joints])
         self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
@@ -126,81 +249,49 @@ class TestForceResolution():
         self.setup_pwm_publishers()
         self.initialise_output_dictionary()
         self.setup_controller_subscribers()
+	self.command = TestHandCommand(self._joint_ranges, self.requested_joints)
         while not rospy.is_shutdown():
             self.run()
+            self.command.reset()
 
     def run(self):
-        CONST_EXIT_CHAR = 'Q'
-        CONST_POSITION_CHAR = 'P'
-        CONST_EFFORT_CHAR = 'E'
         self.print_help()
         in_string = raw_input("Please enter command:").upper()
-        if in_string == "":
+	if not self.command.parse(in_string):
             return
-        input_commnad = in_string.split('_')
-        command_type = input_commnad[0].upper()
-        if CONST_EXIT_CHAR in command_type:
+	if self.command.quit():
             rospy.loginfo("Quitting...")
             sys.exit(0)
-        joint = input_commnad[1].upper()
-        angle = input_commnad[2].lower()
-        if 'min' in angle:
-            angle = self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min']
-        elif 'max' in angle:
-            angle = self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max']
-        rospy.loginfo("type: %s joint: %s angle: %s", command_type, joint, angle)
-        if (command_type not in CONST_EXIT_CHAR and
-            command_type not in CONST_EFFORT_CHAR and
-                command_type not in CONST_POSITION_CHAR):
-            rospy.logerr("command type %s not recognised", command_type)
-            return
-        if (joint not in self.requested_joints and
-                joint not in 'ALL' and 'FF' in joint):
-            rospy.logerr("joint %s not recognised", joint)
-            return
-        if CONST_POSITION_CHAR in command_type:
-            if 'FF' in joint:
-                maximum = self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['max']
-                minimun = self._joint_ranges[joint.split('J')[0]][joint.split('J')[1]]['min']
-                if float(angle) > maximum:
-                    rospy.logerr("angle outside range for %s: %s > %s", joint, angle, maximum)
-                    return
-                if float(angle) < minimun:
-                    rospy.logerr("angle outside range for %s: %s < %s", joint, angle, minimun)
-                    return
-        print "type: {type} joint: {joint} angle: {angle}".format(type=command_type, joint=joint, angle=angle)
-        rospy.loginfo("type: %s joint: %s angle: %s", command_type, joint, angle)
-        if [j for j in ['FF', 'RF', 'MF', 'LF', 'TH'] if j in joint]:
-            if command_type.upper() == CONST_POSITION_CHAR:
-                self.test_joint(joint, mode='position', value=angle)
-            elif command_type.upper() == CONST_EFFORT_CHAR:
+        rospy.loginfo("type: %s joint: %s finger: %s angle: %s", self.command.cmd, self.command.joint, self.command.finger, self.command.joint)
+        rospy.loginfo("\n\n\n\n\n")
+        if not self.command.all:
+            if self.command.position_mode():
+                self.test_joint(self.command.finger_joint, mode='position', value=self.command.value)
+            if self.command.effort_mode():
                 file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
                 for i in range(0, 5):
-                    self.test_joint(joint, mode='PWM', value=str(float(angle)*1.0), prefix=file_prefix + '_plus')
+                    self.test_joint(self.command.finger_joint, mode='PWM', value=str(float(self.command.value)), prefix=file_prefix + '_plus')
                     rospy.sleep(1)
-                    self.test_joint(joint, mode='PWM', value=str(float(angle)*-1.0), prefix=file_prefix + '_minus')
+                    self.test_joint(self.command.finger_joint, mode='PWM', value=str(float(self.command.value)*-1.0), prefix=file_prefix + '_minus')
                     rospy.sleep(1)
         else:
-            lst = [j for j in self.requested_joints if str(joint[1]) in j and j[0]+j[1] not in self._fingers_with_j0]
-            for l in lst:
-                rospy.logwarn("acting on: %s", l)
-            if command_type.upper() == CONST_POSITION_CHAR:
+            for joint in self.command.joints_list:
+                rospy.logwarn("acting on: %s", joint)
+            if self.command.position_mode():
                 file_prefix = raw_input("enter file prefix:")
-                for j in lst:
-                    if 'TH' not in j.upper():
-                        if file_prefix == '':
-                            file_prefix = '_'
-                        self.test_joint(j, mode='testing', prefix=file_prefix)
-            elif command_type.upper() == CONST_EFFORT_CHAR:
+                for joint in self.command.joints_list:
+                    if file_prefix == '':
+                        file_prefix = None
+                    self.test_joint(joint, mode='testing', prefix=file_prefix)
+            elif self.command.effort_mode():
                 file_prefix = raw_input("enter file prefix:")
-                for j in lst:
-                    if 'TH' not in j.upper():
-                        if 'LF' in j.upper() or 'RF' in j.upper():
-                            angle = str(float(angle)*(-1.0))
-                        self.test_joint(j, 'PWM', value=angle, prefix=file_prefix + '_plus')
-                        rospy.sleep(1)
-                        self.test_joint(j, 'PWM', value=str(float(angle)*(-1.0)), prefix=file_prefix + '_minus')
-                        rospy.sleep(1)
+                for joint in self.command.joints_list:
+                    if 'LF' in joint.upper() or 'RF' in joint.upper():
+                        self.command.value = str(float(self.command.value)*(-1.0))
+                    self.test_joint(joint, 'PWM', value=self.command.value, prefix=file_prefix + '_plus')
+                    rospy.sleep(1)
+                    self.test_joint(joint, 'PWM', value=str(float(self.command.value)*(-1.0)), prefix=file_prefix + '_minus')
+                    rospy.sleep(1)
 
     def switch_finger_to_effort(self, finger):
         joints_to_change = []
@@ -242,6 +333,8 @@ class TestForceResolution():
         file_prefix = prefix
         if prefix == '':
             file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
+        if prefix == None:
+            file_prefix = ''
         rospy.loginfo("Testing joint %s:", joint)
         self.activate_output(joint, True)
         if mode == 'testing':
