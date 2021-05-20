@@ -14,19 +14,15 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
-import copy
-import termios
 import sys
 import csv
 import datetime
-from pynput import keyboard
 from control_msgs.msg import JointControllerState
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 from sr_robot_commander.sr_hand_commander import SrHandCommander
 from sr_controllers_tools.sr_controller_helper import ControllerHelper
-from controller_manager_msgs.srv import (ListControllers, LoadController,
-                                         SwitchController, SwitchControllerRequest)
+from controller_manager_msgs.srv import SwitchController
 
 
 class ControllerStateMonitor():
@@ -49,10 +45,10 @@ class ControllerStateMonitor():
 class TestHandCommand():
     def __init__(self, joint_ranges, requested_joints):
         self.requested_joints = requested_joints
-	self._joint_ranges = joint_ranges
+        self._joint_ranges = joint_ranges
         self.cmd = None
         self.joint = None
-	self.finger = None
+        self.finger = None
         self.value = None
         self.finger_joint = None
         self.joints_list = []
@@ -81,7 +77,7 @@ class TestHandCommand():
         if self.CONST_EFFORT_CHAR in self.cmd:
             return True
         return False
-		
+
     def parse(self, in_string):
         if in_string == "":
             return False
@@ -96,11 +92,11 @@ class TestHandCommand():
         if self.cmd not in self.allowed_commands:
             rospy.logwarn("Invalid command character: %s", str(self.cmd))
             return False
-	joint = split_command[1].upper()
-	if joint.split('J')[0] == '':
+        joint = split_command[1].upper()
+        if joint.split('J')[0] == '':
             self.all = True
             self.finger = 'ALL'
-	else:
+        else:
             self.all = False
             self.finger = joint.split('J')[0].upper()
         self.joint = joint.split('J')[1]
@@ -126,7 +122,7 @@ class TestHandCommand():
                 for t in self.requested_joints:
                     print "r: {}".format(t)
                 return False
-                self.finger_joint = self.finger + 'J' + self.joint
+            self.finger_joint = self.finger + 'J' + self.joint
         else:
             if self.is_numeric(split_command[2]):
                 self.value = split_command[2]
@@ -158,11 +154,11 @@ class TestHandCommand():
     def reset(self):
         self.cmd = None
         self.joint = None
-	self.finger = None
+        self.finger = None
         self.value = None
         self.all = False
         self.finger_joint = None
-        self.joint_list = []
+        self.joints_list = []
 
 
 class TestForceResolution():
@@ -182,11 +178,11 @@ class TestForceResolution():
                                          for joint in self._fingers_with_j0]
         self.requested_joints = []
         joint_states_zero = {'FFJ1': 0, 'FFJ2': 0, 'FFJ3': 0, 'FFJ4': 0,
-                                   'MFJ1': 0, 'MFJ2': 0, 'MFJ3': 0, 'MFJ4': 0,
-                                   'RFJ1': 0, 'RFJ2': 0, 'RFJ3': 0, 'RFJ4': 0,
-                                   'LFJ1': 0, 'LFJ2': 0, 'LFJ3': 0, 'LFJ4': 0, 'LFJ5': 0,
-                                   'THJ1': 0, 'THJ2': 0, 'THJ3': 0, 'THJ4': 0, 'THJ5': 0,
-                                   'WRJ1': 0, 'WRJ2': 0}
+                             'MFJ1': 0, 'MFJ2': 0, 'MFJ3': 0, 'MFJ4': 0,
+                             'RFJ1': 0, 'RFJ2': 0, 'RFJ3': 0, 'RFJ4': 0,
+                             'LFJ1': 0, 'LFJ2': 0, 'LFJ3': 0, 'LFJ4': 0, 'LFJ5': 0,
+                             'THJ1': 0, 'THJ2': 0, 'THJ3': 0, 'THJ4': 0, 'THJ5': 0,
+                             'WRJ1': 0, 'WRJ2': 0}
         self._joint_states_zero = {}
         for key, value in joint_states_zero.iteritems():
             self._joint_states_zero[self._hand_prefix + key] = value
@@ -245,13 +241,13 @@ class TestForceResolution():
             self.requested_joints.append(requested_joint)
         self._controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix],
                                                    [joint.lower() for joint in self.requested_joints])
-        self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True):
+        self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
         self._switch_controller_service = rospy.ServiceProxy('controller_manager/switch_controller', SwitchController)
         self._pwm_command_publishers = {}
         self.setup_pwm_publishers()
         self.initialise_output_dictionary()
         self.setup_controller_subscribers()
-	self.command = TestHandCommand(self._joint_ranges, self.requested_joints)
+        self.command = TestHandCommand(self._joint_ranges, self.requested_joints)
         while not rospy.is_shutdown():
             self.run()
             self.command.reset()
@@ -259,23 +255,25 @@ class TestForceResolution():
     def run(self):
         self.print_help()
         in_string = raw_input("Please enter command:").upper()
-	if not self.command.parse(in_string):
+        if not self.command.parse(in_string):
             return
-	if self.command.quit():
+        if self.command.quit():
             rospy.loginfo("Quitting...")
             sys.exit(0)
-        rospy.loginfo("type: %s joint: %s finger: %s angle: %s", self.command.cmd, self.command.joint, self.command.finger, self.command.joint)
+        rospy.loginfo("type: %s joint: %s finger: %s angle: %s", self.command.cmd, self.command.joint,
+                      self.command.finger, self.command.joint)
         rospy.loginfo("\n\n\n\n\n")
         if not self.command.all:
             if self.command.position_mode():
                 self.test_joint(self.command.finger_joint, mode='position', value=self.command.value)
             if self.command.effort_mode():
                 file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
-                for i in range(0, 5):
-                    self.test_joint(self.command.finger_joint, mode='PWM', value=str(float(self.command.value)), prefix=file_prefix + '_plus')
-                    rospy.sleep(1)
-                    self.test_joint(self.command.finger_joint, mode='PWM', value=str(float(self.command.value)*-1.0), prefix=file_prefix + '_minus')
-                    rospy.sleep(1)
+                self.test_joint(self.command.finger_joint, mode='PWM', value=str(float(self.command.value)),
+                                prefix=file_prefix + '_plus')
+                rospy.sleep(1)
+                self.test_joint(self.command.finger_joint, mode='PWM', value=str(float(self.command.value)*-1.0),
+                                prefix=file_prefix + '_minus')
+                rospy.sleep(1)
         else:
             for joint in self.command.joints_list:
                 rospy.logwarn("acting on: %s", joint)
@@ -292,7 +290,8 @@ class TestForceResolution():
                         self.command.value = str(float(self.command.value)*(-1.0))
                     self.test_joint(joint, 'PWM', value=self.command.value, prefix=file_prefix + '_plus')
                     rospy.sleep(1)
-                    self.test_joint(joint, 'PWM', value=str(float(self.command.value)*(-1.0)), prefix=file_prefix + '_minus')
+                    self.test_joint(joint, 'PWM', value=str(float(self.command.value)*(-1.0)),
+                                    prefix=file_prefix + '_minus')
                     rospy.sleep(1)
 
     def switch_finger_to_effort(self, finger):
@@ -336,7 +335,7 @@ class TestForceResolution():
         file_prefix = prefix
         if prefix == '':
             file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
-        if prefix == None:
+        if prefix is None:
             file_prefix = ''
         rospy.loginfo("Testing joint %s:", joint)
         self.activate_output(joint, True)
