@@ -166,7 +166,7 @@ class TestHandCommand():
 
 
 class TestForceResolution():
-    def __init__(self, keyboard_control=True, side="right"):
+    def __init__(self, side="right"):
         self.active_tests = []
         self._controller_subscribers = {}
         self._last_joint_state = JointState()
@@ -181,12 +181,15 @@ class TestForceResolution():
         self._j0_position_controllers = ["sh_{0}{1}j0_position_controller".format(self._hand_prefix, joint)
                                          for joint in self._fingers_with_j0]
         self.requested_joints = []
-        self._joint_states_zero = {'rh_FFJ1': 0, 'rh_FFJ2': 0, 'rh_FFJ3': 0, 'rh_FFJ4': 0,
-                                   'rh_MFJ1': 0, 'rh_MFJ2': 0, 'rh_MFJ3': 0, 'rh_MFJ4': 0,
-                                   'rh_RFJ1': 0, 'rh_RFJ2': 0, 'rh_RFJ3': 0, 'rh_RFJ4': 0,
-                                   'rh_LFJ1': 0, 'rh_LFJ2': 0, 'rh_LFJ3': 0, 'rh_LFJ4': 0, 'rh_LFJ5': 0,
-                                   'rh_THJ1': 0, 'rh_THJ2': 0, 'rh_THJ3': 0, 'rh_THJ4': 0, 'rh_THJ5': 0,
-                                   'rh_WRJ1': 0, 'rh_WRJ2': 0}
+        joint_states_zero = {'FFJ1': 0, 'FFJ2': 0, 'FFJ3': 0, 'FFJ4': 0,
+                                   'MFJ1': 0, 'MFJ2': 0, 'MFJ3': 0, 'MFJ4': 0,
+                                   'RFJ1': 0, 'RFJ2': 0, 'RFJ3': 0, 'RFJ4': 0,
+                                   'LFJ1': 0, 'LFJ2': 0, 'LFJ3': 0, 'LFJ4': 0, 'LFJ5': 0,
+                                   'THJ1': 0, 'THJ2': 0, 'THJ3': 0, 'THJ4': 0, 'THJ5': 0,
+                                   'WRJ1': 0, 'WRJ2': 0}
+        self._joint_states_zero = {}
+        for key, value in joint_states_zero.iteritems():
+            self._joint_states_zero[self._hand_prefix + key] = value
         self._joint_ranges = {'TH':
                               {
                                   '5': {'min': -60, 'max': 60},
@@ -240,10 +243,9 @@ class TestForceResolution():
         for key, value in self._hand_commander.get_current_state().iteritems():
             requested_joint = key.replace(self._hand_prefix, "")
             self.requested_joints.append(requested_joint)
-            print requested_joint
         self._controller_helper = ControllerHelper([self._hand_prefix[0] + 'h'], [self._hand_prefix],
                                                    [joint.lower() for joint in self.requested_joints])
-        self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
+        self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True):
         self._switch_controller_service = rospy.ServiceProxy('controller_manager/switch_controller', SwitchController)
         self._pwm_command_publishers = {}
         self.setup_pwm_publishers()
@@ -327,6 +329,7 @@ class TestForceResolution():
             rospy.logerr("Mode not set to effort, please change this before applying a PWM")
 
     def test_joint(self, joint, mode='testing', value=0, sleep=3, prefix=''):
+        print joint, joint.lower(), value
         if '4' in joint and 'th' not in joint.lower():
             self.free_j4(joint)
             rospy.sleep(1.5)
@@ -537,8 +540,3 @@ class TestForceResolution():
             for row in rows:
                 writer.writerow(row)
         rospy.loginfo("file: %s saved", filename)
-
-
-if __name__ == '__main__':
-    rospy.init_node("sr_test_force_resolution")
-    test_force_resolution = TestForceResolution()

@@ -1,0 +1,24 @@
+#! /usr/bin/env python
+import argparse
+import rospy
+import sys
+from sr_test_force_resolution.sr_test_force_resolution import TestForceResolution
+
+rospy.init_node('test_force_resolution_node')
+
+if rospy.has_param('/rh/hand_id') and rospy.has_param('/lh/hand_id'):
+    rospy.logerr("This script only supports one hand at a time")
+    exit(0)
+
+if not rospy.has_param('/rh/hand_id') and not rospy.has_param('/lh/hand_id'):
+    rospy.logerr("No hands detected, exiting...")
+    exit(0)
+
+if rospy.has_param('rh/hand_id'):
+    side = 'right'
+
+if rospy.has_param('lh/hand_id'):
+    side = 'left'
+
+test_force_resolution = TestForceResolution(side)
+
