@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
 import rospy
 import time
 import speech_recognition as sr
@@ -23,7 +25,7 @@ from std_msgs.msg import String
 
 class SpeechControl(object):
     def __init__(self, trigger_word, command_words, command_topic='speech_control',
-                 non_speaking_duration=0.1, pause_threshold=0.2):
+                 non_speaking_duration=0.2, pause_threshold=0.2):
         self.trigger_word = trigger_word
         self.command_words = command_words
         self.recognizer = sr.Recognizer()
@@ -50,6 +52,7 @@ class SpeechControl(object):
             return
 
         result = [str(x).lower() for x in result.split(' ')]
+        rospy.logwarn(result)
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
             command = self._filter_word(''.join(result[1:]), self.command_words)
             if command in self.command_words:
