@@ -62,17 +62,16 @@ class SpeechControl(object):
             return
 
         result = [str(x).lower() for x in result.split(' ')]
-        for idx, el in enumerate(result):
-            if el in self.similar_words_dict:
-                result[idx] = self.similar_words_dict[el]
 
-        rospy.logwarn(result)
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
             command = self._filter_word(''.join(result[1:]), self.command_words)
             if command in self.command_words:
                 self.command_to_be_executed = command
 
     def _filter_word(self, word, dictionary, offset=0.5):
+        if word in self.similar_words_dict:
+            word = self.similar_words_dict[word]
+
         result = get_close_matches(word, dictionary, 1, offset)
         if not result:
             return word
