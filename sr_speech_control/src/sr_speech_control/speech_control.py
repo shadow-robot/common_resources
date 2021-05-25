@@ -17,24 +17,33 @@
 from __future__ import absolute_import
 
 import rospy
+import rospkg
 import time
 import speech_recognition as sr
 from difflib import get_close_matches
 from std_msgs.msg import String
+import yaml
 
 
 class SpeechControl(object):
     def __init__(self, trigger_word, command_words, command_topic='speech_control',
-                 non_speaking_duration=0.2, pause_threshold=0.2):
+                 similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2):
         self.trigger_word = trigger_word
         self.command_words = command_words
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         self.command_publisher = rospy.Publisher(command_topic, String, queue_size=1)
         self.command_to_be_executed = None
+        self.similar_words_dict = {}
 
+        if similar_words_dict_path:
+            self.parse_similar_words_dict(similar_words_dict_path)
         self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
+
+    def parse_similar_words_dict(self, path_name):
+        with open(path_name, 'r') as stream:
+            self.similar_words_dict = yaml.safe_load(stream)
 
     def _init_recognizer(self, non_speaking_duration, pause_threshold):
         with self.microphone as source:
@@ -46,12 +55,17 @@ class SpeechControl(object):
         try:
             result = recognizer.recognize_google(audio)
         except sr.UnknownValueError:
+            rospy.logwarn("here ")
             return
         except sr.RequestError as e:
             rospy.logwarn("Could not request results from Google Speech Recognition service: {}".format(e))
             return
 
         result = [str(x).lower() for x in result.split(' ')]
+        for idx, el in enumerate(result):
+            if el in self.similar_words_dict:
+                result[idx] = self.similar_words_dict[el]
+
         rospy.logwarn(result)
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
             command = self._filter_word(''.join(result[1:]), self.command_words)
@@ -79,5 +93,7 @@ if __name__ == "__main__":
 
     trigger_word = "shadow"
     command_words = ["grasp", "release", "disable", "enable", "engage"]
-    sc = SpeechControl(trigger_word, command_words)
+    similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
+
+    sc = SpeechControl(trigger_word, command_words, similar_words_dict_path=similar_words_dict_path)
     sc.run()
