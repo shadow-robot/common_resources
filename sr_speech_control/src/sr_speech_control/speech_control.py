@@ -31,7 +31,8 @@ class SpeechControl(object):
         self.trigger_word = trigger_word
         self.command_words = command_words
         self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        self.microphone = sr.Microphone(device_index=6)
+        rospy.logwarn(self.microphone.list_microphone_names())
         self.command_publisher = rospy.Publisher(command_topic, String, queue_size=1)
         self.command_to_be_executed = None
         self.similar_words_dict = {}
@@ -55,7 +56,6 @@ class SpeechControl(object):
         try:
             result = recognizer.recognize_google(audio)
         except sr.UnknownValueError:
-            rospy.logwarn("here ")
             return
         except sr.RequestError as e:
             rospy.logwarn("Could not request results from Google Speech Recognition service: {}".format(e))
