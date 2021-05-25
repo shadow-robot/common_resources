@@ -26,13 +26,11 @@ import yaml
 
 
 class SpeechControl(object):
-    def __init__(self, trigger_word, command_words, command_topic='speech_control',
+    def __init__(self, trigger_word, command_words, command_topic='sr_speech_control',
                  similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2):
         self.trigger_word = trigger_word
         self.command_words = command_words
         self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone(device_index=6)
-        rospy.logwarn(self.microphone.list_microphone_names())
         self.command_publisher = rospy.Publisher(command_topic, String, queue_size=1)
         self.command_to_be_executed = None
         self.similar_words_dict = {}
@@ -42,13 +40,25 @@ class SpeechControl(object):
         self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
 
+
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
             self.similar_words_dict = yaml.safe_load(stream)
 
     def _init_recognizer(self, non_speaking_duration, pause_threshold):
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source)
+        for idx, mic in enumerate(sr.Microphone.list_microphone_names()):
+            rospy.loginfo('{}: {}'.format(idx, mic))
+
+        while True:
+            try:
+                idx = input("Choose one of the microphones from the list above. Type the index and press [RETURN]\n")
+                self.microphone = sr.Microphone(device_index=int(idx))
+                with self.microphone as source:
+                    self.recognizer.adjust_for_ambient_noise(source)
+                    break
+            except OSError:
+                rospy.logwarn("Wrong microphone. Try again.")
+
         self.recognizer.non_speaking_duration = non_speaking_duration
         self.recognizer.pause_threshold = pause_threshold
 
