@@ -1,0 +1,4 @@
+<launch>    
+    <node name="dummy_publisher_node" pkg="sr_wear_logger" type="dummy_publisher.py" />
+    <test test-name="test_sr_wear_logger" pkg="sr_wear_logger" type="test_sr_wear_logger.py" time-limit="60.0" />
+</launch>
