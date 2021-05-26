@@ -38,7 +38,6 @@ class SpeechControl(object):
         self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
 
-
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
             self.similar_words_dict = yaml.safe_load(stream)
@@ -47,10 +46,13 @@ class SpeechControl(object):
         for idx, mic in enumerate(sr.Microphone.list_microphone_names()):
             rospy.loginfo('{}: {}'.format(idx, mic))
 
-        while True:
+        while not rospy.is_shutdown():
             try:
-                idx = input("Choose one of the microphones from the list above. Type the index and press [RETURN]\n")
-                self.microphone = sr.Microphone(device_index=int(idx))
+                idx = raw_input("Choose one of the microphones from the list above. Type the index and press [RETURN]\n")
+                if not idx:
+                    self.microphone = sr.Microphone()
+                else:
+                    self.microphone = sr.Microphone(device_index=int(idx))
                 with self.microphone as source:
                     self.recognizer.adjust_for_ambient_noise(source)
                     break
@@ -88,10 +90,10 @@ class SpeechControl(object):
     def run(self):
         rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
         while not rospy.is_shutdown():
-                if self.command_to_be_executed:
-                    rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
-                    self.command_publisher.publish(self.command_to_be_executed)
-                    self.command_to_be_executed = None
+            if self.command_to_be_executed:
+                rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
+                self.command_publisher.publish(self.command_to_be_executed)
+                self.command_to_be_executed = None
         self._stop_listening(wait_for_stop=False)
 
 
