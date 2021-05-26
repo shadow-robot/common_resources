@@ -49,10 +49,13 @@ class SpeechControl(object):
         for idx, mic in enumerate(sr.Microphone.list_microphone_names()):
             rospy.loginfo('{}: {}'.format(idx, mic))
 
-        while True:
+        while not rospy.is_shutdown():
             try:
                 idx = input("Choose one of the microphones from the list above. Type the index and press [RETURN]\n")
-                self.microphone = sr.Microphone(device_index=int(idx))
+                if not idx:
+                    self.microphone = sr.Microphone()
+                else:
+                    self.microphone = sr.Microphone(device_index=int(idx))
                 with self.microphone as source:
                     self.recognizer.adjust_for_ambient_noise(source)
                     break
