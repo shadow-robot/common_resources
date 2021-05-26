@@ -23,7 +23,7 @@ import speech_recognition as sr
 from difflib import get_close_matches
 from std_msgs.msg import String
 import yaml
-from buildins import input
+from builtins import input
 
 
 class SpeechControl(object):
