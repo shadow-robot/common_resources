@@ -51,7 +51,8 @@ class SpeechControl(object):
 
         while not rospy.is_shutdown():
             try:
-                idx = input("Choose one of the microphones from the list above. Type the index and press [RETURN]\n")
+                idx = input("Choose one of the microphones from the list above. "
+                    "Type the index or leave empty for default microphone, than press [RETURN]\n")
                 if not idx:
                     self.microphone = sr.Microphone()
                 else:
