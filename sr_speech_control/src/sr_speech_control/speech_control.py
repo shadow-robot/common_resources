@@ -23,6 +23,7 @@ import speech_recognition as sr
 from difflib import get_close_matches
 from std_msgs.msg import String
 import yaml
+from buildins import input
 
 
 class SpeechControl(object):
@@ -39,7 +40,6 @@ class SpeechControl(object):
             self.parse_similar_words_dict(similar_words_dict_path)
         self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
-
 
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
@@ -90,10 +90,10 @@ class SpeechControl(object):
     def run(self):
         rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
         while not rospy.is_shutdown():
-                if self.command_to_be_executed:
-                    rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
-                    self.command_publisher.publish(self.command_to_be_executed)
-                    self.command_to_be_executed = None
+            if self.command_to_be_executed:
+                rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
+                self.command_publisher.publish(self.command_to_be_executed)
+                self.command_to_be_executed = None
         self._stop_listening(wait_for_stop=False)
 
 
