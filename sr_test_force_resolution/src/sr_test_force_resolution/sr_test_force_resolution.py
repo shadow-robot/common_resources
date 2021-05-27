@@ -17,6 +17,7 @@ import rospy
 import sys
 import csv
 import datetime
+import qprompt
 from control_msgs.msg import JointControllerState
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
@@ -52,89 +53,113 @@ class TestHandCommand():
         self.value = None
         self.finger_joint = None
         self.joints_list = []
-        self.all = False
+        self.all_fingers = False
         self.CONST_EXIT_CHAR = 'Q'
         self.CONST_POSITION_CHAR = 'P'
         self.CONST_EFFORT_CHAR = 'E'
+        self._control_type = ""
+        self._menu_lv1 = qprompt.Menu()
+        self._menu_lv2 = qprompt.Menu()
+        self._joint_set = ""
+        self._setup_menus()
         self.allowed_commands = [self.CONST_EXIT_CHAR, self.CONST_POSITION_CHAR, self.CONST_EFFORT_CHAR]
 
-    def validate(self):
-        if self.cmd not in self.allowed_commands:
-            rospy.logwarn("Invalid command character: %s", str(self.cmd))
-            return False
+    def _setup_menus(self):
+        self._menu_lv1.add("p", "position", self.set_control_type_position)
+        self._menu_lv1.add("e", "effort", self.set_control_type_effort)
+        self._menu_lv1.add("q", "quit", self.quit)
+        self._menu_lv2.add("j", "joint", self.set_joint)
+        self._menu_lv2.add("q", "quit", self.quit)
+
+    def set_joint(self):
+        pass
+
+    def set_control_type_position(self):
+        self._control_type = "position"
+
+    def set_control_type_effort(self):
+        self._control_type = "effort"
 
     def quit(self):
-        if self.CONST_EXIT_CHAR in self.cmd:
-            return True
-        return False
+        rospy.loginfo("Quitting...")
+        sys.exit(0)
 
-    def position_mode(self):
-        if self.CONST_POSITION_CHAR in self.cmd:
-            return True
-        return False
+    def menu_level_1(self):
+        self._control_type = ""
+        while self._control_type == "":
+            self._menu_lv1.show()
+        self.menu_level_2()
 
-    def effort_mode(self):
-        if self.CONST_EFFORT_CHAR in self.cmd:
-            return True
-        return False
-
-    def parse(self, in_string):
-        if in_string == "":
-            return False
-        if self.CONST_EXIT_CHAR in in_string[0].upper():
-            self.cmd = 'Q'
-            return True
-        split_command = in_string.split('_')
-        if len(split_command) < 3:
-            rospy.logwarn("Invalid command: %s", str(in_string))
-            return False
-        self.cmd = split_command[0].upper()
-        if self.cmd not in self.allowed_commands:
-            rospy.logwarn("Invalid command character: %s", str(self.cmd))
-            return False
-        joint = split_command[1].upper()
-        if joint.split('J')[0] == '':
-            self.all = True
-            self.finger = 'ALL'
+    def menu_level_2(self):
+        joint_valid = False
+        self.joint = None
+        while not joint_valid:
+            qprompt.info("{} selected!".format(self._control_type))
+            prompt_string = "Please enter a joint (e.g. FFJ3), or to select the same joint across multiple fingers ommit the finger prefix (e.g. J3)"
+            l = qprompt.ask_str(prompt_string).upper()
+            joint_valid = self.validate_joint(l)
+        self.finger_joint = l
+        if 'J' != l[0]:
+            self.all_fingers = False
+            self.joint = l.split('J')[1]
+            self.finger = l.split('J')[0]
+            self.menu_level_3()
         else:
-            self.all = False
-            self.finger = joint.split('J')[0].upper()
-        self.joint = joint.split('J')[1]
-        for t in split_command:
-            rospy.logwarn("t: %s", t)
-        if not self.all:
-            converted_value = self.convert_min_max(split_command[2])
-            if not converted_value:
-                return False
-            else:
-                self.value = converted_value
-            if self.CONST_POSITION_CHAR in self.cmd:
-                maximum = self._joint_ranges[self.finger][self.joint]['max']
-                minimun = self._joint_ranges[self.finger][self.joint]['min']
-                if float(self.value) > maximum:
-                    rospy.logerr("angle outside range for %s: %s > %s", self.joint, self.value, maximum)
-                    return False
-                if float(self.value) < minimun:
-                    rospy.logerr("angle outside range for %s: %s < %s", self.joint, self.value, minimun)
-                    return False
-            if self.finger + 'J' + self.joint not in self.requested_joints:
-                rospy.logerr("joint %s not recognised", self.finger + 'J' + self.joint)
-                for t in self.requested_joints:
-                    print "r: {}".format(t)
-                return False
-            self.finger_joint = self.finger + 'J' + self.joint
-        else:
-            if self.is_numeric(split_command[2]):
-                self.value = split_command[2]
-            else:
-                return False
+            self.all_fingers = True
+            self.joint = l[1]
             self.joints_list = [x for x in self.requested_joints if 'J' + self.joint in x and 'TH' not in x]
+            return
+        rospy.logwarn("%s %s", str(self.finger_joint), str(self.joint))
+
+    def menu_level_3(self):
+        value_valid = False
+        self.value = None
+        while not value_valid:
+            l = qprompt.ask("Please enter a value, or 'min'/'max'")
+            value_valid = self.validate_value(l)
+        self.value = self.convert_min_max(l)
+
+    def validate_value(self, value):
+        if 'min' == value or 'max' == value:
+            return True
+        if 'position' == self._control_type:
+            if not self.check_min_max_limits(value):
+                return False
+            return True
+        return True
+
+    def validate_joint(self, joint):
+        if joint[0] == 'J':
+            try:
+                int(joint[1])
+            except ValueError:
+                return False
+            else:
+                return True
+        for j in self.requested_joints:        
+            if joint.split('J')[0] == j.split('J')[0]:
+                return True
+        rospy.logwarn("%s is not a valid finger", joint.split('J')[0])
+        return False
+
+    def check_min_max_limits(self, in_value):
+        maximum = self._joint_ranges[self.finger][self.joint]['max']
+        minimum = self._joint_ranges[self.finger][self.joint]['min']
+        if float(in_value) > maximum:
+            rospy.logerr("angle outside range for %s: %s > %s", self.finger_joint, in_value, maximum)
+            return False
+        if float(in_value) < minimum:
+            rospy.logerr("angle outside range for %s: %s < %s", self.finger_joint, in_value, minimum)
+            return False
         return True
 
     def convert_min_max(self, in_value):
+        print in_value
         if self.is_numeric(in_value):
             return in_value
         if 'min' in in_value.lower():
+            print self.finger
+            print self.joint
             out_value = self._joint_ranges[self.finger][self.joint]['min']
             rospy.loginfo("joint %s to %s is %s degrees", self.joint, 'min', str(out_value))
         elif 'max' in in_value.lower():
@@ -156,9 +181,11 @@ class TestHandCommand():
         self.joint = None
         self.finger = None
         self.value = None
-        self.all = False
+        self.all_fingers = False
+        self.ready = False
         self.finger_joint = None
         self.joints_list = []
+        self._control_type = ""
 
 
 class TestForceResolution():
@@ -235,6 +262,7 @@ class TestForceResolution():
                           'RF': {'FF': 'min', 'MF': 'min', 'LF': 'min'},
                           'LF': {'FF': 'min', 'MF': 'min', 'RF': 'max'}}
         self._joint_state_subscriber = rospy.Subscriber('/joint_states', JointState, self.joint_state_cb)
+        print "stuff: %s" % (side + "_hand")
         self._hand_commander = SrHandCommander(name=(side + "_hand"))
         for key, value in self._hand_commander.get_current_state().iteritems():
             requested_joint = key.replace(self._hand_prefix, "")
@@ -249,21 +277,16 @@ class TestForceResolution():
         self.setup_controller_subscribers()
         self.command = TestHandCommand(self._joint_ranges, self.requested_joints)
         while not rospy.is_shutdown():
+            self.command.menu_level_1()
             self.run()
+            print "{cmd} {finger} {val}".format(cmd=self.command._control_type, finger=self.command.finger_joint, val=self.command.value)
             self.command.reset()
 
+
     def run(self):
-        self.print_help()
-        in_string = raw_input("Please enter command:").upper()
-        if not self.command.parse(in_string):
-            return
-        if self.command.quit():
-            rospy.loginfo("Quitting...")
-            sys.exit(0)
-        rospy.loginfo("type: %s joint: %s finger: %s angle: %s", self.command.cmd, self.command.joint,
-                      self.command.finger, self.command.joint)
-        rospy.loginfo("\n\n\n\n\n")
-        if not self.command.all:
+        self.command.reset()
+        self.command.menu_level_1()
+        if not self.command.all_fingers:
             if self.command.position_mode():
                 self.test_joint(self.command.finger_joint, mode='position', value=self.command.value)
             if self.command.effort_mode():
@@ -539,3 +562,9 @@ class TestForceResolution():
             for row in rows:
                 writer.writerow(row)
         rospy.loginfo("file: %s saved", filename)
+
+
+
+rospy.init_node("s")
+t = TestForceResolution()
+t.command.menu_level_1()
