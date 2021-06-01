@@ -33,4 +33,6 @@ if __name__ == "__main__":
     if rospy.has_param('lh/hand_id'):
         side = 'left'
     test_force_resolution = TestForceResolution(side)
+    while not rospy.is_shutdown():
+        test_force_resolution.run()
 

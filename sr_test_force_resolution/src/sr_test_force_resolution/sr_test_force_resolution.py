@@ -31,12 +31,12 @@ class ControllerStateMonitor():
         self.name = name
         self.enable_output = False
         self.subscriber = None
-        self.output_controller_state_keys = ['timestamp', 'command', 'setpoint', 'process_value', 'process_value_dot']
+        self._CONST_CONTROLLER_STATE_KEYS = ['timestamp', 'command', 'setpoint', 'process_value', 'process_value_dot']
         self.output_controller_state = {}
         self.initialise_output_dictionary()
 
     def initialise_output_dictionary(self):
-        for key in self.output_controller_state_keys:
+        for key in self._CONST_CONTROLLER_STATE_KEYS:
             self.output_controller_state[key] = []
 
     def unsubscribe_all(self):
@@ -55,15 +55,12 @@ class TestHandCommand():
         self.all_fingers = False
         self.control_type = ""
         self._menu_lv1 = qprompt.Menu()
-        self._menu_lv2 = qprompt.Menu()
         self._setup_menus()
 
     def _setup_menus(self):
         self._menu_lv1.add("p", "position", self.set_control_type_position)
         self._menu_lv1.add("e", "effort", self.set_control_type_effort)
         self._menu_lv1.add("q", "quit", self.quit)
-        self._menu_lv2.add("j", "joint", self.set_joint)
-        self._menu_lv2.add("q", "quit", self.quit)
 
     def set_joint(self):
         pass
@@ -189,7 +186,7 @@ class TestForceResolution():
         self._last_joint_state = JointState()
         self._output_jointstate = {}
         self._hand_prefix = side[0] + 'h_'
-        self._output_jointstate_keys = ['timestamp', 'position', 'velocity', 'effort']
+        self._CONST_JOINTSTATE_KEYS = ['timestamp', 'position', 'velocity', 'effort']
         self._fingers_with_j0 = ['ff', 'mf', 'rf', 'lf']
         self._mode = ''
         self._j0_position_controllers = ["sh_{0}{1}j0_position_controller".format(self._hand_prefix, joint)
@@ -266,8 +263,6 @@ class TestForceResolution():
         self.initialise_output_dictionary()
         self.setup_controller_subscribers()
         self.command = TestHandCommand(self._joint_ranges, self.requested_joints)
-        while not rospy.is_shutdown():
-            self.run()
 
     def run(self):
         self.command.reset()
@@ -369,14 +364,14 @@ class TestForceResolution():
         self.write_output_dictionary('jointstate_',
                                      filename,
                                      self._output_jointstate,
-                                     self._output_jointstate_keys)
+                                     self._CONST_JOINTSTATE_KEYS)
         self.write_output_dictionary('controllerstate_',
                                      filename,
                                      self._controller_subscribers[joint].output_controller_state,
-                                     self._controller_subscribers[joint].output_controller_state_keys)
+                                     self._controller_subscribers[joint]._CONST_CONTROLLER_STATE_KEYS)
 
     def initialise_output_dictionary(self):
-        for key in self._output_jointstate_keys:
+        for key in self._CONST_JOINTSTATE_KEYS:
             self._output_jointstate[key] = []
 
     def activate_output(self, joint, enable):
