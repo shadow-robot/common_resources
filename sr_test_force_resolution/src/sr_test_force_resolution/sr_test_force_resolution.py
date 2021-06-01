@@ -47,22 +47,16 @@ class TestHandCommand():
     def __init__(self, joint_ranges, requested_joints):
         self.requested_joints = requested_joints
         self._joint_ranges = joint_ranges
-        self.cmd = None
         self.joint = None
         self.finger = None
         self.value = None
         self.finger_joint = None
         self.joints_list = []
         self.all_fingers = False
-        self.CONST_EXIT_CHAR = 'Q'
-        self.CONST_POSITION_CHAR = 'P'
-        self.CONST_EFFORT_CHAR = 'E'
         self.control_type = ""
         self._menu_lv1 = qprompt.Menu()
         self._menu_lv2 = qprompt.Menu()
-        self._joint_set = ""
         self._setup_menus()
-        self.allowed_commands = [self.CONST_EXIT_CHAR, self.CONST_POSITION_CHAR, self.CONST_EFFORT_CHAR]
 
     def _setup_menus(self):
         self._menu_lv1.add("p", "position", self.set_control_type_position)
@@ -179,12 +173,10 @@ class TestHandCommand():
         return unicode_value.replace('-', '').replace('.', '').isnumeric()
 
     def reset(self):
-        self.cmd = None
         self.joint = None
         self.finger = None
         self.value = None
         self.all_fingers = False
-        self.ready = False
         self.finger_joint = None
         self.joints_list = []
         self.control_type = ""
@@ -200,9 +192,6 @@ class TestForceResolution():
         self._output_jointstate_keys = ['timestamp', 'position', 'velocity', 'effort']
         self._fingers_with_j0 = ['ff', 'mf', 'rf', 'lf']
         self._mode = ''
-        self._CONST_EXIT_CHAR = 'Q'
-        self._CONST_POSITION_CHAR = 'P'
-        self._CONST_EFFORT_CHAR = 'E'
         self._j0_position_controllers = ["sh_{0}{1}j0_position_controller".format(self._hand_prefix, joint)
                                          for joint in self._fingers_with_j0]
         self.requested_joints = []
