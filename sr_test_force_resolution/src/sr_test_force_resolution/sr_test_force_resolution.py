@@ -276,13 +276,9 @@ class TestForceResolution():
                                                   [joint.lower() for joint in joints_to_change])
         temp_controller_helper.change_hand_ctrl("position")
 
-    def switch_to_effort(self):
-        self._controller_helper.change_hand_ctrl("effort")
-        self._mode = 'effort'
-
-    def switch_to_position(self):
-        self._controller_helper.change_hand_ctrl("position")
-        self._mode = 'position'
+    def switch_all_controllers(self, controller_type):
+        self._controller_helper.change_hand_ctrl(controller_type)
+        self._mode = controller_type
 
     def publish_pwm(self, joint, pwm):
         if 'effort' in self._mode:
@@ -310,18 +306,14 @@ class TestForceResolution():
             self.move_joint_angle(joint, float(value), wait=True)
         self.activate_output(joint, False)
         self.write_output_dictionaries(joint, file_prefix)
-        print
-        print
 
     def free_j4(self, joint):
-        print
         rospy.loginfo("Making some space around %s:", joint)
         which_finger = joint.split('J')[0]
         self._clear_j4[which_finger]
         for key, value in self._clear_j4[which_finger].iteritems():
             self.move_joint_minmax(key + 'J4', value, wait=False)
         self.move_joint_angle(joint, 0, wait=True)
-        print
 
     def write_output_dictionaries(self, joint, prefix=''):
         filename = self.construct_filename(joint, prefix)
@@ -362,11 +354,11 @@ class TestForceResolution():
         self._hand_commander.move_to_joint_value_target(self._joint_states_zero, wait=True, angle_degrees=True)
 
     def move_joint_pwm(self, joint, pwm):
-        self.switch_to_effort()
+        self.switch_all_controllers('effort')
         self.publish_pwm(joint, pwm)
 
     def move_joint_minmax(self, joint, min_max='min', wait=True):
-        self.switch_to_position()
+        self.switch_all_controllers('position')
         target_joint_states = {}
         joint_number = joint.split('J')[1]
         finger = joint.split('J')[0]
@@ -376,7 +368,7 @@ class TestForceResolution():
         self._hand_commander.move_to_joint_value_target(target_joint_states, wait=wait, angle_degrees=True)
 
     def move_joint_angle(self, joint, angle, wait=True):
-        self.switch_to_position()
+        self.switch_all_controllers('position')
         target_joint_states = {}
         target_joint_states[self._hand_prefix + joint.upper()] = angle
         rospy.loginfo("Moving: %s  to: %s", joint, str(angle))
