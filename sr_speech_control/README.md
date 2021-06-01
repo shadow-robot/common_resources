@@ -15,7 +15,7 @@ The node will permanenly listen to the microphone input, will use Google speech
 recognition to translate audio to text, check if text starts with a chosen trigger word and if so, will publish word after the trigger word to a `sr_speech_control` topic (by default) .
 
 The class used has four parameters that can be provided in order to modify the behaviour:
-- `trigger_word` - sets a work that preceeds a command to be sent
+- `trigger_word` - sets a word that preceeds a command to be sent
 - `command_words` - list of commands that are allowed to be sent
 - `similar_words_dict_path` - path to a yaml file containing dictionary of words that are easily mistaken for a trigger word or one of the command words
 - `non_speaking_duration` - seconds of non-speaking audio to keep on both sides of the recording
