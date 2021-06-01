@@ -57,7 +57,7 @@ class TestHandCommand():
         self.CONST_EXIT_CHAR = 'Q'
         self.CONST_POSITION_CHAR = 'P'
         self.CONST_EFFORT_CHAR = 'E'
-        self._control_type = ""
+        self.control_type = ""
         self._menu_lv1 = qprompt.Menu()
         self._menu_lv2 = qprompt.Menu()
         self._joint_set = ""
@@ -75,18 +75,18 @@ class TestHandCommand():
         pass
 
     def set_control_type_position(self):
-        self._control_type = "position"
+        self.control_type = "position"
 
     def set_control_type_effort(self):
-        self._control_type = "effort"
+        self.control_type = "effort"
 
     def quit(self):
         rospy.loginfo("Quitting...")
         sys.exit(0)
 
     def menu_level_1(self):
-        self._control_type = ""
-        while self._control_type == "":
+        self.control_type = ""
+        while self.control_type == "":
             self._menu_lv1.show()
         self.menu_level_2()
 
@@ -94,20 +94,23 @@ class TestHandCommand():
         joint_valid = False
         self.joint = None
         while not joint_valid:
-            qprompt.info("{} selected!".format(self._control_type))
-            prompt_string = "Please enter a joint (e.g. FFJ3), or to select the same joint across multiple fingers ommit the finger prefix (e.g. J3)"
-            l = qprompt.ask_str(prompt_string).upper()
-            joint_valid = self.validate_joint(l)
-        self.finger_joint = l
-        if 'J' != l[0]:
+            qprompt.info("{} selected!".format(self.control_type))
+            prompt_string = "Please enter a joint (e.g. FFJ3), or to"\
+                            "select the same joint across multiple fingers ommit the finger prefix (e.g. J3)"
+            joint_string = qprompt.ask_str(prompt_string).upper()
+            joint_valid = self.validate_joint(joint_string)
+        self.finger_joint = joint_string
+        if 'J' != joint_string[0]:
             self.all_fingers = False
-            self.joint = l.split('J')[1]
-            self.finger = l.split('J')[0]
+            self.joint = joint_string.split('J')[1]
+            self.finger = joint_string.split('J')[0]
             self.menu_level_3()
         else:
             self.all_fingers = True
-            self.joint = l[1]
+            self.joint = joint_string[1]
             self.joints_list = [x for x in self.requested_joints if 'J' + self.joint in x and 'TH' not in x]
+            if self.control_type == 'effort':
+                self.menu_level_3()
             return
         rospy.logwarn("%s %s", str(self.finger_joint), str(self.joint))
 
@@ -122,7 +125,7 @@ class TestHandCommand():
     def validate_value(self, value):
         if 'min' == value or 'max' == value:
             return True
-        if 'position' == self._control_type:
+        if 'position' == self.control_type:
             if not self.check_min_max_limits(value):
                 return False
             return True
@@ -136,10 +139,12 @@ class TestHandCommand():
                 return False
             else:
                 return True
-        for j in self.requested_joints:        
+        for j in self.requested_joints:
             if joint.split('J')[0] == j.split('J')[0]:
-                return True
-        rospy.logwarn("%s is not a valid finger", joint.split('J')[0])
+                for q in self.requested_joints:
+                    if joint.split('J')[1] == j.split('J')[1]:
+                        return True
+        rospy.logwarn("%s is not a valid finger", joint)
         return False
 
     def check_min_max_limits(self, in_value):
@@ -185,7 +190,7 @@ class TestHandCommand():
         self.ready = False
         self.finger_joint = None
         self.joints_list = []
-        self._control_type = ""
+        self.control_type = ""
 
 
 class TestForceResolution():
@@ -277,20 +282,16 @@ class TestForceResolution():
         self.setup_controller_subscribers()
         self.command = TestHandCommand(self._joint_ranges, self.requested_joints)
         while not rospy.is_shutdown():
-            self.command.menu_level_1()
             self.run()
-            print "{cmd} {finger} {val}".format(cmd=self.command._control_type, finger=self.command.finger_joint, val=self.command.value)
-            self.command.reset()
-
 
     def run(self):
         self.command.reset()
         self.command.menu_level_1()
+        file_prefix = qprompt.ask_str("Enter name of test (optional, press enter to skip)")
         if not self.command.all_fingers:
-            if self.command.position_mode():
+            if self.command.control_type == 'position':
                 self.test_joint(self.command.finger_joint, mode='position', value=self.command.value)
-            if self.command.effort_mode():
-                file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
+            else:
                 self.test_joint(self.command.finger_joint, mode='PWM', value=str(float(self.command.value)),
                                 prefix=file_prefix + '_plus')
                 rospy.sleep(1)
@@ -300,14 +301,10 @@ class TestForceResolution():
         else:
             for joint in self.command.joints_list:
                 rospy.logwarn("acting on: %s", joint)
-            if self.command.position_mode():
-                file_prefix = raw_input("enter file prefix:")
+            if self.command.control_type == 'position':
                 for joint in self.command.joints_list:
-                    if file_prefix == '':
-                        file_prefix = None
                     self.test_joint(joint, mode='testing', prefix=file_prefix)
-            elif self.command.effort_mode():
-                file_prefix = raw_input("enter file prefix:")
+            else:
                 for joint in self.command.joints_list:
                     if 'LF' in joint.upper() or 'RF' in joint.upper():
                         self.command.value = str(float(self.command.value)*(-1.0))
@@ -356,10 +353,6 @@ class TestForceResolution():
             self.free_j4(joint)
             rospy.sleep(1.5)
         file_prefix = prefix
-        if prefix == '':
-            file_prefix = raw_input("Name/describe the test (adds text to filename, optional)")
-        if prefix is None:
-            file_prefix = ''
         rospy.loginfo("Testing joint %s:", joint)
         self.activate_output(joint, True)
         if mode == 'testing':
@@ -499,48 +492,6 @@ class TestForceResolution():
             '_' + str(second) + '_' + prefix_s + '.csv'
         return filename
 
-    def print_help(self):
-        print ""
-        print "Command sytax:"
-        print "  {COMMAND_CHAR}_{JOINT_NAME}_{ANGLE/PWM/LIMIT}"
-        print ""
-        print "where:"
-        print "  {COMMAND_CHAR} can be:"
-        print "    p - position mode (move to ANGLE (e.g. 60) or LIMIT (e.g. min or max)"
-        print "    e - effort / direct PWM mode (apply fixed PWM to joint)"
-        print "    q - Quit / exit"
-        print ""
-        print "  {JOINT_NAME} can be either:"
-        print "    {FINGER_NAME}J{JOINT_NUMBER} - for testing individual joints (e.g. FFJ3, RFJ4 etc...)"
-        print "  OR:"
-        print "    J{JOINT_NUMBER}              - for testing the same joint on all fingers (e.g. J3, J4)"
-        print ""
-        print "                                 - If COMMAND_CHAR is 'p', using J{JOINT_NUMBER} will"
-        print "                                   move all joints in sequence to min, then max, then zero"
-        print ""
-        print "                                 - If COMMAND_CHAR is 'e', using J{JOINT_NUMBER} will"
-        print "                                   move apply PWM for three seconds, then -PWM for three seconds"
-        print ""
-        print "  {ANGLE/PWM/LIMIT} can be:"
-        print "    when COMMAND_CHAR is 'p' - this value is taken as an angle (if a number is specified)"
-        print "                             - or as a command to move to joint limit (e.g. 'min', 'max')"
-        print ""
-        print "    when COMMAND_CHAR is 'e' - This value is taken as a direct PWM command"
-        print ""
-        print "Examples:"
-        print "  e_ffj3_200 - Apply a constant PWM of 200 to joint FFJ3"
-        print "  e_ffj3_-240 - Apply a constant PWM of -240 to joint FFJ3"
-        print "  p_ffj3_60  - Move ffj3 to 60 degrees"
-        print "  p_ffj3_-5  - Move ffj3 to -5 degrees"
-        print "  p_j3_0     - Test all joint 3's  (position mode)  in fingers: FF, RF, MF, LF"
-        print "  e_j3_150   - Test all joint 3's (direct PWM mode) in fingers: FF, RF, MF, LF"
-        print "  p_ffj4_min - Move FFJ4 to it's minimum angle"
-        print "  p_rfj3_max - Move RFJ3 to it's maximum angle"
-        print ""
-        print "(Note: Using 'p' or 'e' in COMMAND_CHAR will change ALL controllers to "
-        print "position or effort, not just the controllers for the finger specified)"
-        print ""
-
     def write_output_dictionary(self, filename_prefix, filename, output_dictionary, dictionary_keys):
         fieldnames = []
         rows = []
@@ -562,9 +513,3 @@ class TestForceResolution():
             for row in rows:
                 writer.writerow(row)
         rospy.loginfo("file: %s saved", filename)
-
-
-
-rospy.init_node("s")
-t = TestForceResolution()
-t.command.menu_level_1()
