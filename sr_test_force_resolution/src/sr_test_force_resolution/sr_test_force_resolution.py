@@ -14,6 +14,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import rospy
+import rospkg
+import yaml
 import sys
 import csv
 import datetime
@@ -181,7 +183,7 @@ class TestHandCommand():
 
 class TestForceResolution():
     def __init__(self, side="right"):
-        self.active_tests = []
+        self._active_tests = []
         self._controller_subscribers = {}
         self._last_joint_state = JointState()
         self._output_jointstate = {}
@@ -192,63 +194,17 @@ class TestForceResolution():
         self._j0_position_controllers = ["sh_{0}{1}j0_position_controller".format(self._hand_prefix, joint)
                                          for joint in self._fingers_with_j0]
         self.requested_joints = []
-        joint_states_zero = {'FFJ1': 0, 'FFJ2': 0, 'FFJ3': 0, 'FFJ4': 0,
-                             'MFJ1': 0, 'MFJ2': 0, 'MFJ3': 0, 'MFJ4': 0,
-                             'RFJ1': 0, 'RFJ2': 0, 'RFJ3': 0, 'RFJ4': 0,
-                             'LFJ1': 0, 'LFJ2': 0, 'LFJ3': 0, 'LFJ4': 0, 'LFJ5': 0,
-                             'THJ1': 0, 'THJ2': 0, 'THJ3': 0, 'THJ4': 0, 'THJ5': 0,
-                             'WRJ1': 0, 'WRJ2': 0}
+        rospack = rospkg.RosPack()
+        root_path = rospack.get_path('sr_test_force_resolution') + '/config/'
+        joint_ranges_yaml_path = root_path + 'joint_ranges.yaml'
+        joint_zeros_yaml_path = root_path + 'joint_zeros.yaml'
+        clear_j4_signs_path = root_path + 'clear_j4_signs.yaml'
+        self._joint_ranges = self.load_yaml(joint_ranges_yaml_path)
         self._joint_states_zero = {}
+        joint_states_zero = self.load_yaml(joint_zeros_yaml_path)
         for key, value in joint_states_zero.iteritems():
             self._joint_states_zero[self._hand_prefix + key] = value
-        self._joint_ranges = {'TH':
-                              {
-                                  '5': {'min': -60, 'max': 60},
-                                  '4': {'min': 0,   'max': 70},
-                                  '3': {'min': -12, 'max': 12},
-                                  '2': {'min': -40, 'max': 40},
-                                  '1': {'min': -15, 'max': 90},
-                                  },
-                              'FF':
-                              {
-                                  '4': {'min': -20, 'max': 20},
-                                  '3': {'min': -15, 'max': 90},
-                                  '2': {'min': 0,   'max': 90},
-                                  '1': {'min': 0,   'max': 90},
-                                  },
-                              'MF':
-                              {
-                                  '4': {'min': -20, 'max': 20},
-                                  '3': {'min': -15, 'max': 90},
-                                  '2': {'min': 0,   'max': 90},
-                                  '1': {'min': 0,   'max': 90},
-                                  },
-                              'RF':
-                              {
-                                  '4': {'min': -20, 'max': 20},
-                                  '3': {'min': -15, 'max': 90},
-                                  '2': {'min': 0,   'max': 90},
-                                  '1': {'min': 0,   'max': 90},
-                                  },
-                              'LF':
-                              {
-                                  '5': {'min': 0,   'max': 45},
-                                  '4': {'min': -20, 'max': 20},
-                                  '3': {'min': -15, 'max': 90},
-                                  '2': {'min': 0,   'max': 90},
-                                  '1': {'min': 0,   'max': 90},
-                                  },
-                              'WR':
-                              {
-                                  '1': {'min': -40, 'max': 28},
-                                  '2': {'min': -30, 'max': 10},
-                                  },
-                              }
-
-        self._clear_j4 = {'FF': {'MF': 'max', 'RF': 'min', 'LF': 'min'},
-                          'MF': {'FF': 'min', 'RF': 'min', 'LF': 'min'},
-                          'RF': {'FF': 'min', 'MF': 'min', 'LF': 'min'},
-                          'LF': {'FF': 'min', 'MF': 'min', 'RF': 'max'}}
+        self._clear_j4 = self.load_yaml(clear_j4_signs_path)
         self._joint_state_subscriber = rospy.Subscriber('/joint_states', JointState, self.joint_state_cb)
         self._hand_commander = SrHandCommander(name=(side + "_hand"))
         for key, value in self._hand_commander.get_current_state().iteritems():
@@ -293,6 +249,14 @@ class TestForceResolution():
                     self.test_joint(joint, 'PWM', value=str(float(self.command.value)*(-1.0)),
                                     prefix=file_prefix + '_minus')
                     rospy.sleep(1)
+
+    def load_yaml(self, in_file):
+        try:
+            stream = open(in_file, 'r')
+            return yaml.load(stream)
+        except:
+            rospy.logerr("Error loading config file: %s", in_file)
+            raise
 
     def switch_finger_to_effort(self, finger):
         joints_to_change = []
@@ -378,9 +342,9 @@ class TestForceResolution():
         if enable:
             self._controller_subscribers[joint.upper()].initialise_output_dictionary()
             self.initialise_output_dictionary()
-            self.active_tests.append(joint)
+            self._active_tests.append(joint)
         else:
-            self.active_tests = []
+            self._active_tests = []
         self._controller_subscribers[joint].enable_output = enable
 
     def store_joint_state(self, joint):
@@ -451,8 +415,8 @@ class TestForceResolution():
         self._last_joint_state.position = msg.position
         self._last_joint_state.velocity = msg.velocity
         self._last_joint_state.effort = msg.effort
-        if self.active_tests:
-            self.store_joint_state(self.active_tests[0])
+        if self._active_tests:
+            self.store_joint_state(self._active_tests[0])
 
     def construct_filename(self, joint, prefix_s=''):
         day = datetime.datetime.now().day
