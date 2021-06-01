@@ -159,12 +159,9 @@ class TestHandCommand():
         return True
 
     def convert_min_max(self, in_value):
-        print in_value
         if self.is_numeric(in_value):
             return in_value
         if 'min' in in_value.lower():
-            print self.finger
-            print self.joint
             out_value = self._joint_ranges[self.finger][self.joint]['min']
             rospy.loginfo("joint %s to %s is %s degrees", self.joint, 'min', str(out_value))
         elif 'max' in in_value.lower():
@@ -267,7 +264,6 @@ class TestForceResolution():
                           'RF': {'FF': 'min', 'MF': 'min', 'LF': 'min'},
                           'LF': {'FF': 'min', 'MF': 'min', 'RF': 'max'}}
         self._joint_state_subscriber = rospy.Subscriber('/joint_states', JointState, self.joint_state_cb)
-        print "stuff: %s" % (side + "_hand")
         self._hand_commander = SrHandCommander(name=(side + "_hand"))
         for key, value in self._hand_commander.get_current_state().iteritems():
             requested_joint = key.replace(self._hand_prefix, "")
@@ -348,7 +344,6 @@ class TestForceResolution():
             rospy.logerr("Mode not set to effort, please change this before applying a PWM")
 
     def test_joint(self, joint, mode='testing', value=0, sleep=3, prefix=''):
-        print joint, joint.lower(), value
         if '4' in joint and 'th' not in joint.lower():
             self.free_j4(joint)
             rospy.sleep(1.5)
