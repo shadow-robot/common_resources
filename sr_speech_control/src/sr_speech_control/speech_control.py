@@ -15,34 +15,56 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+
 import rospy
+import rospkg
+import time
 import speech_recognition as sr
 from difflib import get_close_matches
 from std_msgs.msg import String
+import yaml
+from builtins import input
 
 
 class SpeechControl(object):
-    def __init__(self):
-        self.microphone = sr.Microphone()
-        prefer_microphone = rospy.get_param('~prefer_microphone')
-        if prefer_microphone:
-            for i, microphone_name in enumerate(sr.Microphone.list_microphone_names()):
-                if prefer_microphone in microphone_name:
-                    self.microphone = sr.Microphone(device_index=i)
-                    rospy.loginfo("Using preferred microphone: {}".format(microphone_name))
-                    break
-        self.trigger_word = rospy.get_param('~trigger_word', 'shadow')
+    def __init__(self, trigger_word, command_words, command_topic='sr_speech_control',
+                 similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2):
+        self.trigger_word = trigger_word
+        self.command_words = command_words
         self.recognizer = sr.Recognizer()
-        self._set_param_if_provided(self.recognizer, 'non_speaking_duration')
-        self._set_param_if_provided(self.recognizer, 'pause_threshold')
-        self.command_words = rospy.get_param('~command_words', [])
-        topic = rospy.get_param('~topic', 'sr_speech_control')
-        self.command_publisher = rospy.Publisher(topic, String, queue_size=1)
+        self.command_publisher = rospy.Publisher(command_topic, String, queue_size=1)
+        self.command_to_be_executed = None
+        self.similar_words_dict = {}
+
+        if similar_words_dict_path:
+            self.parse_similar_words_dict(similar_words_dict_path)
+        self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
 
-    def _set_param_if_provided(self, object_to_set, param_name):
-        if rospy.has_param('~' + param_name):
-            setattr(object_to_set, param_name, rospy.get_param('~' + param_name))
+    def parse_similar_words_dict(self, path_name):
+        with open(path_name, 'r') as stream:
+            self.similar_words_dict = yaml.safe_load(stream)
+
+    def _init_recognizer(self, non_speaking_duration, pause_threshold):
+        for idx, mic in enumerate(sr.Microphone.list_microphone_names()):
+            rospy.loginfo('{}: {}'.format(idx, mic))
+
+        while not rospy.is_shutdown():
+            try:
+                idx = input("Choose one of the microphones from the list above. "
+                            "Type the index or leave empty for default microphone, than press [RETURN]\n")
+                if not idx:
+                    self.microphone = sr.Microphone()
+                else:
+                    self.microphone = sr.Microphone(device_index=int(idx))
+                with self.microphone as source:
+                    self.recognizer.adjust_for_ambient_noise(source)
+                    break
+            except OSError:
+                rospy.logwarn("Wrong microphone. Try again.")
+
+        self.recognizer.non_speaking_duration = non_speaking_duration
+        self.recognizer.pause_threshold = pause_threshold
 
     def _recognizer_callback(self, recognizer, audio):
         try:
@@ -54,22 +76,37 @@ class SpeechControl(object):
             return
 
         result = [str(x).lower() for x in result.split(' ')]
-        if len(result) > 1:
-            if self._filter_word(result[0], [self.trigger_word]) == self.trigger_word:
-                self.command_publisher.publish(' '.join([self._filter_word(x, self.command_words) for x in result[1:]]))
+
+        if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
+            command = self._filter_word(''.join(result[1:]), self.command_words)
+            if command in self.command_words:
+                self.command_to_be_executed = command
 
     def _filter_word(self, word, dictionary, offset=0.5):
+        if word in self.similar_words_dict:
+            word = self.similar_words_dict[word]
+
         result = get_close_matches(word, dictionary, 1, offset)
         if not result:
             return word
         return result[0]
 
+    def run(self):
+        rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
+        while not rospy.is_shutdown():
+            if self.command_to_be_executed:
+                rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
+                self.command_publisher.publish(self.command_to_be_executed)
+                self.command_to_be_executed = None
+        self._stop_listening(wait_for_stop=False)
+
 
 if __name__ == "__main__":
-    rospy.init_node('sr_speech_control', anonymous=True)
+    rospy.init_node('example_speech_control', anonymous=True)
 
-    sc = SpeechControl()
-    rospy.loginfo("Started speech control. Trigger word: {}, command words: {}".format(
-        sc.trigger_word, sc.command_words))
-    rospy.spin()
-    sc._stop_listening(wait_for_stop=False)
+    trigger_word = "shadow"
+    command_words = ["grasp", "release", "disable", "enable", "engage"]
+    similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
+
+    sc = SpeechControl(trigger_word, command_words, similar_words_dict_path=similar_words_dict_path)
+    sc.run()
