@@ -95,11 +95,11 @@ class SrRunTrajectories(object):
         return parsed_trajectories_dict
 
     def run_trajectory(self, configuration, trajectory_name):
-        if configuration is 'arm':
+        if configuration == 'arm':
             self._arm_commander.run_named_trajectory(self._arm_trajectories[trajectory_name])
-        elif configuration is 'hand':
+        elif configuration == 'hand':
             self._hand_commander.run_named_trajectory(self._hand_trajectories[trajectory_name])
-        elif configuration is 'arm_and_hand':
+        elif configuration == 'arm_and_hand':
             self._arm_and_hand_commander.run_named_trajectory(self._arm_and_hand_trajectories[trajectory_name])
         else:
             rospy.logerr("Unknown configuration!")
