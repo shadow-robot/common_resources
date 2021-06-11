@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020-2021 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from controller_manager_msgs.srv import (ListControllers, LoadController,
                                          SwitchController, SwitchControllerRequest)
 import rospy
+from sr_utilities.hand_finder import HandFinder
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import (ChangeControlType, RobotTeachMode,
                                RobotTeachModeRequest, RobotTeachModeResponse, SetTeachMode)
@@ -120,14 +121,24 @@ class ControllerHelper(object):
         it will block for time_to_reload_params secs to allow hand_controllers parameters to be updated
         """
         success = True
+        hand_finder = HandFinder()
+        hand_quantity = len(hand_finder.get_hand_parameters().joint_prefix)
+        if hand_quantity == 2:
+            hand_robot_prefix = 'sr_bimanual_hands_robot/'
+        elif hand_quantity == 1:
+            hand_robot_prefix = 'sr_hand_robot/'
+        else:
+            raise ValueError('Hand Finder did not find a correct number of hands')
+
         for hand_id in self.robot_ids:
             change_control_type = rospy.ServiceProxy(
-                'sr_hand_robot/' + hand_id + '/change_control_type', ChangeControlType)
+                hand_robot_prefix + hand_id + '/change_control_type', ChangeControlType)
             try:
                 resp1 = change_control_type(chng_type_msg)
                 if resp1.result.control_type != chng_type_msg.control_type:
                     success = False
-            except rospy.ServiceException:
+            except (rospy.ServiceException, rospy.ROSException) as e:
+                rospy.logerr("Service call failed: %s" % (e,))
                 success = False
 
         # Allow some time to reload parameters
@@ -136,4 +147,20 @@ class ControllerHelper(object):
         if not success:
             rospy.logwarn("Failed to change the control type.")
 
+        return success
+
+    def change_arm_teach_mode(self, teach_mode):
+        success = True
+#         set_teach_msg = SetTeachMode()
+#         set_teach_msg.teach_mode = teach_mode
+        for arm_id in self.robot_ids:
+            rospy.loginfo(
+                "Calling service %s", arm_id + '_sr_ur_controller/set_teach_mode')
+            change_teach_mode = rospy.ServiceProxy(
+                arm_id + '_sr_ur_robot_hw/set_teach_mode', SetTeachMode)
+            try:
+                resp = change_teach_mode(teach_mode)
+                success = resp.success
+            except rospy.ServiceException:
+                success = False
         return success
