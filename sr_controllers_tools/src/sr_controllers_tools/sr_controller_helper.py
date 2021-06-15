@@ -151,8 +151,6 @@ class ControllerHelper(object):
 
     def change_arm_teach_mode(self, teach_mode):
         success = True
-#         set_teach_msg = SetTeachMode()
-#         set_teach_msg.teach_mode = teach_mode
         for arm_id in self.robot_ids:
             rospy.loginfo(
                 "Calling service %s", arm_id + '_sr_ur_controller/set_teach_mode')
