@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <world name="default">
-    <!-- Floor and Ceiling 
+    <!-- Floor and Ceiling
     <include>
       <uri>model://ground</uri>
       <name>ground</name>
-      <pose>-0.20 0.60 0.0 0 0 0</pose>
-    </include>
-    <include>
+      <pose>-0.20 0 0.0 0 0 0</pose>
+    </include> 
+     <include>
       <uri>model://ground</uri>
       <name>ground_1</name>
       <pose>-0.20 0.60 2.7 0 0 0</pose>
@@ -40,19 +40,19 @@
       <name>stand_small_1</name>
       <pose>-0.338887 1.047624 0 0 0 0</pose>
     </include>
-    <!--
-    <include>
-      <uri>model://human</uri>
-      <static>true</static>
-      <name>human</name>
-      <pose>-0.72 0.75 0.89 3.145 1.57079632679 3.1451</pose>
-    </include>  -->
 
     <include>
       <uri>model://filling_line</uri>
       <static>true</static>
       <name>filling_line</name>
-      <pose>1.0 -2.6 0.0 0 0 3.1415</pose>
+      <pose>1.5 -2.6 0.0 0 0 3.1415</pose>
+    </include>
+
+    <include>
+      <uri>model://laminar_flow</uri>
+      <static>true</static>
+      <name>laminar_flow</name>
+      <pose>1.5 -1 0.74 0 0 3.1415</pose>
     </include>
     <!-- Right wall 
     <include>
