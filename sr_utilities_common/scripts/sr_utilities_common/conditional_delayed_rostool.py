@@ -20,6 +20,7 @@ import rospy
 import os
 import rosservice
 import sys
+import time
 from multiprocessing import Process
 
 
@@ -61,14 +62,14 @@ class RosElementsHandler(object):
 
 def wait_for_conditions(conditions_to_satisfy, timeout):
     start_time = rospy.Time.now()
-    all_conditions_satisfied = False
 
-    while not all_conditions_satisfied:
+    while True:
         all_conditions_satisfied_list = []
         for condition in list(conditions_to_satisfy.values()):
             all_conditions_satisfied_list.append(condition.check_if_required_element_is_available())
         if all(satisfied for satisfied in all_conditions_satisfied_list):
-            all_conditions_satisfied = True
+            return True
+        time.sleep(0.01)
         if timeout <= 0:
             continue
         if (rospy.Time.now().to_sec() - start_time.to_sec() >= timeout):
@@ -78,7 +79,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
                     rospy.logerr('Could not find the following {}s: {}'.format(condition_type,
                                                                                condition.missing_elements))
             break
-    return all_conditions_satisfied
+    return False
 
 
 if __name__ == "__main__":
