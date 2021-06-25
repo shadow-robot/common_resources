@@ -34,6 +34,7 @@ bool wait_for_param(ros::NodeHandle node_handle, std::string param_name, double 
         ROS_INFO_STREAM("Still waiting for parameter: " << param_name);
         start_time = ros::Time::now();
       }
+      ros::Duration(0.01).sleep();
     }
     return false;
   }
@@ -44,6 +45,7 @@ bool wait_for_param(ros::NodeHandle node_handle, std::string param_name, double 
     {
       return true;
     }
+    ros::Duration(0.1).sleep();
   }
   return false;
 }
