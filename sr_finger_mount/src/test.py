@@ -11,13 +11,6 @@ from std_msgs.msg import Float32
 
 global thumb_press, amp, freq
 
-def int_or_str(text):
-    """Helper function for argument parsing."""
-    try:
-        return int(text)
-    except ValueError:
-        return text
-
 class SrFingerMount():
     def tactile_cb(self, data):        
         global thumb_press, amp, freq
@@ -30,16 +23,7 @@ class SrFingerMount():
         freq_max = 50
         amp = ((thumb_press - thumb_min) / (thumb_max - thumb_min)) * (amp_max - amp_min) + amp_min
         freq = ((thumb_press - thumb_min) / (thumb_max - thumb_min)) * (freq_max - freq_min) + freq_min
-    '''
-    def _init_piezo(self):
-        device_found = False
-        try:
-            device_list = sd.query_devices("BOS1901-KIT")
-            device_found = True
-        except ValueError as e:
-            pass
-        return device_found
-    '''
+
     def __init__(self):
 
         rospy.init_node("sr_finger_mount_test")
@@ -48,7 +32,7 @@ class SrFingerMount():
         rospy.Subscriber("/rh/tactile", ShadowPST, self.tactile_cb)
         rospy.wait_for_message("/rh/tactile", ShadowPST)
        
-        self.pub = rospy.Publisher('/sine_debug', Float32)
+        #self.pub = rospy.Publisher('/sine_debug', Float32)
 
         def callback(outdata, frames, time, status):
             if status:
@@ -58,33 +42,34 @@ class SrFingerMount():
 
             t = (start_idx + np.arange(frames)) / samplerate
             t = t.reshape(-1, 1)
-            amp = 0.4
-            freq = 10
             outdata[:] = amp * np.sin(2 * np.pi * freq * t)
-            outdata = np.sin(np.linspace(start_idx, t[-1], frames))
-            #samples = (np.sin(2*np.pi*np.arange(1023*1)*freq/1023)).astype(np.float32)
-            #outdata = samples
-            #print(outdata[0:10], outdata[-10:-1])
-            #print(t[0], t[-1], frames, len(t))
-            # print(outdata[-50:], end=" ")
-            #print(samples,len(samples))
+            '''
             for i in outdata:
                 self.pub.publish(i)
+            '''
             start_idx += frames
 
         try:     
             with sd.OutputStream(device=args.device, channels=1, callback=callback,
                                 samplerate=samplerate):
                 print(samplerate)
-                print('#' * 80)
+                print('#' * 10)
                 print('press Return to quit')
-                print('#' * 80)
+                print('#' * 10)
                 input()
+
         except KeyboardInterrupt:
             parser.exit('')
         except Exception as e:
             parser.exit(type(e).__name__ + ': ' + str(e))
 
+def int_or_str(text):
+    """Helper function for argument parsing."""
+    try:
+        return int(text)
+    except ValueError:
+        return text
+        
 if __name__ == "__main__":
 
 
@@ -112,7 +97,6 @@ if __name__ == "__main__":
     args = parser.parse_args(remaining)
 
     start_idx = 0
-
     test = SrFingerMount()
     rospy.spin()
     
