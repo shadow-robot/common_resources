@@ -10,6 +10,12 @@ from sr_robot_msgs.msg import ShadowPST
 from std_msgs.msg import Float32
 
 global thumb_press, amp, freq
+global carrier, modulating
+
+carrier_freq = 20
+carrier_amp = 0.1
+
+carrier_signal = np.sin()
 
 class SrFingerMount():
     def tactile_cb(self, data):        
