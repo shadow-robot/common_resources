@@ -21,8 +21,10 @@ class SrFingerMount():
     def tactile_cb(self, data):        
         global thumb_press, amp, freq
         thumb_press = data.pressure[0]
-        thumb_max = 950
-        thumb_min = 330
+        #thumb_max = 950
+        #thumb_min = 330
+        thumb_max = 200
+        thumb_min = 0
         amp_max = 1.5
         amp_min = 0.2
         freq_min = 5
