@@ -90,6 +90,7 @@ if __name__ == "__main__":
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
     arguments_list = rospy.get_param("~launch_args_list", "")
+    node_launch_prefix = rospy.get_param("~launch_prefix", "")
     timeout = rospy.get_param("~timeout", 0)
 
     if rospy.has_param('~topics_list'):
@@ -108,7 +109,7 @@ if __name__ == "__main__":
         if executable_name.endswith('.launch'):
             os.system("roslaunch {} {} {}".format(package_name, executable_name, arguments_list))
         else:
-            os.system("rosrun {} {} {}".format(package_name, executable_name, arguments_list))
+            os.system("{} rosrun {} {} {}".format(node_launch_prefix, package_name, executable_name, arguments_list))
     else:
         rospy.logfatal("{}: Could not launch {} {}, make sure all required conditions are met".format(rospy.get_name(),
                                                                                                       package_name,
