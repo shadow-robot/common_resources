@@ -66,22 +66,24 @@ class SrFingerMount():
             modulating_signal = modulating_amp*np.sin(t*modulating_freq)            
 
             #outdata = np.add(carrier_signal,modulating_signal)
-
-            outdata = carrier_signal
+            #outdata[:] = amp * np.sin(2 * np.pi * freq * t)
+            outdata[:,0] = (amp * np.sin(2 * np.pi * freq * t))[0]
+            outdata[:,1] = (amp * np.sin(2 * np.pi * freq * t))[1]
+            #outdata = carrier_signal
+            print(outdata.shape)
 
             global j 
             if j < 100:                    
-                total_1 += list(outdata)
-                total_1 += list([2])
-                total_2 += list(carrier_signal)
-                total_3 += list(modulating_signal)
+                total_1 += list(outdata[:,0])
+                #total_1 += list([2])
+                total_2 += list(outdata[:,1])
+                #total_3 += list(modulating_signal)
                 j += 1
-    
             
             start_idx += frames
 
         try:     
-            with sd.OutputStream(device=args.device, channels=1, callback=callback,
+            with sd.OutputStream(device=args.device, channels=2, callback=callback,
                                  samplerate=samplerate):
                 print(samplerate)
                 print('#' * 10)
@@ -92,8 +94,8 @@ class SrFingerMount():
                 plt.plot(total_1)
                 plt.subplot(3,1,2)
                 plt.plot(total_2)
-                plt.subplot(3,1,3)
-                plt.plot(total_3)
+                #plt.subplot(3,1,3)
+                #plt.plot(total_3)
                 plt.show()
                 input()
 

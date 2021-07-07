@@ -59,7 +59,8 @@ freqhead = 0
 freqhead_inc = True
 freqhead_dec = False
 
-collection = []
+collection_1 = []
+collection_2 = []
 
 fc = 10
 #amplitude = amp[0]
@@ -73,10 +74,10 @@ def tactile_cb(data):
     thumb_max = 200
     thumb_min = 0
 
-    amp_max = 1.0
-    amp_min = 0.0
-    freq_min = 0
-    freq_max = 50
+    amp_max = 1
+    amp_min = 1
+    freq_min = 1
+    freq_max = 1
     Am = ((thumb_press - thumb_min) / (thumb_max - thumb_min)) * (amp_max - amp_min) + amp_min
     fm = ((thumb_press - thumb_min) / (thumb_max - thumb_min)) * (freq_max - freq_min) + freq_min
     
@@ -92,7 +93,7 @@ try:
     def callback(outdata, frames, time, status):
         if status:
             print(status, file=sys.stderr)
-        global m_phase1, m_phase2, collection
+        global m_phase1, m_phase2, collection_1, collection_2
         global fm, fc, amplitude, oldsignal
         global amp, amphead, amphead_inc, amphead_dec
         global freq, freqhead, freqhead_inc, freqhead_dec
@@ -104,10 +105,12 @@ try:
         #fm = 0
         
         signal = np.zeros(frames)
+        signal_2 = np.zeros(frames)
         for i in range(frames):
             phaseInc1 = 2*np.pi*fm/samplerate
             phaseInc2 = 2*np.pi*fc/samplerate
             signal[i] = (Ac + Am * np.sin(m_phase1)) * np.sin(m_phase2)
+            signal_2[i] = (Ac + Am * np.sin(m_phase1+5)) * np.sin(m_phase2-3)
             m_phase1 += phaseInc1
             m_phase2 += phaseInc2
             
@@ -118,13 +121,21 @@ try:
                 
             oldsignal = signal[i]
             
-        collection += list(signal)
+        collection_1 += list(signal)
+        collection_2 += list(signal_2)
         #collection += list([2])
         #t = (m_phase + np.arange(frames)) / samplerate
         #t = t.reshape(-1, 1)
-        signal = signal.reshape(-1, 1)
+        signal = signal.reshape(-1, 384)
+        signal_2 = signal_2.reshape(-1, 384)
+        #print(signal.shape)
+        #print(outdata.shape)
         #signal = amplitude * np.sin(2 * np.pi * f1 * t)
-        outdata[:] = signal
+        outdata[:,0] = signal
+        outdata[:,1] = signal_2
+        print(outdata.shape)
+        #outdata[:,1] = signal_2
+
 
         #m_phase += frames
         
@@ -154,13 +165,16 @@ try:
             freqhead += 1
         #print(frames)
 
-    with sd.OutputStream(device=args.device, channels=1, callback=callback,
+    with sd.OutputStream(device=args.device, channels=2, callback=callback,
                          samplerate=samplerate):
         print('#' * 80)
         print('press Return to quit')
         print('#' * 80)
         input()
-        plt.plot(collection)
+        plt.subplot(2,1,1)
+        plt.plot(collection_1)
+        plt.subplot(2,1,2)
+        plt.plot(collection_2)
         plt.show()
 except KeyboardInterrupt:
     parser.exit('')
