@@ -8,8 +8,17 @@ pub = rospy.Publisher("rh/tactile", ShadowPST, queue_size=1)
 msg = ShadowPST()
 t = 0
 
+i = 0.1
+
 while not rospy.is_shutdown():
     msg.pressure = [int(np.sin(t)*100)+100]
+
+    #msg.pressure = [int(1000 * i)+100]
+
     pub.publish(msg)
-    rospy.Rate(50).sleep()
-    t = t + 0.01
+    rospy.Rate(10).sleep()
+
+    if t % 50.0 == 0:
+        i = i * -1
+
+    t = t + 0.1
