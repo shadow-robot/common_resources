@@ -66,7 +66,7 @@
       <uri>model://collision_test_bar</uri>
       <static>true</static>
       <name>collision_test_bar</name>
-      <pose>0.765391 1.167919 0.735744 0.0 -0.0 0.0</pose>
+      <pose>0.765391 0.4 0.735744 0.0 -0.0 0.0</pose>
     </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
