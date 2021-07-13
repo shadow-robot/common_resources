@@ -169,6 +169,7 @@ target_link_libraries(relay ${catkin_LIBRARIES})
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
         src/sr_utilities_common/heartbeat_publisher.py
+        src/sr_utilities_common/conditional_delayed_rostool.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
