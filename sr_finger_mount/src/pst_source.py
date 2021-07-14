@@ -11,7 +11,7 @@ t = 0
 i = 0.1
 
 while not rospy.is_shutdown():
-    msg.pressure = [int(np.sin(t)*100)+100]
+    msg.pressure = [int(np.sin(t)*100)+100, int(np.sin(t+50)*100)+100, 1 ,2, 3]
 
     #msg.pressure = [int(1000 * i)+100]
 
