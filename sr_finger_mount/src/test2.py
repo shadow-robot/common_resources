@@ -76,6 +76,8 @@ class SrFingerMount():
         self._pst_min = 350
         self._mapped_pst_values = dict()
 
+        self._device_name = "HDA"
+
         self.sub = rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self.tactile_cb)
 
         self._amp_max = 1
@@ -97,7 +99,18 @@ class SrFingerMount():
 
     def check_devices(self):
         needed_devices = math.ceil(len(self._used_fingers)/2)
-        print("needed devices", needed_devices)
+
+        device_list = sd.query_devices()
+
+        present_devices = 0
+        for device in device_list:
+            if self._device_name in device['name']:
+                present_devices += 1
+        
+        if needed_devices != present_devices:
+            rospy.logerr("Not enough dev kits ({}/{}) connected to handle {} fingers".format(present_devices,needed_devices, len(self._used_fingers)))
+            exit(0)
+
 
     def start_piezo(self):
         samplerate = sd.query_devices(args.device, 'output')['default_samplerate']
