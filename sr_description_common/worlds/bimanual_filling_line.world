@@ -30,13 +30,13 @@
       <uri>model://filling_line</uri>
       <static>true</static>
       <name>filling_line</name>
-      <pose>1.5 -2.6 0.0 0 0 3.1415</pose>
+      <pose>3.0 -2.6 0.0 0 0 3.1415</pose>
     </include>
     <include>
       <uri>model://laminar_flow</uri>
       <static>true</static>
       <name>laminar_flow</name>
-      <pose>1.5 -1 0.74 0 0 3.1415</pose>
+      <pose>3.0 -1 0.8 0 0 3.1415</pose>
     </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
