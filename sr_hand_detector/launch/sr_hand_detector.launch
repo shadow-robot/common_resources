@@ -1,3 +1,0 @@
-<launch>
-  <node pkg="sr_hand_detector" type="sr_hand_detector_node" name="sr_hand_detector" launch-prefix="ethercat_grant" output="screen"/>
-</launch>
