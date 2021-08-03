@@ -22,6 +22,7 @@ import rosservice
 import sys
 import time
 from multiprocessing import Process
+from sr_utilities_common.wait_for_param import wait_for_param
 
 
 class RosElementsHandler(object):
@@ -104,6 +105,14 @@ if __name__ == "__main__":
         conditions_to_satisfy["service"] = RosElementsHandler("service", services_list)
 
     all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
+
+    if rospy.has_param('~args_from_param_list'):
+        args_from_param_list = rospy.get_param("~args_from_param_list")
+        for arg_from_param in args_from_param_list:
+            all_conditions_satisfied = all_conditions_satisfied and wait_for_param(arg_from_param, timeout)
+            if not all_conditions_satisfied:
+                break
+            arguments_list += " {}:={}".format(arg_from_param, rospy.get_param(arg_from_param))
 
     if all_conditions_satisfied:
         if executable_name.endswith('.launch'):
