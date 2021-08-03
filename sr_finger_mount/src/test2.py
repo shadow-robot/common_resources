@@ -10,6 +10,7 @@ from sr_robot_msgs.msg import ShadowPST
 from std_msgs.msg import Float32
 import threading
 import time
+import copy
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -42,8 +43,7 @@ parser.add_argument(
     help='amplitude (default: %(default)s)')
 args = parser.parse_args(remaining)
 
-m_phase1 = 0
-m_phase2 = 0
+m_phase = 0
 
 #amp = np.arange(100)/100
 #amp = np.random.randint(0, 100, 2000)/100
@@ -53,8 +53,9 @@ amphead = 0
 amphead_inc = True
 amphead_dec = False
 
-#freq = np.arange(1000, 2500)
-freq = np.random.randint(50, 150, 2000)
+freq = 1
+amp = 1
+#freq = np.random.randint(50, 150, 2000)
 #freq = np.zeros(2000)+0
 
 #print(freq, len(freq))
@@ -62,16 +63,16 @@ freqhead = 0
 freqhead_inc = True
 freqhead_dec = False
 
-collection_1 = []
-collection_2 = []
+collection = []
 
-fc = 10
+
 #amplitude = amp[0]
 oldsignal = 0
 start_idx = 0
-thr_name = ""
+
+
 # Every device has 2 channels 
-# 
+
 class DeviceHandler(threading.Thread):
     def __init__(self, device, fingers, mount):
         super(DeviceHandler, self).__init__()
@@ -89,13 +90,33 @@ class DeviceHandler(threading.Thread):
         t = (start_idx + np.arange(frames)) / self.samplerate 
         t = t.reshape(-1, 1)
         
-        for idx, f in enumerate(self.fingers):
-            xrt = self.mount._am[f]/2 * np.sin(2*np.pi*self.mount._fm[f]*t) + self.mount._am[f]/2
-            outdata[:,idx] = list(xrt)
+        global m_phase, oldsignal, collection, freq, amp
+
+        for idx, f in enumerate(self.fingers):      
+            
+            for i in range(frames):
+                phaseInc = 2*np.pi*freq/self.samplerate
+                outdata[i,idx] = amp * np.sin(m_phase) #+ amp/2
+                m_phase += phaseInc
+                #rospy.logwarn("Current frequency {} and {}".format(freq, phaseInc))
+
+                if np.sign(outdata[i,idx]) != np.sign(oldsignal):
+                    freq = self.mount._fm[f]
+                    amp = self.mount._am[f]
+                    #rospy.logwarn("Updating")
+                    #rospy.logwarn(freq)
+                    #rospy.logwarn(amp)
+                    #collection += list([0.2])
+                    
+                oldsignal = outdata[i,idx]
+
+            #collection += list(outdata[:,0])
+            #collection += list([1])
+        
         '''
-        rospy.logwarn("prinitn")
-        rospy.logwarn(outdata.shape)
-        rospy.logwarn(t.shape)
+        for idx, f in enumerate(self.fingers):
+            outdata[:,idx] = list(self.mount._am[f]/2 * np.sin(2*np.pi*self.mount._fm[f]*t) + self.mount._am[f]/2)
+        collection += list(outdata[:,0])
         '''
         start_idx += frames
 
@@ -103,10 +124,15 @@ class DeviceHandler(threading.Thread):
         self.samplerate = sd.query_devices(device_name, 'output')['default_samplerate']  
         with sd.OutputStream(device=device_name, channels=len(fingers), callback=self.callback,
                          samplerate=self.samplerate):
-            print('#' * 80)
-            print('press Return to quit')
-            print('#' * 80)
+            #while not rospy.is_shutdown():
+            #    continue
+
+            global collection 
             input()
+            plt.subplot(1,1,1)
+            plt.plot(collection)
+            plt.show()
+
     
 class SrFingerMount():
     def __init__(self, fingers, hand_id = "rh"):
@@ -123,7 +149,7 @@ class SrFingerMount():
 
         self._amp_max = 1
         self._amp_min = 0.2
-        self._freq_min = 5
+        self._freq_min = 1
         self._freq_max = 25
 
         self._am = dict()
@@ -186,11 +212,8 @@ class SrFingerMount():
             x[i].start()
 
 
-
-        
-
 rospy.init_node("sr_finger_mount_test")
-f_1 = SrFingerMount(["th", "ff", "mf"])
+f_1 = SrFingerMount(["th"]) #, "ff", "mf"])
 
 
 while not rospy.is_shutdown():

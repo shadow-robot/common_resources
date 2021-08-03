@@ -13,14 +13,12 @@ i = 0.1
 while not rospy.is_shutdown():
     a = int(np.sin(t)*100)+100
     b = 200 - a
-    msg.pressure = [a, b, 1 ,2, 3]
+    c = int(np.sin(t+1)*100)+100
+    msg.pressure = [a, b, c ,2, 3]
 
     #msg.pressure = [int(1000 * i)+100]
 
     pub.publish(msg)
     rospy.Rate(10).sleep()
-
-    if t % 50.0 == 0:
-        i = i * -1
 
     t = t + 0.1
