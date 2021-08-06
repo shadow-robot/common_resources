@@ -43,94 +43,73 @@ parser.add_argument(
     help='amplitude (default: %(default)s)')
 args = parser.parse_args(remaining)
 
-m_phase = 0
-
-#amp = np.arange(100)/100
-#amp = np.random.randint(0, 100, 2000)/100
-
-#print(amp, len(amp))
-amphead = 0
-amphead_inc = True
-amphead_dec = False
-
-freq = 1
-amp = 1
-#freq = np.random.randint(50, 150, 2000)
-#freq = np.zeros(2000)+0
-
-#print(freq, len(freq))
-freqhead = 0
-freqhead_inc = True
-freqhead_dec = False
-
-collection = []
-
-
-#amplitude = amp[0]
-oldsignal = 0
-start_idx = 0
-
 
 # Every device has 2 channels 
-
 class DeviceHandler(threading.Thread):
     def __init__(self, device, fingers, mount):
         super(DeviceHandler, self).__init__()
         self.device_name = device
         self.fingers = fingers
         self.mount = mount
-    
+        self.start_idx = [0] * len(self.fingers)
+        self.m_phase = [0] * len(self.fingers)
+        self.oldsignal = [0] * len(self.fingers)
+        self.freq = [1] * len(self.fingers)
+        self.amp = [1] * len(self.fingers)
+
     def run(self):
-        self.start_piezo(self.device_name, self.fingers)
+        for f in self.fingers:
+            self.mount._collection[f] = list()
+        self.start_piezo(self.fingers)
 
     def callback(self, outdata, frames, time, status):
         if status:
             print(status, file=sys.stderr)
-        global start_idx
-        t = (start_idx + np.arange(frames)) / self.samplerate 
-        t = t.reshape(-1, 1)
         
-        global m_phase, oldsignal, collection, freq, amp
+        for i, finger in enumerate(self.fingers):
+                 
+            t = (self.start_idx[i] + np.arange(frames)) / self.samplerate 
+            t = t.reshape(-1, 1)
+            self.start_idx[i] += frames
 
-        for idx, f in enumerate(self.fingers):      
-            
-            for i in range(frames):
-                phaseInc = 2*np.pi*freq/self.samplerate
-                outdata[i,idx] = amp * np.sin(m_phase) #+ amp/2
-                m_phase += phaseInc
+            for frame in range(frames):
+                phaseInc = 2*np.pi*self.freq[i]/self.samplerate
+                outdata[frame,i] = self.amp[i] * np.sin(self.m_phase[i]) #+ amp/2
+                if i == 0:
+                    rospy.logwarn(outdata.shate)
+                    outdata[frame,1] = 0
+                self.m_phase[i] += phaseInc
                 #rospy.logwarn("Current frequency {} and {}".format(freq, phaseInc))
 
-                if np.sign(outdata[i,idx]) != np.sign(oldsignal):
-                    freq = self.mount._fm[f]
-                    amp = self.mount._am[f]
-                    #rospy.logwarn("Updating")
-                    #rospy.logwarn(freq)
-                    #rospy.logwarn(amp)
-                    #collection += list([0.2])
-                    
-                oldsignal = outdata[i,idx]
-
-            #collection += list(outdata[:,0])
-            #collection += list([1])
+                if np.sign(outdata[frame,i]) != np.sign(self.oldsignal[i]):
+                    self.freq[i] = self.mount._fm[finger]
+                    self.amp[i] = self.mount._am[finger]
+                self.oldsignal[i] = outdata[frame,i]
+            
+            self.mount._collection[finger].extend(outdata[:,i])
         
+            
         '''
-        for idx, f in enumerate(self.fingers):
-            outdata[:,idx] = list(self.mount._am[f]/2 * np.sin(2*np.pi*self.mount._fm[f]*t) + self.mount._am[f]/2)
-        collection += list(outdata[:,0])
+        t = (self.start_idx[0] + np.arange(frames)) / self.samplerate 
+        t = t.reshape(-1, 1)
+        self.start_idx[0] += frames
+        outdata[:] = list(self.mount._am['th'] * np.sin(2*np.pi*self.mount._fm['th']*t))
+        #collection += list(outdata[:,0])
         '''
-        start_idx += frames
+        
 
-    def start_piezo(self, device_name, fingers):       
-        self.samplerate = sd.query_devices(device_name, 'output')['default_samplerate']  
-        with sd.OutputStream(device=device_name, channels=len(fingers), callback=self.callback,
+    def start_piezo(self, fingers):       
+        self.samplerate = sd.query_devices(self.device_name, 'output')['default_samplerate']  
+        with sd.OutputStream(device=self.device_name, channels=len(fingers), callback=self.callback,
                          samplerate=self.samplerate):
             #while not rospy.is_shutdown():
             #    continue
 
-            global collection 
-            input()
-            plt.subplot(1,1,1)
-            plt.plot(collection)
+            #global collection 
+            input("Press anything to finish...")
+            for i, f in enumerate(fingers):
+                plt.subplot(len(fingers), 1, i+1)
+                plt.plot(self.mount._collection[f])
             plt.show()
 
     
@@ -154,6 +133,9 @@ class SrFingerMount():
 
         self._am = dict()
         self._fm = dict()
+        self._collection = dict(zip(fingers, list(len(fingers)*list())))
+        rospy.logwarn("Collection")
+        rospy.logwarn(self._collection)
 
         if set(self._used_fingers).intersection(set(self._fingers)):
             pass
@@ -213,7 +195,7 @@ class SrFingerMount():
 
 
 rospy.init_node("sr_finger_mount_test")
-f_1 = SrFingerMount(["th"]) #, "ff", "mf"])
+f_1 = SrFingerMount(["th"])#, 'ff']) #, "ff", "mf"])
 
 
 while not rospy.is_shutdown():
