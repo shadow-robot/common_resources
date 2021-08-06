@@ -75,9 +75,6 @@ class DeviceHandler(threading.Thread):
             for frame in range(frames):
                 phaseInc = 2*np.pi*self.freq[i]/self.samplerate
                 outdata[frame,i] = self.amp[i] * np.sin(self.m_phase[i]) #+ amp/2
-                if i == 0:
-                    rospy.logwarn(outdata.shate)
-                    outdata[frame,1] = 0
                 self.m_phase[i] += phaseInc
                 #rospy.logwarn("Current frequency {} and {}".format(freq, phaseInc))
 
@@ -195,7 +192,7 @@ class SrFingerMount():
 
 
 rospy.init_node("sr_finger_mount_test")
-f_1 = SrFingerMount(["th"])#, 'ff']) #, "ff", "mf"])
+f_1 = SrFingerMount(["th", "ff", "mf"])
 
 
 while not rospy.is_shutdown():
