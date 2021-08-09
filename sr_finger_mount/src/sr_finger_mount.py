@@ -13,7 +13,7 @@ import time
 import copy
 
 
-# Every device has 2 channels 
+# Every device has 2 channels
 class DeviceHandler(threading.Thread):
     def __init__(self, device, fingers, mount):
         super(DeviceHandler, self).__init__()
@@ -27,7 +27,7 @@ class DeviceHandler(threading.Thread):
         self.amp = [1] * len(self.fingers)
 
     def run(self):
-        # for loop only for plotting 
+        # for loop only for plotting
         for f in self.fingers:
             self.mount._collection[f] = list()
 
@@ -45,22 +45,22 @@ class DeviceHandler(threading.Thread):
 
             for frame in range(frames):
                 phaseInc = 2*np.pi*self.freq[i]/self.samplerate
-                outdata[frame,i] = self.amp[i] * np.sin(self.m_phase[i]) #+ amp/2
+                outdata[frame, i] = self.amp[i] * np.sin(self.m_phase[i])
                 self.m_phase[i] += phaseInc
 
-                if np.sign(outdata[frame,i]) != np.sign(self.oldsignal[i]):
+                if np.sign(outdata[frame, i]) != np.sign(self.oldsignal[i]):
                     self.freq[i] = self.mount._fm[finger]
                     self.amp[i] = self.mount._am[finger]
-                self.oldsignal[i] = outdata[frame,i]
+                self.oldsignal[i] = outdata[frame, i]
 
             # only for plotting
-            self.mount._collection[finger].extend(outdata[:,i])
+            self.mount._collection[finger].extend(outdata[:, i])
 
     def start_piezo(self, fingers):
         self.samplerate = sd.query_devices(self.device_name, 'output')['default_samplerate']
         with sd.OutputStream(device=self.device_name, channels=len(fingers), callback=self.callback,
                              samplerate=self.samplerate):
-            #while not rospy.is_shutdown():
+            # while not rospy.is_shutdown():
             #    continue
 
             input("Press anything to finish...")
@@ -69,13 +69,13 @@ class DeviceHandler(threading.Thread):
                 plt.plot(self.mount._collection[f])
             plt.show()
 
-    
+
 class SrFingerMount():
-    def __init__(self, fingers, hand_id = "rh"):
+    def __init__(self, fingers, hand_id="rh"):
         self._used_fingers = fingers
         self._fingers = ["th", "ff", "mf", "rf", "lf"]
-        self._pst_max = 200 # 950
-        self._pst_min = 1 # 350
+        self._pst_max = 200  # 950
+        self._pst_min = 1  # 350
 
         self._acceptable_device_names = ["Boreas DevKit", "BOS1901-KIT"]
         self._used_devices = []
@@ -95,7 +95,7 @@ class SrFingerMount():
 
         if not set(self._used_fingers).intersection(set(self._fingers)):
             rospy.logwarn("Verify used fingers!")
-            return 
+            return
 
         if self.check_devices():
             self.init_all()
@@ -105,10 +105,10 @@ class SrFingerMount():
             mapped_pst_values = dict(zip(self._fingers, data.pressure))
 
             for f in self._used_fingers:
-                self._am[f] = ((mapped_pst_values[f] - self._pst_min) / (self._pst_max - self._pst_min))* \
-                               (self._amp_max - self._amp_min) + self._amp_min
-                self._fm[f] = ((mapped_pst_values[f] - self._pst_min) / (self._pst_max - self._pst_min))* \
-                               (self._freq_max - self._freq_min) + self._freq_min
+                self._am[f] = ((mapped_pst_values[f] - self._pst_min) / (self._pst_max - self._pst_min)) * \
+                              (self._amp_max - self._amp_min) + self._amp_min
+                self._fm[f] = ((mapped_pst_values[f] - self._pst_min) / (self._pst_max - self._pst_min)) * \
+                              (self._freq_max - self._freq_min) + self._freq_min
         else:
             rospy.logwarn("Missing values")
 
@@ -125,7 +125,9 @@ class SrFingerMount():
                     present_devices += 1
 
         if needed_devices > present_devices:
-            rospy.logerr("Not enough dev kits ({}/{}) connected to handle {} fingers".format(present_devices,needed_devices, len(self._used_fingers)))
+            rospy.logerr("Not enough dev kits ({}/{}) connected to handle {} fingers".format(present_devices,
+                                                                                             needed_devices,
+                                                                                             len(self._used_fingers)))
             return False
 
         return True
@@ -146,6 +148,7 @@ class SrFingerMount():
             x[i] = DeviceHandler(device_name, finger_set, self)
             time.sleep(1)
             x[i].start()
+
 
 if __name__ == "__main__":
 
@@ -180,5 +183,4 @@ if __name__ == "__main__":
     args = parser.parse_args(remaining)
 
     rospy.init_node("sr_finger_mount_test")
-    mount = SrFingerMount(["ff"])
-
+    mount = SrFingerMount(["ff", 'mf', 'th'])
