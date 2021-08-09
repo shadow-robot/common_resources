@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+
+from __future__ import absolute_import
 from sr_robot_msgs.msg import ShadowPST
 import numpy as np
 import rospy

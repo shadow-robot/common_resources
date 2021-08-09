@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+
+from __future__ import absolute_import
 import argparse
 import sys
 import math
@@ -7,10 +10,8 @@ import numpy as np
 import sounddevice as sd
 import matplotlib.pyplot as plt
 from sr_robot_msgs.msg import ShadowPST
-from std_msgs.msg import Float32
 import threading
 import time
-import copy
 
 
 class DeviceHandler(threading.Thread):
