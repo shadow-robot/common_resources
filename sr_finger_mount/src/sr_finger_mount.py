@@ -53,7 +53,6 @@ class DeviceHandler(threading.Thread):
                     self.freq[i] = self.mount._fm[finger]
                     self.amp[i] = self.mount._am[finger]
                 self.oldsignal[i] = outdata[frame, i]
-
             '''
             # ONLY FOR PLOTTING PURPOSES
             self.mount._collection[finger].extend(outdata[:, i])
@@ -65,7 +64,6 @@ class DeviceHandler(threading.Thread):
                              samplerate=self.samplerate):
             while not rospy.is_shutdown():
                 continue
-
             '''
             # ONLY FOR PLOTTING PURPOSES
             input("Press anything to finish...")
@@ -79,7 +77,7 @@ class DeviceHandler(threading.Thread):
 class SrFingerMount():
     def __init__(self, fingers, hand_id="rh"):
         self._used_fingers = fingers
-        self._fingers = ["th", "ff", "mf", "rf", "lf"]
+        self._fingers = ["ff", "mf", "rf", "lf", "th"]
         self._pst_max = 200  # 950
         self._pst_min = 1  # 350
 
@@ -88,25 +86,24 @@ class SrFingerMount():
 
         self.sub = rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self._tactile_cb)
 
-        self._amp_max = 1
+        self._amp_max = 1.0
         self._amp_min = 0.2
-        self._freq_min = 1
-        self._freq_max = 25
+        self._freq_min = 5
+        self._freq_max = 30
 
         self._am = dict()
         self._fm = dict()
-
         '''
         # ONLY FOR PLOTTING PURPOSES
         self._collection = dict(zip(fingers, list(len(fingers)*list())))
         '''
-
         if not set(self._used_fingers).intersection(set(self._fingers)):
             rospy.logwarn("Verify used fingers!")
             return
 
         if self.check_devices():
             self.init_all()
+            rospy.logerr("started")
 
     def _tactile_cb(self, data):
         if len(data.pressure) == 5:
@@ -121,7 +118,7 @@ class SrFingerMount():
             rospy.logwarn("Missing values")
 
     def check_devices(self):
-        needed_devices = math.ceil(len(self._used_fingers)/2)
+        needed_devices = math.ceil(len(self._used_fingers)//2)
         device_list = sd.query_devices()
         present_devices = 0
 
@@ -155,35 +152,11 @@ class SrFingerMount():
 
 if __name__ == "__main__":
 
-    def int_or_str(text):
-        """Helper function for argument parsing."""
-        try:
-            return int(text)
-        except ValueError:
-            return text
-
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument(
-        '-l', '--list-devices', action='store_true',
-        help='show list of audio devices and exit')
-    args, remaining = parser.parse_known_args()
-    if args.list_devices:
-        print(sd.query_devices())
-        parser.exit(0)
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        parents=[parser])
-    parser.add_argument(
-        'frequency', nargs='?', metavar='FREQUENCY', type=float, default=500,
-        help='frequency in Hz (default: %(default)s)')
-    parser.add_argument(
-        '-d', '--device', type=int_or_str,
-        help='output device (numeric ID or substring)')
-    parser.add_argument(
-        '-a', '--amplitude', type=float, default=0.2,
-        help='amplitude (default: %(default)s)')
-    args = parser.parse_args(remaining)
-
     rospy.init_node("sr_finger_mount_test")
-    mount = SrFingerMount(["ff", 'mf', 'th'])
+    fingers = rospy.get_param("~fingers", None)
+    side = rospy.get_param("~side", None)
+
+    if fingers is not None:
+        fingers = fingers.split(',')
+
+    mount = SrFingerMount(fingers, side)
