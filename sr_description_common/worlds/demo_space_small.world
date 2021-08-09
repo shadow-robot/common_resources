@@ -61,7 +61,7 @@
           <contact_surface_layer>0.00000</contact_surface_layer>
         </constraints>
       </ode>
-      <real_time_update_rate>1000.0</real_time_update_rate>
+      <real_time_factor>1.0</real_time_factor>
       <max_step_size>0.001000</max_step_size>
     </physics>
     <scene>
