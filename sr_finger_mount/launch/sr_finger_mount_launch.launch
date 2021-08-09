@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
     <arg name="side" default="rh"/>
     <arg name="fingers" default="ff"/>
     <node pkg="sr_finger_mount" type="sr_finger_mount.py" name="SrFingerMount" output="screen">
