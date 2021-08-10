@@ -112,14 +112,12 @@ class SrFingerMount():
         # ONLY FOR PLOTTING PURPOSES
         self._collection = dict(zip(fingers, list(len(fingers)*list())))
         '''
-        
         if not set(self._used_fingers).intersection(set(self._fingers)):
             rospy.logwarn("Verify used fingers!")
             return
 
         if self.check_devices():
             self.init_all()
-            rospy.logerr("started")
 
     def _tactile_cb(self, data):
         if len(data.pressure) == 5:
@@ -157,13 +155,13 @@ class SrFingerMount():
             yield self._used_fingers[i:i + channels_per_device]
 
     def init_all(self):
-        dh = [None, None]
+        device_handlers = [None, None]
         finger_sets = list(self._sublists())
         for i, finger_set in enumerate(finger_sets):
             device_name = self._used_devices[i]
-            dh[i] = DeviceHandler(device_name, finger_set, self)
+            device_handlers[i] = DeviceHandler(device_name, finger_set, self)
             time.sleep(1)
-            dh[i].start()
+            device_handlers[i].start()
 
 
 if __name__ == "__main__":
