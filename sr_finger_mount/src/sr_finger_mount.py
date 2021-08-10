@@ -112,6 +112,7 @@ class SrFingerMount():
         # ONLY FOR PLOTTING PURPOSES
         self._collection = dict(zip(fingers, list(len(fingers)*list())))
         '''
+        
         if not set(self._used_fingers).intersection(set(self._fingers)):
             rospy.logwarn("Verify used fingers!")
             return
@@ -167,9 +168,11 @@ class SrFingerMount():
 
 if __name__ == "__main__":
 
-    rospy.init_node("sr_finger_mount_test")
     fingers = rospy.get_param("~fingers", None)
     side = rospy.get_param("~side", None)
+
+    if side == "rh" or side == "lh":
+        rospy.init_node("sr_"+side+"_finger_mount")
 
     if fingers is not None:
         fingers = fingers.split(',')
