@@ -97,7 +97,6 @@ class SrFingerMount():
 
         if not self._check_devices():
             return
-
         self.init_all()
 
     def _tactile_cb(self, data):
@@ -115,7 +114,7 @@ class SrFingerMount():
                                                                                                len(data.pressure)))
 
     def _check_devices(self):
-        needed_devices = math.ceil(len(self._used_fingers)//2)
+        needed_devices = math.ceil(len(self._used_fingers)/2)
         device_list = sd.query_devices()
         present_devices = 0
 
