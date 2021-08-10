@@ -32,87 +32,66 @@ import time
 class DeviceHandler(threading.Thread):
     def __init__(self, device, fingers, mount):
         super(DeviceHandler, self).__init__()
-        self.device_name = device
-        self.fingers = fingers
-        self.mount = mount
-        self.start_idx = [0] * len(self.fingers)
-        self.m_phase = [0] * len(self.fingers)
-        self.oldsignal = [0] * len(self.fingers)
-        self.freq = [1] * len(self.fingers)
-        self.amp = [1] * len(self.fingers)
+        self._device_name = device
+        self._fingers = fingers
+        self._mount = mount
+        self._start_idx = [0] * len(self._fingers)
+        self._m_phase = [0] * len(self._fingers)
+        self._oldsignal = [0] * len(self._fingers)
+        self._freq = [1] * len(self._fingers)
+        self._amp = [1] * len(self._fingers)
+        self._samplerate = sd.query_devices(self._device_name, 'output')['default_samplerate']
 
     def run(self):
-        '''
-        # FOR-LOOP ONLY FOR PLOTTING PURPOSES
-        for f in self.fingers:
-            self.mount._collection[f] = list()
-        '''
-        self.start_piezo(self.fingers)
+        self.start_piezo(self._fingers)
 
     def callback(self, outdata, frames, time, status):
         if status:
-            print(status, file=sys.stderr)
+            rospy.logwarn(status, file=sys.stderr)
 
-        for i, finger in enumerate(self.fingers):
-
-            t = (self.start_idx[i] + np.arange(frames)) / self.samplerate
-            t = t.reshape(-1, 1)
-            self.start_idx[i] += frames
-
+        for i, finger in enumerate(self._fingers):
             for frame in range(frames):
-                phaseInc = 2*np.pi*self.freq[i]/self.samplerate
-                outdata[frame, i] = self.amp[i] * np.sin(self.m_phase[i])
-                self.m_phase[i] += phaseInc
+                phase_inc = 2*np.pi*self._freq[i]/self._samplerate
+                outdata[frame, i] = self._amp[i] * np.sin(self._m_phase[i])
+                self._m_phase[i] += phase_inc
 
-                if np.sign(outdata[frame, i]) != np.sign(self.oldsignal[i]):
-                    self.freq[i] = self.mount._fm[finger]
-                    self.amp[i] = self.mount._am[finger]
-                self.oldsignal[i] = outdata[frame, i]
-            '''
-            # ONLY FOR PLOTTING PURPOSES
-            self.mount._collection[finger].extend(outdata[:, i])
-            '''
+                if np.sign(outdata[frame, i]) != np.sign(self._oldsignal[i]):
+                    self._freq[i] = self._mount._fm[finger]
+                    self._amp[i] = self._mount._am[finger]
+                self._oldsignal[i] = outdata[frame, i]
+
+            self._start_idx[i] += frames
 
     def start_piezo(self, fingers):
-        self.samplerate = sd.query_devices(self.device_name, 'output')['default_samplerate']
-        with sd.OutputStream(device=self.device_name, channels=len(fingers), callback=self.callback,
-                             samplerate=self.samplerate):
+        with sd.OutputStream(device=self._device_name, channels=len(fingers), callback=self.callback,
+                             samplerate=self._samplerate):
             while not rospy.is_shutdown():
                 continue
-            '''
-            # ONLY FOR PLOTTING PURPOSES
-            input("Press anything to finish...")
-            for i, f in enumerate(fingers):
-                plt.subplot(len(fingers), 1, i+1)
-                plt.plot(self.mount._collection[f])
-            plt.show()
-            '''
 
 
 class SrFingerMount():
+
+    CONST_AMP_MAX = 1.0
+    CONST_AMP_MIN = 0.2
+    CONST_FREQ_MIN = 5
+    CONST_FREQ_MAX = 30
+
+    CONST_PST_MAX = 200  # 1600 for real PSTs
+    CONST_PST_MIN = 1  # 350 for real PSTs
+
+    CONST_FINGERS = ["ff", "mf", "rf", "lf", "th"]
+    CONST_ACCEPTABLE_DEVICE_NAMES = ["Boreas DevKit", "BOS1901-KIT"]
+
     def __init__(self, fingers, hand_id="rh"):
         self._used_fingers = fingers
-        self._fingers = ["ff", "mf", "rf", "lf", "th"]
-        self._pst_max = 200  # 950
-        self._pst_min = 1  # 350
-
-        self._acceptable_device_names = ["Boreas DevKit", "BOS1901-KIT"]
         self._used_devices = []
 
-        self.sub = rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self._tactile_cb)
-
-        self._amp_max = 1.0
-        self._amp_min = 0.2
-        self._freq_min = 5
-        self._freq_max = 30
+        self._sub = rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self._tactile_cb)
 
         self._am = dict()
         self._fm = dict()
-        '''
-        # ONLY FOR PLOTTING PURPOSES
-        self._collection = dict(zip(fingers, list(len(fingers)*list())))
-        '''
-        if not set(self._used_fingers).intersection(set(self._fingers)):
+
+        if not set(self._used_fingers).intersection(set(self.CONST_FINGERS)):
             rospy.logwarn("Verify used fingers!")
             return
 
@@ -121,13 +100,13 @@ class SrFingerMount():
 
     def _tactile_cb(self, data):
         if len(data.pressure) == 5:
-            mapped_pst_values = dict(zip(self._fingers, data.pressure))
+            mapped_pst_values = dict(zip(self.CONST_FINGERS, data.pressure))
 
             for f in self._used_fingers:
-                self._am[f] = ((mapped_pst_values[f] - self._pst_min) / (self._pst_max - self._pst_min)) * \
-                              (self._amp_max - self._amp_min) + self._amp_min
-                self._fm[f] = ((mapped_pst_values[f] - self._pst_min) / (self._pst_max - self._pst_min)) * \
-                              (self._freq_max - self._freq_min) + self._freq_min
+                self._am[f] = ((mapped_pst_values[f]-self.CONST_PST_MIN)/(self.CONST_PST_MAX-self.CONST_PST_MIN)) * \
+                              (self.CONST_AMP_MAX-self.CONST_AMP_MIN)+self.CONST_AMP_MIN
+                self._fm[f] = ((mapped_pst_values[f]-self.CONST_PST_MIN)/(self.CONST_PST_MAX-self.CONST_PST_MIN)) * \
+                              (self.CONST_FREQ_MAX-self.CONST_FREQ_MIN)+self.CONST_FREQ_MIN
         else:
             rospy.logwarn("Missing values")
 
@@ -136,7 +115,7 @@ class SrFingerMount():
         device_list = sd.query_devices()
         present_devices = 0
 
-        for acceptable_device in self._acceptable_device_names:
+        for acceptable_device in self.CONST_ACCEPTABLE_DEVICE_NAMES:
             for device in device_list:
                 if acceptable_device in device['name']:
                     self._used_devices.append(device['name'])
@@ -166,8 +145,8 @@ class SrFingerMount():
 
 if __name__ == "__main__":
 
-    fingers = rospy.get_param("~fingers", None)
-    side = rospy.get_param("~side", None)
+    fingers = rospy.get_param("~fingers", 'th')
+    side = rospy.get_param("~side", 'rh')
 
     if side == "rh" or side == "lh":
         rospy.init_node("sr_"+side+"_finger_mount")
