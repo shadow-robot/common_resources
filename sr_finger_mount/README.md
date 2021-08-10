@@ -13,7 +13,7 @@ Example
 roslaunch sr_finger_mount sr_finger_mount_launch.launch fingers:=th,ff side:=rh
 ```
 
-For testing purposes only **pst_source.py** was added which will mock the data provided through the **/{side}/tactile** topic. The formulas/values there can be freely adjustable if required. To start the mock, start roscore and launch: 
+For testing purposes only, **pst_source.py** was added which will mock the data provided through the **/{side}/tactile** topic. The formulas/values there can be freely adjusted if required. To start the mock, start roscore and launch: 
 
 ```sh
 python pst_source.py
