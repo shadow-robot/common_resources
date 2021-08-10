@@ -56,8 +56,8 @@ class DeviceHandler(threading.Thread):
                 self._m_phase[i] += phase_inc
 
                 if np.sign(outdata[frame, i]) != np.sign(self._oldsignal[i]):
-                    self._freq[i] = self._mount._fm[finger]
-                    self._amp[i] = self._mount._am[finger]
+                    self._freq[i] = self._mount._frequencies[finger]
+                    self._amp[i] = self._mount._amplitudes[finger]
                 self._oldsignal[i] = outdata[frame, i]
 
             self._start_idx[i] += frames
@@ -81,36 +81,40 @@ class SrFingerMount():
 
     CONST_FINGERS = ["ff", "mf", "rf", "lf", "th"]
     CONST_ACCEPTABLE_DEVICE_NAMES = ["Boreas DevKit", "BOS1901-KIT"]
+    CONST_CHANNELS_PER_DEVICE = 2
 
-    def __init__(self, fingers, hand_id="rh"):
+    def __init__(self, fingers, hand_id):
         self._used_fingers = fingers
         self._used_devices = []
+        rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self._tactile_cb)
 
-        self._sub = rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self._tactile_cb)
-
-        self._am = dict()
-        self._fm = dict()
+        self._amplitudes = dict()
+        self._frequencies = dict()
 
         if not set(self._used_fingers).intersection(set(self.CONST_FINGERS)):
-            rospy.logwarn("Verify used fingers!")
+            rospy.logerr("Failed to start node! Used fingers are not one of these: {}".format(self.CONST_FINGERS))
             return
 
-        if self.check_devices():
-            self.init_all()
+        if not self._check_devices():
+            return
+
+        self.init_all()
 
     def _tactile_cb(self, data):
-        if len(data.pressure) == 5:
+        if len(data.pressure) == len(self.CONST_FINGERS):
             mapped_pst_values = dict(zip(self.CONST_FINGERS, data.pressure))
-
             for f in self._used_fingers:
-                self._am[f] = ((mapped_pst_values[f]-self.CONST_PST_MIN)/(self.CONST_PST_MAX-self.CONST_PST_MIN)) * \
-                              (self.CONST_AMP_MAX-self.CONST_AMP_MIN)+self.CONST_AMP_MIN
-                self._fm[f] = ((mapped_pst_values[f]-self.CONST_PST_MIN)/(self.CONST_PST_MAX-self.CONST_PST_MIN)) * \
-                              (self.CONST_FREQ_MAX-self.CONST_FREQ_MIN)+self.CONST_FREQ_MIN
+                self._amplitudes[f] = ((mapped_pst_values[f] - self.CONST_PST_MIN) /
+                                       (self.CONST_PST_MAX - self.CONST_PST_MIN)) * \
+                                      (self.CONST_AMP_MAX - self.CONST_AMP_MIN) + self.CONST_AMP_MIN
+                self._frequencies[f] = ((mapped_pst_values[f] - self.CONST_PST_MIN) /
+                                        (self.CONST_PST_MAX - self.CONST_PST_MIN)) * \
+                                       (self.CONST_FREQ_MAX - self.CONST_FREQ_MIN) + self.CONST_FREQ_MIN
         else:
-            rospy.logwarn("Missing values")
+            rospy.logwarn("Missing data. Expected to receive {}, but got {} PST values".format(len(self.CONST_FINGERS),
+                                                                                               len(data.pressure)))
 
-    def check_devices(self):
+    def _check_devices(self):
         needed_devices = math.ceil(len(self._used_fingers)//2)
         device_list = sd.query_devices()
         present_devices = 0
@@ -129,29 +133,30 @@ class SrFingerMount():
         return True
 
     def _sublists(self):
-        channels_per_device = 2
-        for i in range(0, len(self._used_fingers), channels_per_device):
-            yield self._used_fingers[i:i + channels_per_device]
+        for i in range(0, len(self._used_fingers), self.CONST_CHANNELS_PER_DEVICE):
+            yield self._used_fingers[i:i + self.CONST_CHANNELS_PER_DEVICE]
 
     def init_all(self):
         device_handlers = [None, None]
         finger_sets = list(self._sublists())
         for i, finger_set in enumerate(finger_sets):
             device_name = self._used_devices[i]
-            device_handlers[i] = DeviceHandler(device_name, finger_set, self)
             time.sleep(1)
+            device_handlers[i] = DeviceHandler(device_name, finger_set, self)
             device_handlers[i].start()
 
 
 if __name__ == "__main__":
 
-    fingers = rospy.get_param("~fingers", 'th')
-    side = rospy.get_param("~side", 'rh')
+    rospy.init_node('sr_finger_mount')
 
-    if side == "rh" or side == "lh":
-        rospy.init_node("sr_"+side+"_finger_mount")
+    fingers = rospy.get_param("~fingers", 'th')
+    hand_id = rospy.get_param("~hand_id", 'rh')
+
+    if not (hand_id == "rh" or hand_id == "lh"):
+        raise ValueError('/hand_id is not rh or lh')
 
     if fingers is not None:
         fingers = fingers.split(',')
 
-    mount = SrFingerMount(fingers, side)
+    SrFingerMount(fingers, hand_id)

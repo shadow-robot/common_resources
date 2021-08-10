@@ -18,3 +18,11 @@ For testing purposes only **pst_source.py** was added which will mock the data p
 ```sh
 python pst_source.py
 ```
+
+## Prerequisites
+
+As long as **sounddevice** is not available through rosdep, this library has to be installed manually with:
+
+```sh
+pip3 install sounddevice
+```
