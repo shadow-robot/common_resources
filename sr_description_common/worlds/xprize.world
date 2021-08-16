@@ -14,84 +14,21 @@
       <direction>0 0 -1</direction>
       <cast_shadows>true</cast_shadows>
     </light>
-    <model name="base">
-      <static>true</static>
-      <link name="link">
-        <collision name="collision_base">
-          <geometry>
-            <box>
-              <size>0.8 0.8 0.75</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual_base">
-          <geometry>
-            <box>
-              <size>0.8 0.8 0.75</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/White</name>
-            </script>
-          </material>
-        </visual>
-      </link>
+    <include>
+      <uri>model://xprize_base</uri>
+      <name>xprize_base</name>
       <pose>0 0 0.375 0 0 0</pose>
-    </model>
-    <model name="table">
-      <static>true</static>
-      <link name="link">
-        <collision name="collision_table">
-          <geometry>
-            <box>
-              <size>2 2 0.74</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual_table">
-          <geometry>
-            <box>
-              <size>2 2 0.74</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/White</name>
-            </script>
-          </material>
-        </visual>
-      </link>
+    </include>
+    <include>
+      <uri>model://xprize_table</uri>
+      <name>xprize_table</name>
       <pose>0 0 0.37 0 0 0</pose>
-    </model>
-    <model name="ceiling">
-      <static>true</static>
-      <link name="link">
-        <collision name="collision_ceiling">
-          <geometry>
-            <box>
-              <size>2 2 1</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual_ceiling">
-          <geometry>
-            <box>
-              <size>2 2 1</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/White</name>
-            </script>
-          </material>
-        </visual>
-      </link>
+    </include>
+    <include>
+      <uri>model://xprize_ceiling</uri>
+      <name>xprize_ceiling</name>
       <pose>0 0 2.6 0 0 0</pose>
-    </model>
+    </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
       <ode>
