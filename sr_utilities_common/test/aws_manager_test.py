@@ -24,6 +24,7 @@ import os
 
 BUCKET_NAME = "shadowrobot.benchmarks"
 
+
 class Test_AWS_Manager(object):
     def __init__(self):
         self.aws_manager = AWS_Manager()
