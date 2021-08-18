@@ -28,14 +28,13 @@ import os
 
 class AWS_Manager(object):
     def __init__(self):
-
         self.file_full_paths = []
         self.aws_paths = []
 
         aws_access_key_id = ""
         aws_secret_access_key = ""
         aws_session_token = ""
-        headers = None        
+        headers = None
 
         try:
             with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
@@ -47,7 +46,7 @@ class AWS_Manager(object):
         try:
             response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
 
-            if response.status_code != 200: # Code for success
+            if response.status_code != 200:  # Code for success
                 raise Exception()
 
             result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
