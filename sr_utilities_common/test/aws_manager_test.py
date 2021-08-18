@@ -22,18 +22,19 @@ from sr_utilities_common.manual_test_suite import ManualTestSuite
 from sr_utilities_common.aws_manager import AWS_Manager
 import os
 
+BUCKET_NAME = "shadowrobot.benchmarks"
 
 class Test_AWS_Manager(object):
     def __init__(self):
         self.aws_manager = AWS_Manager()
 
     def aws_get_bucket_structure_with_prefix(self):
-        result_1 = self.aws_manager.get_bucket_structure_with_prefix("shadowrobot.benchmarks", None)
-        result_2 = self.aws_manager.get_bucket_structure_with_prefix("shadowrobot.benchmarks", "test")
+        result_1 = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
+        result_2 = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, "test")
         return result_1 is None and result_2 is not None
 
     def aws_download(self):
-        self.aws_manager.download("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_utilities_common'),
+        self.aws_manager.download(BUCKET_NAME, rospkg.RosPack().get_path('sr_utilities_common'),
                                   'test', ["test.txt"])
         if os.path.exists("test.txt"):
             os.remove("test.txt")
@@ -41,9 +42,9 @@ class Test_AWS_Manager(object):
         return False
 
     def aws_upload(self):
-        self.aws_manager.upload("shadowrobot.benchmarks", rospkg.RosPack().get_path('sr_utilities_common'),
+        self.aws_manager.upload(BUCKET_NAME, rospkg.RosPack().get_path('sr_utilities_common'),
                                 'test', ["test.txt"])
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix("shadowrobot.benchmarks", 'test')
+        folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, 'test')
         if folder_list is not None:
             for element in folder_list:
                 if element['Key'] == 'test/test.txt':
