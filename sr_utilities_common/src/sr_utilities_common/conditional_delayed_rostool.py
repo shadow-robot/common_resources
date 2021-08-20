@@ -56,7 +56,6 @@ class RosElementsHandler(object):
             if not (element and type(element) == str):
                 raise ValueError("{}: Required element is not a string or an empty string".format(rospy.get_name()))
 
-
     def _strip_elements_of_leading_slash_if_present(self):
         for idx, element in enumerate(self.missing_elements):
             if element.startswith("/"):
