@@ -25,6 +25,11 @@ from std_msgs.msg import String
 import yaml
 from builtins import input
 
+import io
+import os
+from gtts import gTTS
+from playsound import playsound
+
 
 class SpeechControl(object):
     def __init__(self, trigger_word, command_words, command_topic='sr_speech_control',
