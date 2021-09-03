@@ -91,12 +91,27 @@ class SpeechControl(object):
             return word
         return result[0]
 
+    def _confirm_voice_command(command = "No command"):
+        language = 'en'
+        command_formatted = "{} - executed".format(command)
+        filename = "test_gtts.wav"
+        try:
+            gtts_obj = gTTS(text=command_formatted, lang=language, slow=False)
+            gtts_obj.save(filename)
+            #os.system('mpg321 --stereo {}'.format(filename))
+            playsound(filename)
+            os.remove(filename)
+            print("Played")
+        except Exception:
+            print("Failed")
+
     def run(self):
         rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
         while not rospy.is_shutdown():
             if self.command_to_be_executed:
                 rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
                 self.command_publisher.publish(self.command_to_be_executed)
+                self._confirm_voice_command(self.command_to_be_executed)
                 self.command_to_be_executed = None
         self._stop_listening(wait_for_stop=False)
 
