@@ -176,3 +176,13 @@ In order to make sure that the node takes no effect on the system at all, e.g. s
 ```sh
 sudo nice -n -18 ./kill_node.sh <node_name>
 ```
+
+## Ros executable wrapper
+
+A very simple script allowing to run any non-ros executable from within a launchfile. Example usage:
+
+```sh
+    <node pkg="sr_utilities_common" type="ros_executable_wrapper.sh" name="ros_executable_wrapper_example" output="screen"
+        args="non-ros-executable-script.sh exemple_arg_1 exemple_arg_2/>
+
+```
