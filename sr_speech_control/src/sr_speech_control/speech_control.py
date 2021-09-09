@@ -29,6 +29,7 @@ from gtts import gTTS
 from io import BytesIO
 from pydub import AudioSegment
 from pydub.playback import play
+import pyaudio
 
 
 class SpeechControl(object):
@@ -60,8 +61,10 @@ class SpeechControl(object):
                             "Type the index or leave empty for default microphone, than press [RETURN]\n")
                 if not idx:
                     self.microphone = sr.Microphone()
+                    self.speaker_idx = None
                 else:
                     self.microphone = sr.Microphone(device_index=int(idx))
+                    self.speaker_idx = int(idx)
                 with self.microphone as source:
                     self.recognizer.adjust_for_ambient_noise(source)
                     break
@@ -81,6 +84,7 @@ class SpeechControl(object):
             return
 
         result = [str(x).lower() for x in result.split(' ')]
+        rospy.logwarn(result)
 
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
             command = self._filter_word(''.join(result[1:]), self.command_words)
@@ -96,7 +100,6 @@ class SpeechControl(object):
             return word
         return result[0]
 
-
     def _confirm_voice_command(self, command):
         language = 'en'
         tts = gTTS(text=command, lang=language, slow=False)
@@ -104,7 +107,8 @@ class SpeechControl(object):
         tts.write_to_fp(fp)
         fp.seek(0)
         audio = AudioSegment.from_file(fp, format="mp3")
-        play(audio)
+        audio = audio.set_frame_rate(int(pyaudio.PyAudio().get_device_info_by_index(self.speaker_idx)['defaultSampleRate']))
+        play(audio, self.speaker_idx)
 
     def run(self):
         rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
@@ -122,7 +126,8 @@ if __name__ == "__main__":
     rospy.init_node('example_speech_control', anonymous=True)
 
     trigger_word = "shadow"
-    command_words_and_feedback = {"grasp":"grasped", "release":"released", "disable":"disabled", "enable":"enabled", "engage":"engaged", "open":"opened"}
+    command_words_and_feedback = {"grasp":"grasped", "release":"released", "disable":"disabled", "enable":"enabled",
+                                  "engage":"engaged", "open":"opened"}
     similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
 
     sc = SpeechControl(trigger_word, command_words_and_feedback, similar_words_dict_path=similar_words_dict_path)
