@@ -108,7 +108,7 @@ class SpeechControl(object):
         fp.seek(0)
         audio = AudioSegment.from_file(fp, format="mp3")
         audio = audio.set_frame_rate(int(pyaudio.PyAudio().get_device_info_by_index(self.speaker_idx)['defaultSampleRate']))
-        play(audio, "E")
+        play(audio, self.speaker_idx)
 
     def run(self):
         rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
