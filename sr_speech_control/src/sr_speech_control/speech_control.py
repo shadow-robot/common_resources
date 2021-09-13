@@ -34,7 +34,9 @@ import pyaudio
 
 class SpeechControl(object):
     def __init__(self, trigger_word, command_words, command_topic='sr_speech_control',
-                 similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2):
+                 similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2,
+                 output_device_name = None):
+
         self.trigger_word = trigger_word
         self.command_words = command_words
         self.recognizer = sr.Recognizer()
@@ -46,7 +48,24 @@ class SpeechControl(object):
             self.parse_similar_words_dict(similar_words_dict_path)
         self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
+        
+        self.output_device_index = 0
+        self.output_device_sample_rate = 0
+        self.get_output_device_data(output_device_name)
 
+    def get_output_device_data(self, device_name = None):
+        p = pyaudio.PyAudio()    
+
+        if device_name:
+            for index in range(0, p.get_device_count()):
+                if device_name in p.get_device_info_by_index(index)['name']:
+                    self.output_device_index = index
+                    self.output_device_sample_rate = p.get_device_info_by_index(index)['defaultSampleRate']
+                    return
+        
+        self.output_device_index = p.get_default_output_device_info()['index']
+        self.output_device_sample_rate = p.get_default_output_device_info()['defaultSampleRate']
+        
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
             self.similar_words_dict = yaml.safe_load(stream)
@@ -61,10 +80,8 @@ class SpeechControl(object):
                             "Type the index or leave empty for default microphone, than press [RETURN]\n")
                 if not idx:
                     self.microphone = sr.Microphone()
-                    self.speaker_idx = None
                 else:
                     self.microphone = sr.Microphone(device_index=int(idx))
-                    self.speaker_idx = int(idx)
                 with self.microphone as source:
                     self.recognizer.adjust_for_ambient_noise(source)
                     break
@@ -84,10 +101,11 @@ class SpeechControl(object):
             return
 
         result = [str(x).lower() for x in result.split(' ')]
-        rospy.logwarn(result)
+        rospy.logwarn("Received: {}".format(result))
 
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
             command = self._filter_word(''.join(result[1:]), self.command_words)
+            rospy.logwarn("Understand as : {}".format(command))
             if command in self.command_words:
                 self.command_to_be_executed = command
 
@@ -100,15 +118,16 @@ class SpeechControl(object):
             return word
         return result[0]
 
-    def _confirm_voice_command(self, command):
+    def _confirm_voice_command(self, command, output_device_index = None):
         language = 'en'
         tts = gTTS(text=command, lang=language, slow=False)
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
         audio = AudioSegment.from_file(fp, format="mp3")
-        audio = audio.set_frame_rate(int(pyaudio.PyAudio().get_device_info_by_index(self.speaker_idx)['defaultSampleRate']))
-        play(audio, self.speaker_idx)
+        if output_device_index != None:
+            audio = audio.set_frame_rate(int(self.output_device_sample_rate))
+        play(audio, output_device_index)
 
     def run(self):
         rospy.loginfo("Started speech control. Trigger word: {}".format(self.trigger_word))
@@ -116,7 +135,7 @@ class SpeechControl(object):
             if self.command_to_be_executed:
                 rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
                 self.command_publisher.publish(self.command_to_be_executed)
-                self._confirm_voice_command(self.command_words[self.command_to_be_executed])
+                self._confirm_voice_command(self.command_words[self.command_to_be_executed], self.output_device_index)
                 self.command_to_be_executed = None
         self._stop_listening(wait_for_stop=False)
 
@@ -126,9 +145,10 @@ if __name__ == "__main__":
     rospy.init_node('example_speech_control', anonymous=True)
 
     trigger_word = "shadow"
-    command_words_and_feedback = {"grasp":"grasped", "release":"released", "disable":"disabled", "enable":"enabled",
-                                  "engage":"engaged", "open":"opened"}
+    command_words_and_feedback = {"grasp": "grasped", "release": "released", "disable": "disabled",
+                                  "enable": "enabled", "engage": "engaged", "open": "opened"}
     similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
 
-    sc = SpeechControl(trigger_word, command_words_and_feedback, similar_words_dict_path=similar_words_dict_path)
+    sc = SpeechControl(trigger_word, command_words_and_feedback, similar_words_dict_path=similar_words_dict_path,
+                       output_device_name="Logitech")
     sc.run()
