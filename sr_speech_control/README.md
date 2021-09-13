@@ -29,7 +29,8 @@ An example usage can be seen in the `speech_control.py` file:
                                   "enable": "enabled", "engage": "engaged", "open": "opened"}
     similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
 
-    sc = SpeechControl(trigger_word, command_words, similar_words_dict_path=similar_words_dict_path, output_device_name="Logitech")
+    sc = SpeechControl(trigger_word, command_words, similar_words_dict_path=similar_words_dict_path,
+                       output_device_name="Logitech")
     sc.run()
 
 ```
