@@ -35,7 +35,7 @@ import pyaudio
 class SpeechControl(object):
     def __init__(self, trigger_word, command_words, command_topic='sr_speech_control',
                  similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2,
-                 output_device_name = None):
+                 output_device_name=None):
 
         self.trigger_word = trigger_word
         self.command_words = command_words
@@ -48,13 +48,13 @@ class SpeechControl(object):
             self.parse_similar_words_dict(similar_words_dict_path)
         self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
-        
+
         self.output_device_index = 0
         self.output_device_sample_rate = 0
         self.get_output_device_data(output_device_name)
 
-    def get_output_device_data(self, device_name = None):
-        p = pyaudio.PyAudio()    
+    def get_output_device_data(self, device_name=None):
+        p = pyaudio.PyAudio()
 
         if device_name:
             for index in range(0, p.get_device_count()):
@@ -62,10 +62,10 @@ class SpeechControl(object):
                     self.output_device_index = index
                     self.output_device_sample_rate = p.get_device_info_by_index(index)['defaultSampleRate']
                     return
-        
+
         self.output_device_index = p.get_default_output_device_info()['index']
         self.output_device_sample_rate = p.get_default_output_device_info()['defaultSampleRate']
-        
+
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
             self.similar_words_dict = yaml.safe_load(stream)
@@ -118,14 +118,14 @@ class SpeechControl(object):
             return word
         return result[0]
 
-    def _confirm_voice_command(self, command, output_device_index = None):
+    def _confirm_voice_command(self, command, output_device_index=None):
         language = 'en'
         tts = gTTS(text=command, lang=language, slow=False)
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
         audio = AudioSegment.from_file(fp, format="mp3")
-        if output_device_index != None:
+        if output_device_index is not None:
             audio = audio.set_frame_rate(int(self.output_device_sample_rate))
         play(audio, output_device_index)
 
