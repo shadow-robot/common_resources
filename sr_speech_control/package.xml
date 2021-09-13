@@ -13,5 +13,6 @@
   <exec_depend>python-speechrecognition-pip</exec_depend>
   <buildtool_depend>python3-pyaudio</buildtool_depend>
   <exec_depend>python3-pyaudio</exec_depend>
+  <exec_depend>python-gTTS-pip</exec_depend>
 
 </package>
