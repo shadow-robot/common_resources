@@ -12,6 +12,11 @@ In order to use the voice feedback it is obligatory to install the related audio
 pip install git+https://github.com/shadow-robot/pydub@output_selection`
 ```
 
+Additionaly you have to install FFmpeg
+```
+sudo apt install ffmpeg
+```
+
 ## Usage
 
 To start the node run:
