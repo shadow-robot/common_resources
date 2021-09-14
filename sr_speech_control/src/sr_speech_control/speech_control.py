@@ -55,16 +55,20 @@ class SpeechControl(object):
 
     def get_output_device_data(self, device_name=None):
         p = pyaudio.PyAudio()
-
         if device_name:
             for index in range(0, p.get_device_count()):
                 if device_name in p.get_device_info_by_index(index)['name']:
                     self.output_device_index = index
                     self.output_device_sample_rate = p.get_device_info_by_index(index)['defaultSampleRate']
                     return
-
-        self.output_device_index = p.get_default_output_device_info()['index']
-        self.output_device_sample_rate = p.get_default_output_device_info()['defaultSampleRate']
+        try:
+            self.output_device_index = p.get_default_output_device_info()['index']
+            self.output_device_sample_rate = p.get_default_output_device_info()['defaultSampleRate']
+        except IOError:
+            device_info = p.get_device_info_by_index(0)
+            self.output_device_index = device_info['index']
+            self.output_device_sample_rate = device_info['defaultSampleRate']
+            rospy.logwarn("No default device found. Using first available output device")
 
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
@@ -118,15 +122,16 @@ class SpeechControl(object):
             return word
         return result[0]
 
-    def _confirm_voice_command(self, command, output_device_index=None):
+    @staticmethod
+    def confirm_voice_command(command, output_device_index=None, sample_rate=None):
         language = 'en'
         tts = gTTS(text=command, lang=language, slow=False)
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
         audio = AudioSegment.from_file(fp, format="mp3")
-        if output_device_index is not None:
-            audio = audio.set_frame_rate(int(self.output_device_sample_rate))
+        if output_device_index is not None and sample_rate is not None:
+            audio = audio.set_frame_rate(int(sample_rate))
         play(audio, output_device_index)
 
     def run(self):
@@ -135,7 +140,8 @@ class SpeechControl(object):
             if self.command_to_be_executed:
                 rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
                 self.command_publisher.publish(self.command_to_be_executed)
-                self._confirm_voice_command(self.command_words[self.command_to_be_executed], self.output_device_index)
+                self.confirm_voice_command(self.command_words[self.command_to_be_executed],
+                                           self.output_device_index, self.output_device_sample_rate)
                 self.command_to_be_executed = None
         self._stop_listening(wait_for_stop=False)
 
@@ -146,7 +152,8 @@ if __name__ == "__main__":
 
     trigger_word = "shadow"
     command_words_and_feedback = {"grasp": "grasped", "release": "released", "disable": "disabled",
-                                  "enable": "enabled", "engage": "engaged", "open": "opened"}
+                                  "enable": "enabled", "engage": "engaged", "disengage": "disengaged",
+                                  "open": "opened"}
     similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
 
     sc = SpeechControl(trigger_word, command_words_and_feedback, similar_words_dict_path=similar_words_dict_path,
