@@ -33,7 +33,7 @@ The class used has five parameters that can be provided in order to modify the b
 - `similar_words_dict_path` - path to a yaml file containing dictionary of words that are easily mistaken for a trigger word or one of the command words
 - `non_speaking_duration` - seconds of non-speaking audio to keep on both sides of the recording
 - `pause_threshold` - seconds of non-speaking audio before a phrase is considered complete
-- `output_device_name` - the device name on which the voice feedback confirmation should be played
+- `output_device_name` - the device name on which the voice feedback confirmation should be played. Most probably this will be the devices brand or model (to verify use `lsusb`).
 
 An example usage can be seen in the `speech_control.py` file:
 ```python
