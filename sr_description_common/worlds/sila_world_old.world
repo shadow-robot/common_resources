@@ -72,16 +72,10 @@
       <uri>model://ball</uri>
       <static>false</static>
       <name>ball</name>
-      <pose>0.98 0.44229 1.163743 0.0 0.0 0.0</pose>
-    </include>
-    <include>
-      <uri>model://ball_stand</uri>
-      <static>true</static>
-      <name>ball_stand</name>
-      <pose>0.98 0.44229 1.086614 0.0 0.0 0.0</pose>
+      <pose>0.981655 0.075405 0.769 0.000842 -0.0 0.0</pose>
     </include>
     <physics type="ode">
-      <gravity>0.000000 0.000000 -9.810000</gravity>
+      <gravity>0.000000 0.000000 -1.810000</gravity>
       <ode>
         <solver>
           <type>quick</type>

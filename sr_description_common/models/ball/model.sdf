@@ -4,19 +4,60 @@
     <static>true</static>
     <link name="link">
       <pose>0 0 0 0 0 0</pose>
-      <collision name="collision">
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <inertia>
+          <ixx>2.5e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>2.5e-06</iyy>
+          <iyz>0</iyz>
+          <izz>2.5e-06</izz>
+        </inertia>
+        <mass>0.01</mass>
+      </inertial>
+      <collision name='collision'>
+        <laser_retro>0</laser_retro>
+        <max_contacts>10</max_contacts>
+        <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <sphere>
-            <radius>0.05</radius>
+            <radius>0.025</radius>
           </sphere>
         </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>100000</mu>
+              <mu2>100000</mu2>
+              <fdir1>0 0 0</fdir1>
+              <slip1>0</slip1>
+              <slip2>0</slip2>
+            </ode>
+            <torsional>
+              <coefficient>10000</coefficient>
+              <patch_radius>0</patch_radius>
+              <surface_radius>0</surface_radius>
+              <use_patch_radius>1</use_patch_radius>
+              <ode>
+                <slip>0</slip>
+              </ode>
+            </torsional>
+          </friction>
+        </surface>
       </collision>
       <visual name="visual">
         <geometry>
           <sphere>
-            <radius>0.05</radius>
+            <radius>0.025</radius>
           </sphere>
         </geometry>
+          <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <emissive>0 0 0 0</emissive>
+        </material>
       </visual>
     </link>
   </model>
