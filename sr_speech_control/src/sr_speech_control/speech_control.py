@@ -49,26 +49,25 @@ class SpeechControl(object):
         self._init_recognizer(non_speaking_duration, pause_threshold)
         self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
 
-        self.output_device_index = 0
-        self.output_device_sample_rate = 0
-        self.get_output_device_data(output_device_name)
+        self.output_device_index, self.output_device_sample_rate = self.get_output_device_data(output_device_name)
 
-    def get_output_device_data(self, device_name=None):
+    @staticmethod
+    def get_output_device_data(device_name=None):
         p = pyaudio.PyAudio()
+        try:
+            output_device_index = p.get_default_output_device_info()['index']
+            output_device_rate = p.get_default_output_device_info()['defaultSampleRate']
+        except IOError:
+            rospy.logwarn("No default device found. Using first available output device")
+            return None, None
+
         if device_name:
             for index in range(0, p.get_device_count()):
                 if device_name in p.get_device_info_by_index(index)['name']:
-                    self.output_device_index = index
-                    self.output_device_sample_rate = p.get_device_info_by_index(index)['defaultSampleRate']
-                    return
-        try:
-            self.output_device_index = p.get_default_output_device_info()['index']
-            self.output_device_sample_rate = p.get_default_output_device_info()['defaultSampleRate']
-        except IOError:
-            device_info = p.get_device_info_by_index(0)
-            self.output_device_index = device_info['index']
-            self.output_device_sample_rate = device_info['defaultSampleRate']
-            rospy.logwarn("No default device found. Using first available output device")
+                    output_device_index = index
+                    output_device_rate = p.get_device_info_by_index(index)['defaultSampleRate']
+
+        return output_device_index, output_device_rate
 
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
@@ -105,11 +104,11 @@ class SpeechControl(object):
             return
 
         result = [str(x).lower() for x in result.split(' ')]
-        rospy.logwarn("Received: {}".format(result))
+        rospy.loginfo("Received: {}".format(result))
 
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
             command = self._filter_word(''.join(result[1:]), self.command_words)
-            rospy.logwarn("Understand as : {}".format(command))
+            rospy.loginfo("Understood as : {}".format(command))
             if command in self.command_words:
                 self.command_to_be_executed = command
 
