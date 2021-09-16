@@ -9,7 +9,7 @@ String and can be intercepted by other nodes in order to execute actions.
 In order to use the voice feedback it is obligatory to install the related audio libary. For this purpose we are using forked [PyDub](https://github.com/jiaaro/pydub/tree/master/pydub) with custom changes (output device selection) which can be installed by running:
 
 ```
-pip install git+https://github.com/shadow-robot/pydub@output_selection`
+pip install git+https://github.com/shadow-robot/pydub@output_selection
 ```
 
 Additionaly you have to install FFmpeg

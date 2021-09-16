@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<sdf version="1.4">
+  <model name="xprize_camera_stand">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision_xprize_camera_stand">
+        <geometry>
+          <box>
+            <size>1.44 0.72 2</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual_xprize_camera_stand">
+        <geometry>
+          <box>
+            <size>1.44 0.72 2</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
