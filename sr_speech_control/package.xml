@@ -15,5 +15,8 @@
   <exec_depend>python3-pyaudio</exec_depend>
   <buildtool_depend>python-gTTS-pip</buildtool_depend>
   <exec_depend>python-gTTS-pip</exec_depend>
+  <buildtool_depend>ffmpeg</buildtool_depend>
+  <exec_depend>ffmpeg</exec_depend>
+
 
 </package>
