@@ -27,8 +27,6 @@ from builtins import input
 
 from gtts import gTTS
 from io import BytesIO
-from pydub import AudioSegment
-from pydub.playback import play
 import pyaudio
 
 
@@ -123,6 +121,9 @@ class SpeechControl(object):
 
     @staticmethod
     def confirm_voice_command(command, output_device_index=None, sample_rate=None):
+        if not pydub_present:
+            return
+
         language = 'en'
         tts = gTTS(text=command, lang=language, slow=False)
         fp = BytesIO()
@@ -148,6 +149,16 @@ class SpeechControl(object):
 if __name__ == "__main__":
 
     rospy.init_node('example_speech_control', anonymous=True)
+
+    pydub_present = False
+    try:
+        from pydub import AudioSegment
+        from pydub.playback import play
+        pydub_present = True
+    except ImportError as e:
+        rospy.logwarn("PyDub is not installed. No voice feedback.")
+        rospy.logwarn("Install by running pip install git+https://github.com/shadow-robot/pydub@output_selection")
+        pass
 
     trigger_word = "shadow"
     command_words_and_feedback = {"grasp": "grasped", "release": "released", "disable": "disabled",
