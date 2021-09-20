@@ -58,13 +58,11 @@ class SpeechControl(object):
         try:
             output_device_index = p.get_default_output_device_info()['index']
             output_device_rate = p.get_default_output_device_info()['defaultSampleRate']
-
             if device_name:
                 for index in range(0, p.get_device_count()):
                     if device_name in p.get_device_info_by_index(index)['name']:
                         output_device_index = index
                         output_device_rate = p.get_device_info_by_index(index)['defaultSampleRate']
-
         except IOError:
             rospy.logwarn("Selected device not found. Using first available output device")
 
