@@ -33,8 +33,8 @@ try:
     from pydub import AudioSegment
     from pydub.playback import play
 except (ImportError, ModuleNotFoundError) as e:
-    print("Custom PyDub is not installed. No voice feedback.")
-    print("Install by running pip install git+https://github.com/shadow-robot/pydub@output_selection")
+    rospy.loginfo("Custom PyDub is not installed. No voice feedback.")
+    rospy.loginfo("Install by running pip install git+https://github.com/shadow-robot/pydub@output_selection")
     raise
 
 
