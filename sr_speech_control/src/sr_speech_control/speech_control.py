@@ -57,8 +57,8 @@ class SpeechControl(object):
                                                    String,
                                                    self.speaker_callback)
         self.tts_subscriber = rospy.Subscriber('/sr_speech_control/text_to_speech',
-                                                   String,
-                                                   self.text_to_speech_callback)
+                                               String,
+                                               self.text_to_speech_callback)
 
         if similar_words_dict_path:
             self.parse_similar_words_dict(similar_words_dict_path)
