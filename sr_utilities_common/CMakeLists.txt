@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
     roslint    
     std_msgs
     topic_tools
+    actionlib_msgs
+    actionlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,6 +110,7 @@ catkin_package(
   LIBRARIES wait_for_param ros_heartbeat
   CATKIN_DEPENDS
     roscpp
+    actionlib_msgs
 #  DEPENDS system_lib
 )
 
@@ -131,12 +134,14 @@ add_library(wait_for_param src/${PROJECT_NAME}/wait_for_param.cpp)
 ## either from message generation or dynamic reconfigure
 add_dependencies(ros_heartbeat ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(wait_for_param ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(test_action_server_hand ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 # The recommended prefix ensures that target names across packages don't collide
 add_executable(ros_heartbeat_server_example scripts/${PROJECT_NAME}/ros_heartbeat_server_example.cpp)
 add_executable(relay src/${PROJECT_NAME}/relay.cpp)
+add_executable(test_action_server_hand src/${PROJECT_NAME}/test_action_server_hand.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -151,6 +156,7 @@ add_executable(relay src/${PROJECT_NAME}/relay.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ros_heartbeat ${catkin_LIBRARIES})
 target_link_libraries(wait_for_param ${catkin_LIBRARIES})
+target_link_libraries(test_action_server_hand ${catkin_LIBRARIES})
 
 target_link_libraries(ros_heartbeat_server_example
   ros_heartbeat
