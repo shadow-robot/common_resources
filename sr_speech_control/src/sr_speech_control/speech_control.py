@@ -28,14 +28,9 @@ from builtins import input
 from gtts import gTTS
 from io import BytesIO
 import pyaudio
-
-try:
-    from pydub import AudioSegment
-    from pydub.playback import play
-except (ImportError, ModuleNotFoundError) as e:
-    rospy.logerr("Custom PyDub is not installed. No voice feedback.")
-    rospy.logerr("Install by running pip install git+https://github.com/shadow-robot/pydub@output_selection")
-    raise
+import subprocess
+from threading import Thread
+import wave
 
 
 class SpeechControl(object):
@@ -89,22 +84,41 @@ class SpeechControl(object):
         if self.speaker != '':
             self.text_to_speech(message.data, self.speaker)
 
+    def write_mp3(self, tts, proc):
+        tts.write_to_fp(proc.stdin)
+        proc.stdin.close()
+
     def text_to_speech(self, text, device_name):
-        tts = gTTS(text=text, lang='en', slow=False)
-        fp = BytesIO()
-        tts.write_to_fp(fp)
-        fp.seek(0)
-        audio = AudioSegment.from_file(fp, format="mp3")
-
         p = pyaudio.PyAudio()
-        output_device_index = None
-        output_device_rate = None
-
+        device_index = None
+        sample_rate = None
         for index in range(0, p.get_device_count()):
             device_info = p.get_device_info_by_index(index)
             if device_name == device_info['name']:
-                audio = audio.set_frame_rate(int(device_info['defaultSampleRate']))
-                play(audio, index)
+                device_index = index
+                sample_rate = device_info['defaultSampleRate']
+                break
+        tts = gTTS(text=text, lang='en', slow=False)
+        # Use ffmpeg top convert mp3 to wav
+        with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:',
+                               '-ar', str(sample_rate), '-ac', '1', '-f', 'wav', 'pipe:'],
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
+            # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
+            # buffers are relatively small and process will block before any output is received
+            thread = Thread(target=self.write_mp3, args=(tts, proc, ))
+            thread.start()
+            # Read wav from ffmpeg standard output
+            wf = wave.open(proc.stdout, 'rb')
+            stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                            channels=wf.getnchannels(),
+                            rate=wf.getframerate(),
+                            output_device_index=device_index,
+                            output=True)
+            stream.write(wf.readframes(wf.getnframes()))
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+            thread.join()
 
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
