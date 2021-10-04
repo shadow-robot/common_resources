@@ -105,7 +105,7 @@ class SpeechControl(object):
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
             # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
             # buffers are relatively small and process will block before any output is received
-            thread = Thread(target = self.write_mp3, args = (tts, proc, ))
+            thread = Thread(target=self.write_mp3, args=(tts, proc, ))
             thread.start()
             # Read wav from ffmpeg standard output
             wf = wave.open(proc.stdout, 'rb')
