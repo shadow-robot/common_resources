@@ -1,15 +1,22 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <world name="default">
-    <!-- Floor -->
+    <!-- Floor and Ceiling -->
     <include>
       <uri>model://ground</uri>
+      <name>ground</name>
       <pose>-0.20 0.60 0.0 0 0 0</pose>
     </include>
-    <light name='lab_light' type='directional'>
-      <pose frame=''>0.86 1.96 2.5 -0.95 1.45 -0.85</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
+    <include>
+      <uri>model://ground</uri>
+      <name>ground_1</name>
+      <pose>-0.20 0.60 2.7 0 0 0</pose>
+    </include>
+
+    <light type="directional" name="lab_light">
+      <pose>0 0 0 -1.55 0 0</pose>
+      <diffuse>.8 .8 .8 1</diffuse>
+      <specular>.2 .2 .2 1</specular>
       <attenuation>
         <range>20</range>
         <constant>0.9</constant>
@@ -17,31 +24,46 @@
         <quadratic>0.001</quadratic>
       </attenuation>
       <direction>0 0 -1</direction>
-      <cast_shadows>1</cast_shadows>
+      <cast_shadows>true</cast_shadows>
     </light>
+
     <include>
-      <uri>model://stand</uri>
+      <uri>model://stand_small</uri>
       <static>true</static>
-      <name>stand</name>
-      <pose>0 0 0.37 0.0 0 1.57079632679</pose>
+      <name>stand_small</name>
+      <pose>-0.338887 -0.447438 0 0 0 0</pose>
     </include>
     <include>
-      <uri>model://base_plate</uri>
+      <uri>model://stand_small</uri>
       <static>true</static>
-      <name>base_plate</name>
-      <pose>0.0 0.0 0.7411 0.0 0.0 1.57079632679</pose>
+      <name>stand_small_1</name>
+      <pose>-0.338887 1.047624 0 0 0 0</pose>
     </include>
     <include>
       <uri>model://human</uri>
       <static>true</static>
       <name>human</name>
-      <pose>-0.65 0.75 1.15 3.145 1.57079632679 3.1451</pose>
+      <pose>-0.72 0.75 0.89 3.145 1.57079632679 3.1451</pose>
     </include>
     <include>
-      <uri>model://big_table</uri>
+      <uri>model://server_rack</uri>
       <static>true</static>
-      <name>big_table</name>
-      <pose>0.4 0 0.369 0.0 0.0 1.57079632679</pose>
+      <name>server_rack</name>
+      <pose>1.5 1 0.0 0 0 -1.57079632679</pose>
+    </include>
+    <!-- Right wall -->
+    <include>
+      <uri>model://wall</uri>
+      <static>true</static>
+      <name>wall_1</name>
+      <pose>-0.19 -1.1 1.34 0 0 0</pose>
+    </include>
+    <!-- Rear wall -->
+    <include>
+      <uri>model://wall</uri>
+      <static>true</static>
+      <name>wall_2</name>
+      <pose>-2.2 0.59 1.34 0 0 1.57079632679</pose>
     </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
@@ -69,7 +91,7 @@
     </scene>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>5.12295 1.41879 1.9472 0 0.259643 -2.99098</pose>
+        <pose frame=''>2.8784 4.2586 1.43117 0 0.083643 -2.30699</pose>
         <view_controller>orbit</view_controller>
       </camera>
     </gui>		
