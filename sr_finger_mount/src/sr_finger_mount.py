@@ -126,7 +126,7 @@ class SrFingerMount():
     def _biotac_tactile_cb(self, data):
         if len(data.tactiles) == len(self.CONST_FINGERS):
             pressure = 5 * [0]
-            for i in range(0,len(data.tactiles)):
+            for i in range(0, len(data.tactiles)):
                 pressure[i] = self.CONST_BIOTAC_MAX - data.tactiles[i].pdc
             mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
             for f in self._used_fingers:
@@ -137,8 +137,8 @@ class SrFingerMount():
                                         (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
                                        (self.CONST_FREQ_MAX - self.CONST_FREQ_MIN) + self.CONST_FREQ_MIN
         else:
-            rospy.logwarn("Missing data. Expected to receive {}, but got {} Biotac values".format(len(self.CONST_FINGERS),
-                                                                                               len(data.pressure)))
+            rospy.logwarn("Missing data. Expected to receive {}, "
+                          "but got {} Biotac values".format(len(self.CONST_FINGERS), len(data.pressure)))
 
     def _check_devices(self):
         needed_devices = math.ceil(len(self._used_fingers)/2)
