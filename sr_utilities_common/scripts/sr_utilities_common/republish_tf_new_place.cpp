@@ -53,7 +53,7 @@ int main(int argc, char **argv)
                    : ros::Rate(RATE_FREQ);
 
   ROS_INFO_STREAM("Republishing" << original_tf_parent << "->" << original_tf_child <<
-    " as " << new_tf_parent << "->" << new_tf_child);
+                  " as " << new_tf_parent << "->" << new_tf_child);
 
   while (ros::ok())
   {
@@ -69,12 +69,12 @@ int main(int argc, char **argv)
         original_tf_parent.c_str(), original_tf_child.c_str());
       continue;
     }
+
     transform.header.stamp = ros::Time::now();
     transform.header.frame_id = new_tf_parent;
     transform.child_frame_id = new_tf_child;
     tf_broadcaster.sendTransform(transform);
 
-    ROS_WARN_STREAM("..");
     rate.sleep();
   }
 
