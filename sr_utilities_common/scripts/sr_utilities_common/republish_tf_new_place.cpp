@@ -14,6 +14,8 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string>
+
 #include <ros/ros.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
@@ -30,7 +32,8 @@ int main(int argc, char **argv)
 
   if (argc < 5 || argc > 6)
   {
-    ROS_ERROR_STREAM("Wrong number of arguments (" << argc - 1 << "), should be four or five. Terminating...");
+    ROS_ERROR_STREAM("Wrong number of arguments (" << argc - 1 <<
+                     "), should be four or five. Terminating...");
     return 1;
   }
 

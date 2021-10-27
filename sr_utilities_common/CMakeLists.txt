@@ -139,7 +139,7 @@ add_dependencies(wait_for_param ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXP
 # The recommended prefix ensures that target names across packages don't collide
 add_executable(ros_heartbeat_server_example scripts/${PROJECT_NAME}/ros_heartbeat_server_example.cpp)
 add_executable(relay src/${PROJECT_NAME}/relay.cpp)
-add_executable(republish_tf_new_place src/${PROJECT_NAME}/republish_tf_new_place.cpp)
+add_executable(republish_tf_new_place scripts/${PROJECT_NAME}/republish_tf_new_place.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
