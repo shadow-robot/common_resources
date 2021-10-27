@@ -24,9 +24,10 @@ import rospy
 import numpy as np
 import sounddevice as sd
 import matplotlib.pyplot as plt
-from sr_robot_msgs.msg import ShadowPST
+from sr_robot_msgs.msg import ShadowPST, BiotacAll
 import threading
 import time
+from sr_hand.tactile_receiver import TactileReceiver
 
 
 class DeviceHandler(threading.Thread):
@@ -47,7 +48,7 @@ class DeviceHandler(threading.Thread):
 
     def callback(self, outdata, frames, time, status):
         if status:
-            rospy.logwarn(status, file=sys.stderr)
+            rospy.logwarn(status)
 
         for i, finger in enumerate(self._fingers):
             for frame in range(frames):
@@ -71,13 +72,16 @@ class DeviceHandler(threading.Thread):
 
 class SrFingerMount():
 
-    CONST_AMP_MAX = 1.0
-    CONST_AMP_MIN = 0.2
-    CONST_FREQ_MIN = 5
-    CONST_FREQ_MAX = 30
+    CONST_AMP_MAX = 1.5
+    CONST_AMP_MIN = 0.1
+    CONST_FREQ_MIN = 1
+    CONST_FREQ_MAX = 50
 
     CONST_PST_MAX = 200  # 1600 for real PSTs
     CONST_PST_MIN = 1  # 350 for real PSTs
+
+    CONST_BIOTAC_MAX = 1800  # // check
+    CONST_BIOTAC_MIN = 950  # // check
 
     CONST_FINGERS = ["ff", "mf", "rf", "lf", "th"]
     CONST_ACCEPTABLE_DEVICE_NAMES = ["Boreas DevKit", "BOS1901-KIT"]
@@ -86,7 +90,13 @@ class SrFingerMount():
     def __init__(self, fingers, hand_id):
         self._used_fingers = fingers
         self._used_devices = []
-        rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self._tactile_cb)
+
+        self._used_tactiles = TactileReceiver(hand_id).get_tactile_type()
+
+        if self._used_tactiles == "PST":
+            rospy.Subscriber("/"+hand_id+"/tactile", ShadowPST, self._pst_tactile_cb)
+        elif self._used_tactiles == "biotac":
+            rospy.Subscriber("/"+hand_id+"/tactile", BiotacAll, self._biotac_tactile_cb)
 
         self._amplitudes = dict()
         self._frequencies = dict()
@@ -99,7 +109,7 @@ class SrFingerMount():
             return
         self.init_all()
 
-    def _tactile_cb(self, data):
+    def _pst_tactile_cb(self, data):
         if len(data.pressure) == len(self.CONST_FINGERS):
             mapped_pst_values = dict(zip(self.CONST_FINGERS, data.pressure))
             for f in self._used_fingers:
@@ -111,6 +121,23 @@ class SrFingerMount():
                                        (self.CONST_FREQ_MAX - self.CONST_FREQ_MIN) + self.CONST_FREQ_MIN
         else:
             rospy.logwarn("Missing data. Expected to receive {}, but got {} PST values".format(len(self.CONST_FINGERS),
+                                                                                               len(data.pressure)))
+
+    def _biotac_tactile_cb(self, data):
+        if len(data.tactiles) == len(self.CONST_FINGERS):
+            pressure = 5 * [0]
+            for i in range(0,len(data.tactiles)):
+                pressure[i] = self.CONST_BIOTAC_MAX - data.tactiles[i].pdc
+            mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
+            for f in self._used_fingers:
+                self._amplitudes[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
+                                       (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
+                                      (self.CONST_AMP_MAX - self.CONST_AMP_MIN) + self.CONST_AMP_MIN
+                self._frequencies[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
+                                        (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
+                                       (self.CONST_FREQ_MAX - self.CONST_FREQ_MIN) + self.CONST_FREQ_MIN
+        else:
+            rospy.logwarn("Missing data. Expected to receive {}, but got {} Biotac values".format(len(self.CONST_FINGERS),
                                                                                                len(data.pressure)))
 
     def _check_devices(self):
@@ -149,7 +176,7 @@ if __name__ == "__main__":
 
     rospy.init_node('sr_finger_mount')
 
-    fingers = rospy.get_param("~fingers", 'th')
+    fingers = rospy.get_param("~fingers", 'th,ff,mf,rf')
     hand_id = rospy.get_param("~hand_id", 'rh')
 
     if not (hand_id == "rh" or hand_id == "lh"):
