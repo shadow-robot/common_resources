@@ -25,44 +25,106 @@ from std_msgs.msg import String
 import yaml
 from builtins import input
 
+from gtts import gTTS
+from io import BytesIO
+import pyaudio
+import subprocess
+from threading import Thread
+import wave
+
 
 class SpeechControl(object):
-    def __init__(self, trigger_word, command_words, command_topic='sr_speech_control',
+    def __init__(self, trigger_word, command_words, command_topic='/sr_speech_control/speech_to_text',
                  similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2):
+
         self.trigger_word = trigger_word
         self.command_words = command_words
         self.recognizer = sr.Recognizer()
         self.command_publisher = rospy.Publisher(command_topic, String, queue_size=1)
         self.command_to_be_executed = None
         self.similar_words_dict = {}
+        self.microphone = ''
+        self.microphone_subscriber = rospy.Subscriber('/sr_speech_control/audio_device/input',
+                                                      String,
+                                                      self.microphone_callback)
+        self.speaker = ''
+        self.speaker_subscriber = rospy.Subscriber('/sr_speech_control/audio_device/output',
+                                                   String,
+                                                   self.speaker_callback)
+        self.tts_subscriber = rospy.Subscriber('/sr_speech_control/text_to_speech',
+                                               String,
+                                               self.text_to_speech_callback)
 
         if similar_words_dict_path:
             self.parse_similar_words_dict(similar_words_dict_path)
         self._init_recognizer(non_speaking_duration, pause_threshold)
-        self._stop_listening = self.recognizer.listen_in_background(self.microphone, self._recognizer_callback)
+        self._stop_listening = None
+
+    def microphone_callback(self, message):
+        self.microphone = message.data
+        # Stop listening on previously select microphone
+        if self._stop_listening:
+            self._stop_listening(wait_for_stop=True)
+        # If new microphone is not empty (speech recognition not disabled) start listening
+        if self.microphone != '':
+            for index, name in enumerate(sr.Microphone.list_microphone_names()):
+                if name == self.microphone:
+                    microphone = sr.Microphone(device_index=int(index))
+                    with microphone as source:
+                        self.recognizer.adjust_for_ambient_noise(source)
+                    rospy.loginfo('Using microphone {} for speech recognition'.format(name))
+                    self._stop_listening = self.recognizer.listen_in_background(microphone,
+                                                                                self._recognizer_callback)
+                    break
+
+    def speaker_callback(self, message):
+        self.speaker = message.data
+
+    def text_to_speech_callback(self, message):
+        if self.speaker != '':
+            self.text_to_speech(message.data, self.speaker)
+
+    def write_mp3(self, tts, proc):
+        tts.write_to_fp(proc.stdin)
+        proc.stdin.close()
+
+    def text_to_speech(self, text, device_name):
+        p = pyaudio.PyAudio()
+        device_index = None
+        sample_rate = None
+        for index in range(0, p.get_device_count()):
+            device_info = p.get_device_info_by_index(index)
+            if device_name == device_info['name']:
+                device_index = index
+                sample_rate = device_info['defaultSampleRate']
+                break
+        tts = gTTS(text=text, lang='en', slow=False)
+        # Use ffmpeg top convert mp3 to wav
+        with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:',
+                               '-ar', str(sample_rate), '-ac', '1', '-f', 'wav', 'pipe:'],
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
+            # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
+            # buffers are relatively small and process will block before any output is received
+            thread = Thread(target=self.write_mp3, args=(tts, proc, ))
+            thread.start()
+            # Read wav from ffmpeg standard output
+            wf = wave.open(proc.stdout, 'rb')
+            stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                            channels=wf.getnchannels(),
+                            rate=wf.getframerate(),
+                            output_device_index=device_index,
+                            output=True)
+            stream.write(wf.readframes(wf.getnframes()))
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+            thread.join()
 
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r') as stream:
             self.similar_words_dict = yaml.safe_load(stream)
 
     def _init_recognizer(self, non_speaking_duration, pause_threshold):
-        for idx, mic in enumerate(sr.Microphone.list_microphone_names()):
-            rospy.loginfo('{}: {}'.format(idx, mic))
-
-        while not rospy.is_shutdown():
-            try:
-                idx = input("Choose one of the microphones from the list above. "
-                            "Type the index or leave empty for default microphone, than press [RETURN]\n")
-                if not idx:
-                    self.microphone = sr.Microphone()
-                else:
-                    self.microphone = sr.Microphone(device_index=int(idx))
-                with self.microphone as source:
-                    self.recognizer.adjust_for_ambient_noise(source)
-                    break
-            except OSError:
-                rospy.logwarn("Wrong microphone. Try again.")
-
         self.recognizer.non_speaking_duration = non_speaking_duration
         self.recognizer.pause_threshold = pause_threshold
 
@@ -76,9 +138,11 @@ class SpeechControl(object):
             return
 
         result = [str(x).lower() for x in result.split(' ')]
+        rospy.loginfo("Received: {}".format(result))
 
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
             command = self._filter_word(''.join(result[1:]), self.command_words)
+            rospy.loginfo("Understood as : {}".format(command))
             if command in self.command_words:
                 self.command_to_be_executed = command
 
@@ -98,15 +162,20 @@ class SpeechControl(object):
                 rospy.loginfo("Executing: {}.".format(self.command_to_be_executed))
                 self.command_publisher.publish(self.command_to_be_executed)
                 self.command_to_be_executed = None
-        self._stop_listening(wait_for_stop=False)
+            time.sleep(0.01)
+        if self._stop_listening:
+            self._stop_listening(wait_for_stop=False)
 
 
 if __name__ == "__main__":
+
     rospy.init_node('example_speech_control', anonymous=True)
 
     trigger_word = "shadow"
-    command_words = ["grasp", "release", "disable", "enable", "engage"]
+    command_words_and_feedback = {"grasp": "grasped", "release": "released", "disable": "disabled",
+                                  "enable": "enabled", "engage": "engaged", "disengage": "disengaged",
+                                  "open": "opened"}
     similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
 
-    sc = SpeechControl(trigger_word, command_words, similar_words_dict_path=similar_words_dict_path)
+    sc = SpeechControl(trigger_word, command_words_and_feedback, similar_words_dict_path=similar_words_dict_path)
     sc.run()

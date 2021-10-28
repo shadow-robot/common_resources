@@ -68,6 +68,12 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
         all_elements_available = ros_topic_handler_class.check_if_required_element_is_available()
         self.assertTrue(all_elements_available)
 
+    def test_check_by_regex_if_required_element_is_available_list(self):
+        required_topics_list = ["/(test|mock)_mocap_topic"]
+        ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
+        all_elements_available = ros_topic_handler_class.check_if_required_element_is_available()
+        self.assertTrue(all_elements_available)
+
     def test_check_if_required_element_is_not_available_list(self):
         required_topics_list = ["non_published_test_topic"]
         ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
@@ -82,15 +88,13 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
 
     def test_check_if_elements_is_available_empty_string(self):
         required_topics_list = [""]
-        ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
         with self.assertRaises(ValueError):
-            ros_topic_handler_class.check_if_required_element_is_available()
+            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
 
     def test_check_if_elements_is_available_not_a_string(self):
         required_topics_list = [0]
-        ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
         with self.assertRaises(ValueError):
-            ros_topic_handler_class.check_if_required_element_is_available()
+            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
 
     def test_requested_topic_not_available(self):
         conditions_to_satisfy = {}
