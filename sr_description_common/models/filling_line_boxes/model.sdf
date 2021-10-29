@@ -3,6 +3,24 @@
 <model name="filling_line_boxes">
     <static>true</static>
 
+    <link name="ground">
+      <collision name="ground_col">
+      <pose>-1 -0.7 -0.005 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>5.0 10.0 0.01</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>5.0 10.0 0.01</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
     <link name="filling_line_box">
       <collision name="filling_line_box_col">
         <pose>0.0 0.0 0.375 0 0 0 </pose>
@@ -24,18 +42,18 @@
 
     <link name="filling_line_box_1">
       <collision name="filling_line_box_1_col">
-        <pose>-0.5 1.8 0.375 0 0 0 </pose>
+        <pose>-0.5 2.35 0.375 0 0 0 </pose>
         <geometry>
           <box>
-            <size>2.3 1.0 0.75</size>
+            <size>2.3 2.1 0.75</size>
           </box>
         </geometry>
       </collision>
       <visual name="filling_line_box_1_vis">
-        <pose>-0.5 1.8 0.375 0 0 0 </pose>
+        <pose>-0.5 2.35 0.375 0 0 0 </pose>
         <geometry>
           <box>
-            <size>2.3 1.0 0.75</size>
+            <size>2.3 2.1 0.75</size>
           </box>
         </geometry>
       </visual>

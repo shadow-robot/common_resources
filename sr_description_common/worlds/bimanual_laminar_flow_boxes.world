@@ -127,7 +127,7 @@
     </scene>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>3.43091 3.76353 1.38194 0 0.083643 -2.30699</pose>
+        <pose>3.62162 6.71525 2.38651 -0 0.205797 -1.96906</pose>
         <view_controller>ortho</view_controller>
         <projection_type>orthographic</projection_type>
       </camera>
@@ -146,8 +146,8 @@
     <model name='filling_line_boxes'>
       <static>1</static>
       <link name='ground'>
-        <pose>-1 -0.7 -0.005 0 -0 0</pose>
         <collision name='ground_col'>
+          <pose>-1 -0.7 -0.005 0 -0 0</pose>
           <geometry>
             <box>
               <size>5 10 0.01</size>
@@ -214,10 +214,10 @@
       </link>
       <link name='filling_line_box_1'>
         <collision name='filling_line_box_1_col'>
-          <pose>-0.5 1.8 0.375 0 -0 0</pose>
+          <pose>-0.5 2.35 0.375 0 -0 0</pose>
           <geometry>
             <box>
-              <size>2.3 1 0.75</size>
+              <size>2.3 2.1 0.75</size>
             </box>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -235,10 +235,10 @@
           </surface>
         </collision>
         <visual name='filling_line_box_1_vis'>
-          <pose>-0.5 1.8 0.375 0 -0 0</pose>
+          <pose>-0.5 2.35 0.375 0 -0 0</pose>
           <geometry>
             <box>
-              <size>2.3 1 0.75</size>
+              <size>2.3 2.1 0.75</size>
             </box>
           </geometry>
         </visual>
@@ -314,42 +314,170 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose>1.2626 0.765881 0 0 -0 0</pose>
+      <pose>1.48148 0.680907 0 0 -0 0</pose>
+    </model>
+    <model name='laminar_flow_boxes'>
+      <static>1</static>
+      <link name='laminar_flow_box'>
+        <collision name='laminar_flow_box_col'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.8 3 0.9</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='laminar_flow_box_vis'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.8 3 0.9</size>
+            </box>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <link name='laminar_flow_box_1'>
+        <collision name='laminar_flow_box_1_col'>
+          <pose>-0.4 2.3 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>1.6 1.6 0.9</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='laminar_flow_box_1_vis'>
+          <pose>-0.4 2.3 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>1.6 1.6 0.9</size>
+            </box>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <link name='laminar_flow_box_2'>
+        <collision name='laminar_flow_box_2_col'>
+          <pose>-0.9 -1.8 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>2.6 0.6 0.9</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='laminar_flow_box_2_vis'>
+          <pose>-0.9 -1.8 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>2.6 0.6 0.9</size>
+            </box>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>1.605 0.769999 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>152 733000000</sim_time>
-      <real_time>174 544213137</real_time>
-      <wall_time>1635502910 992567190</wall_time>
-      <iterations>152733</iterations>
+      <sim_time>582 236000000</sim_time>
+      <real_time>75 711510448</real_time>
+      <wall_time>1635521409 246997804</wall_time>
+      <iterations>52209</iterations>
       <model name='filling_line_boxes'>
-        <pose>1.2626 0.765881 0 0 -0 0</pose>
+        <pose>1.70909 0.760907 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='filling_line_box'>
-          <pose>1.2626 0.765881 0 0 -0 0</pose>
+          <pose>1.70909 0.760907 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='filling_line_box_1'>
-          <pose>1.2626 0.765881 0 0 -0 0</pose>
+          <pose>1.70909 0.760907 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='filling_line_box_2'>
-          <pose>1.2626 0.765881 0 0 -0 0</pose>
+          <pose>1.70909 0.760907 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='filling_line_box_3'>
-          <pose>1.2626 0.765881 0 0 -0 0</pose>
+          <pose>1.70909 0.760907 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='ground'>
-          <pose>0.2626 0.065881 -0.005 0 -0 0</pose>
+          <pose>1.70909 0.760907 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='laminar_flow_boxes'>
+        <pose>1.69321 0.769999 1.2 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='laminar_flow_box'>
+          <pose>1.69321 0.769999 1.2 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+        <link name='laminar_flow_box_1'>
+          <pose>1.69321 0.769999 1.2 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+        <link name='laminar_flow_box_2'>
+          <pose>1.69321 0.769999 1.2 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
