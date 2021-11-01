@@ -31,7 +31,6 @@ from sr_hand.tactile_receiver import TactileReceiver
 from haptx_tactile_mapping.biotac_sp_minus_mapping import BiotacMapping
 from haptx_msgs.msg import Movables, Movable, Tactor, BiotacAllFloat
 
-
 class DeviceHandler(threading.Thread):
     def __init__(self, device, fingers, mount):
         super(DeviceHandler, self).__init__()
@@ -53,15 +52,19 @@ class DeviceHandler(threading.Thread):
             rospy.logwarn(status)
 
         for i, finger in enumerate(self._fingers):
-            for frame in range(frames):
-                phase_inc = 2*np.pi*self._freq[i]/self._samplerate
-                outdata[frame, i] = self._amp[i] * np.sin(self._m_phase[i])
-                self._m_phase[i] += phase_inc
+            if self._mount._amplitudes[finger] > self._mount.CONST_AMP_MIN * 1.05:
+                for frame in range(frames):
+                    phase_inc = 2*np.pi*self._freq[i]/self._samplerate
+                    outdata[frame, i] = self._amp[i] * np.sin(self._m_phase[i])
+                    self._m_phase[i] += phase_inc
 
-                if np.sign(outdata[frame, i]) != np.sign(self._oldsignal[i]):
-                    self._freq[i] = self._mount._frequencies[finger]
-                    self._amp[i] = self._mount._amplitudes[finger]
-                self._oldsignal[i] = outdata[frame, i]
+                    if np.sign(outdata[frame, i]) != np.sign(self._oldsignal[i]):
+                        self._freq[i] = self._mount._frequencies[finger]
+                        self._amp[i] = self._mount._amplitudes[finger]
+                    self._oldsignal[i] = outdata[frame, i]
+            else:
+                for frame in range(frames):
+                    outdata[frame, i] = 0
 
             self._start_idx[i] += frames
 
@@ -74,8 +77,8 @@ class DeviceHandler(threading.Thread):
 
 class SrFingerMount():
 
-    CONST_AMP_MAX = 0.3
-    CONST_AMP_MIN = 0.05
+    CONST_AMP_MAX = 0.5
+    CONST_AMP_MIN = 0.01
     CONST_FREQ_MIN = 1
     CONST_FREQ_MAX = 50
 
@@ -130,18 +133,17 @@ class SrFingerMount():
     def _biotac_tactile_cb(self, data):
         if len(data.movables) == len(self.CONST_FINGERS):
             pressure = 5 * [0.0]
-            # to distinguish hand - temporary solution
-            # if self._hand_id in data.movables[0].name:
-            for i in range(0, len(data.movables)):
-                pressure[i] = data.movables[i].tactors[0].pressure
-            mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
-            for f in self._used_fingers:
-                self._amplitudes[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
-                                       (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
-                                        (self.CONST_AMP_MAX - self.CONST_AMP_MIN) + self.CONST_AMP_MIN
-                self._frequencies[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
+            if self._hand_id in data.movables[0].name:
+                for i in range(0, len(data.movables)):
+                    pressure[i] = data.movables[i].tactors[0].pressure
+                mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
+                for f in self._used_fingers:
+                    self._amplitudes[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
                                         (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
-                    (self.CONST_FREQ_MAX - self.CONST_FREQ_MIN) + self.CONST_FREQ_MIN
+                                            (self.CONST_AMP_MAX - self.CONST_AMP_MIN) + self.CONST_AMP_MIN
+                    self._frequencies[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
+                                            (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
+                        (self.CONST_FREQ_MAX - self.CONST_FREQ_MIN) + self.CONST_FREQ_MIN
         else:
             rospy.logwarn("Missing data. Expected to receive {}, "
                           "but got {} Biotac values".format(len(self.CONST_FINGERS), len(data.pressure)))
@@ -182,7 +184,7 @@ if __name__ == "__main__":
 
     rospy.init_node('sr_finger_mount')
 
-    fingers = rospy.get_param("~fingers", 'rf,lf,th,mf')
+    fingers = rospy.get_param("~fingers", 'th,mf,rf,lf')
     hand_id = rospy.get_param("~hand_id", 'rh')
 
     if not (hand_id == "rh" or hand_id == "lh"):
