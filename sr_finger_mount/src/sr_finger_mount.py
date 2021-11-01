@@ -31,6 +31,7 @@ from sr_hand.tactile_receiver import TactileReceiver
 from haptx_tactile_mapping.biotac_sp_minus_mapping import BiotacMapping
 from haptx_msgs.msg import Movables, Movable, Tactor, BiotacAllFloat
 
+
 class DeviceHandler(threading.Thread):
     def __init__(self, device, fingers, mount):
         super(DeviceHandler, self).__init__()
@@ -139,8 +140,8 @@ class SrFingerMount():
                 mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
                 for f in self._used_fingers:
                     self._amplitudes[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
-                                        (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
-                                            (self.CONST_AMP_MAX - self.CONST_AMP_MIN) + self.CONST_AMP_MIN
+                                           (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
+                                           (self.CONST_AMP_MAX - self.CONST_AMP_MIN) + self.CONST_AMP_MIN
                     self._frequencies[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
                                             (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
                         (self.CONST_FREQ_MAX - self.CONST_FREQ_MIN) + self.CONST_FREQ_MIN
