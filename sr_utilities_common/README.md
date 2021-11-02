@@ -186,3 +186,17 @@ A very simple script allowing to run any non-ros executable from within a launch
         args="non-ros-executable-script.sh exemple_arg_1 exemple_arg_2/>
 
 ```
+
+## Republishing tfs from a new place
+
+A ros node allowing to take existing values of a tf and republish it from a difference parent frame with desired child frame name. Usage:
+
+```sh
+rosrun sr_utilities_common republish_tf_new_place <original_parent_tf> <original_child_tf> <new_parent_tf> <new_child_tf>
+```
+
+If you want the tf to be published with specific frequency (default is 100 Hz) you can add another argument to the end of the command:
+
+```sh
+rosrun sr_utilities_common republish_tf_new_place <original_parent_tf> <original_child_tf> <new_parent_tf> <new_child_tf> <publishing_frequency>
+```
