@@ -127,7 +127,7 @@
     </scene>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>3.62162 6.71525 2.38651 -0 0.205797 -1.96906</pose>
+        <pose>-2.54725 5.17166 2.8718 -0 0.341797 -0.905056</pose>
         <view_controller>ortho</view_controller>
         <projection_type>orthographic</projection_type>
       </camera>
@@ -423,10 +423,10 @@
       <pose>1.605 0.769999 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>582 236000000</sim_time>
-      <real_time>75 711510448</real_time>
-      <wall_time>1635521409 246997804</wall_time>
-      <iterations>52209</iterations>
+      <sim_time>668 949000000</sim_time>
+      <real_time>130 441348040</real_time>
+      <wall_time>1635764345 55091293</wall_time>
+      <iterations>86713</iterations>
       <model name='filling_line_boxes'>
         <pose>1.70909 0.760907 0 0 -0 0</pose>
         <scale>1 1 1</scale>
