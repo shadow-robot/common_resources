@@ -18,88 +18,6 @@
         <falloff>0</falloff>
       </spot>
     </light>
-    <model name='stand_small'>
-      <static>1</static>
-      <link name='link'>
-        <inertial>
-          <mass>20</mass>
-        </inertial>
-        <collision name='collision'>
-          <pose>0 0 0 0 -0 0</pose>
-          <geometry>
-            <mesh>
-              <uri>model://stand_small/meshes/stand_small.STL</uri>
-            </mesh>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <pose>0 0 0 0 -0 0</pose>
-          <geometry>
-            <mesh>
-              <uri>model://stand_small/meshes/stand_small.STL</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>-0.338887 -0.447438 0 0 -0 0</pose>
-    </model>
-    <model name='stand_small_1'>
-      <static>1</static>
-      <link name='link'>
-        <inertial>
-          <mass>20</mass>
-        </inertial>
-        <collision name='collision'>
-          <pose>0 0 0 0 -0 0</pose>
-          <geometry>
-            <mesh>
-              <uri>model://stand_small/meshes/stand_small.STL</uri>
-            </mesh>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <pose>0 0 0 0 -0 0</pose>
-          <geometry>
-            <mesh>
-              <uri>model://stand_small/meshes/stand_small.STL</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose>-0.338887 1.04762 0 0 -0 0</pose>
-    </model>
     <physics type='ode'>
       <ode>
         <solver>
@@ -127,7 +45,7 @@
     </scene>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-2.54725 5.17166 2.8718 -0 0.341797 -0.905056</pose>
+        <pose>-2.58091 5.0486 3.0854 -0 0.341797 -0.905056</pose>
         <view_controller>ortho</view_controller>
         <projection_type>orthographic</projection_type>
       </camera>
@@ -423,10 +341,10 @@
       <pose>1.605 0.769999 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>668 949000000</sim_time>
-      <real_time>130 441348040</real_time>
-      <wall_time>1635764345 55091293</wall_time>
-      <iterations>86713</iterations>
+      <sim_time>932 711000000</sim_time>
+      <real_time>321 788295924</real_time>
+      <wall_time>1636454659 486411609</wall_time>
+      <iterations>263762</iterations>
       <model name='filling_line_boxes'>
         <pose>1.70909 0.760907 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -483,21 +401,21 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='stand_small'>
-        <pose>-0.338887 -0.447438 0 0 -0 0</pose>
+      <model name='stand_box'>
+        <pose>0.001965 -0.001968 0.373977 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>-0.338887 -0.447438 0 0 -0 0</pose>
+          <pose>0.001965 -0.001968 0.373977 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='stand_small_1'>
-        <pose>-0.338887 1.04762 0 0 -0 0</pose>
+      <model name='stand_box_0'>
+        <pose>-0.001145 1.49591 0.367416 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>-0.338887 1.04762 0 0 -0 0</pose>
+          <pose>-0.001145 1.49591 0.367416 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -507,5 +425,99 @@
         <pose>0.86 1.96 2.5 -1.55 0 0</pose>
       </light>
     </state>
+    <model name='stand_box'>
+      <static>1</static>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.083</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.083</iyy>
+            <iyz>0</iyz>
+            <izz>0.083</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.59 0.39 0.75</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.59 0.39 0.75</size>
+            </box>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>0.370531 -0.281917 0 0 -0 0</pose>
+    </model>
+    <model name='stand_box_0'>
+      <static>1</static>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.083</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.083</iyy>
+            <iyz>0</iyz>
+            <izz>0.083</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.59 0.39 0.75</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.59 0.39 0.75</size>
+            </box>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>0.136636 1.22691 0 0 -0 0</pose>
+    </model>
   </world>
 </sdf>
