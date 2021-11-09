@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <model name="laminar_flow">
+    <static>true</static>
+    <link name="link">
+      <inertial>
+        <mass>20</mass>
+      </inertial>
+      <collision name="collision">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://laminar_flow/meshes/laminar_flow.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/DarkGrey</name>
+          </script>
+        </material>
+      </collision>
+      <visual name="visual">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://laminar_flow/meshes/laminar_flow.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/GreyTransparent</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
