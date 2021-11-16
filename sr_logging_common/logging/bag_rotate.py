@@ -21,7 +21,7 @@ import rospy
 
 
 def remover(desired_bag_number, path):
-    CONST_MAX_ACTIVE_BAGS_ALLOWED = desired_bag_number/2
+    CONST_MAX_ACTIVE_BAGS_ALLOWED = desired_bag_number//2
 
     while not rospy.is_shutdown():
         bag_files = [f for f in os.listdir(path) if f.endswith('.bag')]
