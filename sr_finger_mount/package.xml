@@ -13,6 +13,9 @@
   <!--  <build_depend>sounddevice</build_depend> -->
 
   <build_export_depend>rospy</build_export_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+
   <exec_depend>rospy</exec_depend>
+  <exec_depend>dynamic_reconfigure</exec_depend>
 
 </package>

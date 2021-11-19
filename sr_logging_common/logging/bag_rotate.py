@@ -27,6 +27,9 @@ def remover(desired_bag_number, path):
         sorted_bag_files = sorted(bag_files, key=lambda x: os.path.getctime(os.path.join(path, x)))
 
         while len(sorted_bag_files) > desired_bag_number:
+            rospy.logwarn(sorted_bag_files)
+            rospy.logwarn(path)
+            rospy.logwarn(sorted_bag_files[0])
             os.remove(os.path.join(path, sorted_bag_files[0]))
             sorted_bag_files.pop(0)
 

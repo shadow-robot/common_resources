@@ -14,28 +14,32 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from sr_robot_msgs.msg import ShadowPST
-import numpy as np
-import rospy
 
+import math
+from sr_robot_msgs.msg import ShadowPST
+import rospy
+import numpy as np
+
+PST_THRESHOLD = 370.0
+PST_SATURATION = 920.0
+PST_MAPPING_EXPONENT = 1.5
+
+class Test():
+
+    def __init__(self):
+        rospy.Subscriber("/rh/tactile", ShadowPST, self.pst_tactile_cb)
+
+    def pst_tactile_cb(self, data):  
+
+        x = 5 * [None]
+        for i, press in enumerate(data.pressure):            
+            x[i] = (press - PST_THRESHOLD)/(PST_SATURATION - PST_THRESHOLD)
+            x[i] = min(max(x[i], 0), 1)
+
+        rospy.logwarn("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(x[0],x[1],x[2],x[3],x[4]))
 
 if __name__ == "__main__":
 
-    rospy.init_node("pst_source_node")
-    pub = rospy.Publisher("rh/tactile", ShadowPST, queue_size=1)
-    msg = ShadowPST()
-    time = 0
-
-    while not rospy.is_shutdown():
-        pressure_th = int(np.sin(time)*100)+100
-        pressure_ff = int(np.sin(time+1)*100)+100
-        pressure_mf = int(np.sin(time+1.8)*100)+100
-        pressure_rf = int(np.sin(time+2.5)*100)+100
-        pressure_lf = int(np.sin(time+0.4)*100)+100
-
-        msg.pressure = [pressure_ff*1, pressure_mf*0, pressure_rf*0, pressure_lf*0, pressure_th]
-
-        pub.publish(msg)
-        rospy.Rate(10).sleep()
-        time = time + 0.1
+    rospy.init_node('sr_finger_mount')
+    Test()
+    rospy.spin()
