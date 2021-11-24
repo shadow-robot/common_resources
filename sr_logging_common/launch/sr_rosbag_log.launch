@@ -1,5 +1,5 @@
 <launch>
-  <arg name="split_logs_by_duration" default="True"/>
+  <arg name="split_logs_by_duration" default="true"/>
   <arg name="log_split_duration" default="10m"/>
   <arg name="node_name" default="record"/>
   <arg name="split_logs_by_size" default="false"/>
