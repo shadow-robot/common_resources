@@ -28,6 +28,7 @@ from std_msgs.msg import Float64, Float64MultiArray
 import threading
 import time
 from sr_hand.tactile_receiver import TactileReceiver
+import matplotlib.pyplot as plt
 
 from dynamic_reconfigure.server import Server
 from sr_finger_mount.cfg import SrFingerMountConfig
@@ -45,6 +46,7 @@ class DeviceHandler(threading.Thread):
         self._freq = [1] * len(self._fingers)
         self._amp = [1] * len(self._fingers)
         self._samplerate = sd.query_devices(self._device_name, 'output')['default_samplerate']
+        self._plot_buffer = list()
 
     def run(self):
         self.start_piezo(self._fingers)
@@ -58,7 +60,7 @@ class DeviceHandler(threading.Thread):
                 for frame in range(frames):
                     phase_inc = 2*np.pi*self._freq[i]/self._samplerate
                     outdata[frame, i] = self._amp[i] * np.sin(self._m_phase[i])
-                    self._m_phase[i] += phase_inc
+                    self._m_phase[i] += phase_inc                        
 
                     if np.sign(outdata[frame, i]) != np.sign(self._oldsignal[i]):
                         self._freq[i] = self._mount._frequencies[finger]
@@ -68,13 +70,18 @@ class DeviceHandler(threading.Thread):
                 for frame in range(frames):
                     outdata[frame, i] = 0
 
+            if finger == 'th':
+                self._plot_buffer.append(outdata[:, i])
+
             self._start_idx[i] += frames
 
     def start_piezo(self, fingers):
         with sd.OutputStream(device=self._device_name, channels=len(fingers), callback=self.callback,
                              samplerate=self._samplerate):
-            while not rospy.is_shutdown():
-                continue
+            print('press Return to quit')
+            input()
+            plt.plot(self._plot_buffer)
+            plt.show()
 
 
 class SrFingerMount():
