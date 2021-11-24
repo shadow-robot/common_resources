@@ -94,8 +94,8 @@ class SrFingerMount():
         self._used_devices = []
         self._hand_id = hand_id
 
-        self._contact_time = 0.25
-        self._amp_max = 0.8
+        self._contact_time = 0.5
+        self._amp_max = 0.6
         self._amp_min = 0.2
         self._freq_min = 1
         self._freq_max = 80
@@ -118,13 +118,18 @@ class SrFingerMount():
             self._pst_saturation = [700.0, 700.0, 700.0, 700.0, 700.0]
             self._init_thresholds()
             rospy.Subscriber("/"+self._hand_id+"/tactile", ShadowPST, self._pst_tactile_cb)
+
         elif self._used_tactiles == "biotac":
 
             try:
                 from haptx_tactile_mapping.biotac_sp_minus_mapping import BiotacMapping
+            except Exception:
+                rospy.logerr("haptx_tactile_mapping not found")
+
+            try:
                 from haptx_msgs.msg import Movables, Movable, Tactor, BiotacAllFloat
             except Exception:
-                rospy.logerr("haptx packages not found")
+                rospy.logerr("haptx_msgs not found")
 
             BiotacMapping(self._hand_id)
             rospy.Subscriber("haptx_movables", Movables, self._biotac_tactile_cb)
@@ -150,7 +155,7 @@ class SrFingerMount():
 
     def _reconfigure(self, config, level):
         rospy.logwarn(config)
-
+        rospy.logwarn("reconfigured")
         self._contact_time = config.contact_time
         self._amp_max = config.max_amplitude
         self._amp_min = config.min_amplitude
@@ -222,13 +227,38 @@ class SrFingerMount():
                 for i in range(0, len(data.movables)):
                     pressure[i] = data.movables[i].tactors[0].pressure
                 mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
+
                 for f in self._used_fingers:
+
+                    self.fading_time[f] = rospy.get_time() - self._start_time[f]
+
+                    if self._prev_values[f] < 0.01 and mapped_biotac_values[f] > 0.02:
+                        self._start_time[f] = rospy.get_time()
+                        rospy.logwarn("zeroing startime for {}".format(f))
+
+                    if self.fading_time[f] <= self._contact_time:
+                        a = -4 / (self._contact_time * self._contact_time)
+                        b = -a * self._contact_time
+                        fading_factor = a * self.fading_time[f] * self.fading_time[f] + b * self.fading_time[f]
+                        self.fading_amplitudes[f] = self._amp_max * fading_factor
+                        self.fading_frequencies[f] = self._freq_max * fading_factor
+                    else:
+                        self.fading_amplitudes[f] = 0
+                        self.fading_frequencies[f] = 0
+
+
                     self._amplitudes[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
                                            (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
                                            (self._amp_max - self._amp_min) + self._amp_min
                     self._frequencies[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
                                             (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
-                        (self._freq_min - self._freq_max) + self._freq_max
+                        (self._freq_max - self._freq_min) + self._freq_min
+
+                    self._amplitudes[f] = max(self._amplitudes[f], self.fading_amplitudes[f])
+                    self._frequencies[f] = max(self._frequencies[f], self.fading_frequencies[f])
+
+                    self._prev_values[f] = mapped_biotac_values[f]
+
         else:
             rospy.logwarn("Missing data. Expected to receive {}, "
                           "but got {} Biotac values".format(len(self.CONST_FINGERS), len(data.pressure)))
@@ -280,6 +310,6 @@ if __name__ == "__main__":
 
     mount = SrFingerMount(fingers, hand_id)
 
-    srv = Server(SrFingerMountConfig, mount._reconfigure)
+    # srv = Server(SrFingerMountConfig, mount._reconfigure)
 
     rospy.spin()
