@@ -47,6 +47,8 @@ class DeviceHandler(threading.Thread):
         self._amp = [1] * len(self._fingers)
         self._samplerate = sd.query_devices(self._device_name, 'output')['default_samplerate']
         self._plot_buffer = list()
+        self._clipped_amplitude = [-0.1, 0.6] # min, max
+        self._offset = np.mean(self._clipped_amplitude)
 
     def run(self):
         self.start_piezo(self._fingers)
@@ -56,32 +58,38 @@ class DeviceHandler(threading.Thread):
             rospy.logwarn(status)
 
         for i, finger in enumerate(self._fingers):
-            if self._mount._amplitudes[finger] > self._mount._amp_min * 1.05:
-                for frame in range(frames):
-                    phase_inc = 2*np.pi*self._freq[i]/self._samplerate
-                    outdata[frame, i] = self._amp[i] * np.sin(self._m_phase[i])
-                    self._m_phase[i] += phase_inc                        
+            for frame in range(frames):
+                phase_inc = 2 * np.pi*self._freq[i] / self._samplerate
+                outdata[frame, i] = self._offset * ( 1.0 + self._amp[i] * np.sin(self._m_phase[i]))
+                self._m_phase[i] += phase_inc
 
-                    if np.sign(outdata[frame, i]) != np.sign(self._oldsignal[i]):
-                        self._freq[i] = self._mount._frequencies[finger]
-                        self._amp[i] = self._mount._amplitudes[finger]
-                    self._oldsignal[i] = outdata[frame, i]
-            else:
-                for frame in range(frames):
-                    outdata[frame, i] = 0
+                if np.sign(outdata[frame, i]-self._offset) != np.sign(self._oldsignal[i]-self._offset):
+                    self._freq[i] = self._mount._frequencies[finger]
+                    self._amp[i] = self._mount._amplitudes[finger]
+
+                self._oldsignal[i] = outdata[frame, i]
 
             if finger == 'th':
-                self._plot_buffer.append(outdata[:, i])
+                self._plot_buffer += list(outdata[:, i])
+                self._plot_buffer += list([0.5]) # marks the buffer appends
+                rospy.logwarn(self._amp[i])
+
+            #rospy.logwarn("{} {} {}".format(self._fingers, outdata[frame, 0], outdata[frame, 1]))
 
             self._start_idx[i] += frames
 
     def start_piezo(self, fingers):
         with sd.OutputStream(device=self._device_name, channels=len(fingers), callback=self.callback,
                              samplerate=self._samplerate):
-            print('press Return to quit')
-            input()
-            plt.plot(self._plot_buffer)
-            plt.show()
+
+            if 'th' in fingers:
+               print('press Return to quit')
+               input()
+               plt.plot(self._plot_buffer)
+               plt.show()
+
+            while not rospy.is_shutdown():
+                rospy.sleep(0.1)
 
 
 class SrFingerMount():
@@ -102,8 +110,8 @@ class SrFingerMount():
         self._hand_id = hand_id
 
         self._contact_time = 0.5
-        self._amp_max = 0.6
-        self._amp_min = 0.2
+        self._amp_max = 1.0
+        self._amp_min = 0.0
         self._freq_min = 1
         self._freq_max = 80
 
@@ -121,9 +129,12 @@ class SrFingerMount():
         self._used_tactiles = TactileReceiver(self._hand_id).get_tactile_type()
 
         if self._used_tactiles == "PST":
-            self._pst_threshold = [395.0, 395.0, 395.0, 395.0, 395.0]
-            self._pst_saturation = [700.0, 700.0, 700.0, 700.0, 700.0]
-            self._init_thresholds()
+            #self._pst_threshold = [395.0, 395.0, 395.0, 395.0, 395.0]
+            #self._pst_saturation = [700.0, 700.0, 700.0, 700.0, 700.0]
+            #self._init_thresholds()
+
+            self._pst_threshold = [0, 0, 0, 0, 0]
+            self._pst_saturation = [200, 200, 200, 200, 200]
             rospy.Subscriber("/"+self._hand_id+"/tactile", ShadowPST, self._pst_tactile_cb)
 
         elif self._used_tactiles == "biotac":
@@ -180,12 +191,9 @@ class SrFingerMount():
                 normalized_pressure[i] = (press - self._pst_threshold[i]) / \
                                          (self._pst_saturation[i] - self._pst_threshold[i])
                 normalized_pressure[i] = min(max(normalized_pressure[i], 0), 1)
-                if i == 1 or i == 2 or i == 3:
-                    normalized_pressure[i] = 0
 
             self.mapped_pst_values = dict(zip(self.CONST_FINGERS, normalized_pressure))
-            # rospy.logwarn("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(normalized_pressure[0],normalized_pressure[1], \
-            # normalized_pressure[2],normalized_pressure[3],normalized_pressure[4]))
+            #rospy.logwarn("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(normalized_pressure[0],normalized_pressure[1], normalized_pressure[2],normalized_pressure[3],normalized_pressure[4]))
 
             for i, f in enumerate(self._used_fingers):
 
@@ -223,6 +231,7 @@ class SrFingerMount():
 
                 self._prev_values[f] = self.mapped_pst_values[f]
 
+                #rospy.logwarn(self._amplitudes['th'])
         else:
             rospy.logwarn("Missing data. Expected to receive {}, but got {} PST values".format(len(self.CONST_FINGERS),
                                                                                                len(data.pressure)))

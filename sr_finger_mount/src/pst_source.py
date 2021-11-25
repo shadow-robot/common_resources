@@ -23,19 +23,36 @@ import rospy
 if __name__ == "__main__":
 
     rospy.init_node("pst_source_node")
-    pub = rospy.Publisher("rh/tactile", ShadowPST, queue_size=1)
+    pub = rospy.Publisher("rh/tactile", ShadowPST, queue_size=20)
     msg = ShadowPST()
     time = 0
 
+    time_start = rospy.get_time()
+    spike_length = 2
+    amp = 0.0
     while not rospy.is_shutdown():
-        pressure_th = int(np.sin(time)*100)+100
-        pressure_ff = int(np.sin(time+1)*100)+100
-        pressure_mf = int(np.sin(time+1.8)*100)+100
-        pressure_rf = int(np.sin(time+2.5)*100)+100
-        pressure_lf = int(np.sin(time+0.4)*100)+100
+        time_passed = rospy.get_time() - time_start
 
-        msg.pressure = [pressure_ff*1, pressure_mf*0, pressure_rf*0, pressure_lf*0, pressure_th]
+        pressure_th = int(np.sin(2*time_passed)*100)+100
+        pressure_ff = int(np.sin(2*time_passed+1)*100)+100
+        pressure_mf = int(np.sin(3*time_passed+1.8)*100)+100
+        pressure_rf = int(np.sin(10*time_passed+2.5)*100)+100
+        pressure_lf = int(np.sin(time_passed+0.4)*100)+100
+
+        '''
+        if time_passed >= 5:
+            time_start = rospy.get_time()
+
+        a = -4 / (spike_length * spike_length)
+        b = -a * spike_length
+        amp = a * time_passed * time_passed + b * time_passed
+        if amp <= 0:
+            amp = 0
+        '''
+
+        #msg.pressure = [int(amp*200), 0, 0, int(amp*200), int(amp*200)]
+        msg.pressure = [pressure_ff*1, pressure_mf*0, pressure_rf*0, pressure_lf*0, pressure_th*1]
+        #msg.pressure = [int(amp*200), int(amp*200), int(amp*200), pressure_lf*0, pressure_th*1]
 
         pub.publish(msg)
-        rospy.Rate(10).sleep()
-        time = time + 0.1
+        rospy.Rate(20).sleep()
