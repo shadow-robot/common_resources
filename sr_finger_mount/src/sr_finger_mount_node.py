@@ -40,6 +40,7 @@ class DeviceHandler(threading.Thread):
         self._device_name = device
         self._fingers = fingers
         self._mount = mount
+        self._stop = False
         self._start_idx = [0] * len(self._fingers)
         self._m_phase = [0] * len(self._fingers)
         self._oldsignal = [0] * len(self._fingers)
@@ -50,8 +51,15 @@ class DeviceHandler(threading.Thread):
         self._clipped_amplitude = [-0.1, 0.6] # min, max
         self._offset = np.mean(self._clipped_amplitude)
 
+        self.amp_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/amplitude2', Float64, queue_size=50)
+        self.freq_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/frequency2', Float64, queue_size=50)
+
     def run(self):
+        self._stop = False
         self.start_piezo(self._fingers)
+
+    def stop(self):
+        self._stop = True
 
     def callback(self, outdata, frames, time, status):
         if status:
@@ -63,16 +71,20 @@ class DeviceHandler(threading.Thread):
                 outdata[frame, i] = self._offset * ( 1.0 + self._amp[i] * np.sin(self._m_phase[i]))
                 self._m_phase[i] += phase_inc
 
-                if np.sign(outdata[frame, i]-self._offset) != np.sign(self._oldsignal[i]-self._offset):
+                if outdata[frame, i] != np.sign(self._oldsignal[i]):
                     self._freq[i] = self._mount._frequencies[finger]
                     self._amp[i] = self._mount._amplitudes[finger]
 
                 self._oldsignal[i] = outdata[frame, i]
 
-            if finger == 'th':
-                self._plot_buffer += list(outdata[:, i])
-                self._plot_buffer += list([0.5]) # marks the buffer appends
-                rospy.logwarn(self._amp[i])
+                if finger == 'th':
+                    self.freq_publisher.publish(self._mount._frequencies[finger])
+                    self.amp_publisher.publish(outdata[frame, i])
+
+            #if finger == 'th':
+                #self._plot_buffer += list(outdata[:, i])
+                #self._plot_buffer += list([0.5]) # marks the buffer appends
+                #rospy.logwarn(self._amp[i])
 
             #rospy.logwarn("{} {} {}".format(self._fingers, outdata[frame, 0], outdata[frame, 1]))
 
@@ -82,14 +94,11 @@ class DeviceHandler(threading.Thread):
         with sd.OutputStream(device=self._device_name, channels=len(fingers), callback=self.callback,
                              samplerate=self._samplerate):
 
-            if 'th' in fingers:
-               print('press Return to quit')
-               input()
-               plt.plot(self._plot_buffer)
-               plt.show()
+            while not rospy.is_shutdown() or self._stop:
+                rospy.logwarn(self._stop)
+                rospy.sleep(1)
 
-            while not rospy.is_shutdown():
-                rospy.sleep(0.1)
+        rospy.logwarn("stopped")
 
 
 class SrFingerMount():
@@ -109,11 +118,11 @@ class SrFingerMount():
         self._used_devices = []
         self._hand_id = hand_id
 
-        self._contact_time = 0.5
+        self._contact_time = 0.1
         self._amp_max = 1.0
         self._amp_min = 0.0
         self._freq_min = 1
-        self._freq_max = 80
+        self._freq_max = 150
 
         self._amp_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/amplitude',
                                               Float64MultiArray, queue_size=50)
@@ -127,14 +136,15 @@ class SrFingerMount():
         self._prev_values = dict(zip(self.CONST_FINGERS, len(self.CONST_FINGERS) * [0]))
 
         self._used_tactiles = TactileReceiver(self._hand_id).get_tactile_type()
+        self._device_handlers = [None, None, None]
 
         if self._used_tactiles == "PST":
-            #self._pst_threshold = [395.0, 395.0, 395.0, 395.0, 395.0]
-            #self._pst_saturation = [700.0, 700.0, 700.0, 700.0, 700.0]
-            #self._init_thresholds()
+            self._pst_threshold = [395.0, 395.0, 395.0, 395.0, 395.0]
+            self._pst_saturation = [550.0, 550.0, 550.0, 550.0, 550.0]
+            self._init_thresholds()
 
-            self._pst_threshold = [0, 0, 0, 0, 0]
-            self._pst_saturation = [200, 200, 200, 200, 200]
+            #self._pst_threshold = [0, 0, 0, 0, 0]
+            #self._pst_saturation = [200, 200, 200, 200, 200]
             rospy.Subscriber("/"+self._hand_id+"/tactile", ShadowPST, self._pst_tactile_cb)
 
         elif self._used_tactiles == "biotac":
@@ -161,6 +171,7 @@ class SrFingerMount():
 
         if not self._check_devices():
             return
+
         self.init_all()
 
     def _init_thresholds(self):
@@ -180,6 +191,13 @@ class SrFingerMount():
         self._freq_max = config.max_frequency
         self._freq_min = config.min_frequency
         self._pst_saturation = len(self.CONST_FINGERS) * [config.pst_saturation]
+        self._used_fingers = fingers
+        
+        for i in range(0,len(self._device_handlers)):
+            if type(self._device_handlers[i]) == DeviceHandler:
+                self._device_handlers[i].stop()
+                time.sleep(1)
+                self._device_handlers[i].start_piezo()
 
         return config
 
@@ -199,7 +217,7 @@ class SrFingerMount():
 
                 self.fading_time[f] = rospy.get_time() - self._start_time[f]
 
-                if self._prev_values[f] < 0.01 and self.mapped_pst_values[f] > 0.01:
+                if self._prev_values[f] < 0.03 and np.abs(self.mapped_pst_values[f]-self._prev_values[f]) > 0.02:
                     self._start_time[f] = rospy.get_time()
                     rospy.logwarn("zeroing startime for {}".format(f))
 
@@ -207,7 +225,7 @@ class SrFingerMount():
                     a = -4 / (self._contact_time * self._contact_time)
                     b = -a * self._contact_time
                     fading_factor = a * self.fading_time[f] * self.fading_time[f] + b * self.fading_time[f]
-                    self.fading_amplitudes[f] = self._amp_max * fading_factor
+                    self.fading_amplitudes[f] = self._amp_max * 1.0 * fading_factor
                     self.fading_frequencies[f] = self._freq_max * fading_factor
                 else:
                     self.fading_amplitudes[f] = 0
@@ -223,15 +241,8 @@ class SrFingerMount():
                 self._amplitudes[f] = max(self._amplitudes[f], self.fading_amplitudes[f])
                 self._frequencies[f] = max(self._frequencies[f], self.fading_frequencies[f])
 
-                # msg = Float64MultiArray()
-                # msg.data = self._amplitudes.values()
-                # self._amp_publisher.publish(msg)
-                # msg.data = self._frequencies.values()
-                # self._freq_publisher.publish(msg)
-
                 self._prev_values[f] = self.mapped_pst_values[f]
 
-                #rospy.logwarn(self._amplitudes['th'])
         else:
             rospy.logwarn("Missing data. Expected to receive {}, but got {} PST values".format(len(self.CONST_FINGERS),
                                                                                                len(data.pressure)))
@@ -248,7 +259,7 @@ class SrFingerMount():
 
                     self.fading_time[f] = rospy.get_time() - self._start_time[f]
 
-                    if self._prev_values[f] < 0.01 and mapped_biotac_values[f] > 0.02:
+                    if self._prev_values[f] < 0.01 and mapped_biotac_values[f]-self._prev_values[f] > 0.03:
                         self._start_time[f] = rospy.get_time()
                         rospy.logwarn("zeroing startime for {}".format(f))
 
@@ -302,20 +313,19 @@ class SrFingerMount():
             yield self._used_fingers[i:i + self.CONST_CHANNELS_PER_DEVICE]
 
     def init_all(self):
-        device_handlers = [None, None]
         finger_sets = list(self._sublists())
         for i, finger_set in enumerate(finger_sets):
             device_name = self._used_devices[i]
             time.sleep(1)
-            device_handlers[i] = DeviceHandler(device_name, finger_set, self)
-            device_handlers[i].start()
+            self._device_handlers[i] = DeviceHandler(device_name, finger_set, self)
+            self._device_handlers[i].start()
 
 
 if __name__ == "__main__":
 
     rospy.init_node('sr_finger_mount_node')
 
-    fingers = rospy.get_param("~fingers", 'th,ff,mf,rf,lf')
+    fingers = rospy.get_param("~fingers", 'th,ff,mf,rf')
     hand_id = rospy.get_param("~hand_id", 'rh')
 
     if not (hand_id == "rh" or hand_id == "lh"):
@@ -326,6 +336,6 @@ if __name__ == "__main__":
 
     mount = SrFingerMount(fingers, hand_id)
 
-    # srv = Server(SrFingerMountConfig, mount._reconfigure)
+    srv = Server(SrFingerMountConfig, mount._reconfigure)
 
     rospy.spin()
