@@ -24,7 +24,7 @@ import numpy as np
 import sounddevice as sd
 import matplotlib.pyplot as plt
 from sr_robot_msgs.msg import ShadowPST, BiotacAll
-from std_msgs.msg import Float64, Float64MultiArray
+from std_msgs.msg import Float64, Float64MultiArray, Header
 import threading
 import time
 from sr_hand.tactile_receiver import TactileReceiver
@@ -32,6 +32,8 @@ import matplotlib.pyplot as plt
 
 from dynamic_reconfigure.server import Server
 from sr_finger_mount.cfg import SrFingerMountConfig
+
+from sr_finger_mount.msg import PiezoFeedback
 
 
 class DeviceHandler(threading.Thread):
@@ -41,7 +43,6 @@ class DeviceHandler(threading.Thread):
         self._fingers = fingers
         self._mount = mount
         self._stop = False
-        self._start_idx = [0] * len(self._fingers)
         self._m_phase = [0] * len(self._fingers)
         self._oldsignal = [0] * len(self._fingers)
         self._freq = [1] * len(self._fingers)
@@ -50,10 +51,14 @@ class DeviceHandler(threading.Thread):
         self._plot_buffer = list()
         self._clipped_amplitude = [-0.1, 0.6]
         self._offset = np.mean(self._clipped_amplitude)
+        self._amp_factor = np.mean(np.abs(self._clipped_amplitude))
 
-        self.signal_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/output', Float64, queue_size=30)
-        self.amp_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/amplitude', Float64, queue_size=30)
-        self.freq_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/frequency', Float64, queue_size=30)
+        self.signal_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/output', PiezoFeedback, queue_size=1)
+        self.amp_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/amplitude', PiezoFeedback, queue_size=1)
+        self.freq_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/frequency', PiezoFeedback, queue_size=1)
+
+        self.msg = PiezoFeedback()
+        self.msg.header = Header()
 
     def run(self):
         self.start_piezo(self._fingers)
@@ -64,26 +69,22 @@ class DeviceHandler(threading.Thread):
 
         for i, finger in enumerate(self._fingers):
             for frame in range(frames):
-                phase_inc = 2 * np.pi*self._freq[i] / self._samplerate
-                outdata[frame, i] = self._offset * (1.0 + self._amp[i] * np.sin(self._m_phase[i]))
+                phase_inc = 2 * np.pi * self._freq[i] / self._samplerate
+                outdata[frame, i] = self._offset + self._amp_factor * self._amp[i] * np.sin(self._m_phase[i])
                 self._m_phase[i] += phase_inc
 
                 if outdata[frame, i] != np.sign(self._oldsignal[i]):
                     self._freq[i] = self._mount._frequencies[finger]
                     self._amp[i] = self._mount._amplitudes[finger]
-
                 self._oldsignal[i] = outdata[frame, i]
 
-                if finger == 'th':
-                    self.amp_publisher.publish(self._mount._amplitudes[finger])
-                    self.signal_publisher.publish(outdata[frame, i])
-
-            self._start_idx[i] += frames
+                self.msg.header.stamp = rospy.get_rostime()
+                self.msg.feedback = Float64(outdata[frame, i])
+                self.signal_publisher.publish(self.msg)
 
     def start_piezo(self, fingers):
         with sd.OutputStream(device=self._device_name, channels=len(fingers), callback=self.callback,
-                             samplerate=self._samplerate):
-
+                             samplerate=self._samplerate, blocksize=100, latency='low'):
             while not rospy.is_shutdown():
                 rospy.sleep(0.5)
 
@@ -109,7 +110,7 @@ class SrFingerMount():
         self._amp_max = 1.0
         self._amp_min = 0.0
         self._freq_min = 1
-        self._freq_max = 150
+        self._freq_max = 80
 
         self._start_time = dict(zip(self.CONST_FINGERS, len(self.CONST_FINGERS) * [rospy.get_time()]))
         self.fading_time = dict(zip(self.CONST_FINGERS, len(self.CONST_FINGERS) * [0]))
@@ -224,38 +225,44 @@ class SrFingerMount():
             if self._hand_id in data.movables[0].name:
                 for i in range(0, len(data.movables)):
                     pressure[i] = data.movables[i].tactors[0].pressure
-                mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
 
-                for f in self._used_fingers:
+                self.mapped_biotac_values = dict(zip(self.CONST_FINGERS, pressure))
+
+                for i, f in enumerate(self._used_fingers):
 
                     self.fading_time[f] = rospy.get_time() - self._start_time[f]
 
-                    if self._prev_values[f] < 0.01 and mapped_biotac_values[f]-self._prev_values[f] > 0.03:
+                    if self._prev_values[f] < 0.01 and np.abs(self.mapped_biotac_values[f]-self._prev_values[f]) > 0.01:
                         self._start_time[f] = rospy.get_time()
-                        rospy.logwarn("zeroing startime for {}".format(f))
+                        rospy.logerr("zeroing startime for {}".format(f))
 
                     if self.fading_time[f] <= self._contact_time:
                         a = -4 / (self._contact_time * self._contact_time)
                         b = -a * self._contact_time
                         fading_factor = a * self.fading_time[f] * self.fading_time[f] + b * self.fading_time[f]
-                        self.fading_amplitudes[f] = self._amp_max * fading_factor
+                        self.fading_amplitudes[f] = self._amp_max * 1.0 * fading_factor
                         self.fading_frequencies[f] = self._freq_max * fading_factor
                     else:
                         self.fading_amplitudes[f] = 0
                         self.fading_frequencies[f] = 0
 
-                    self._amplitudes[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
+                    self._amplitudes[f] = ((self.mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
                                            (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
                         (self._amp_max - self._amp_min) + self._amp_min
-                    self._frequencies[f] = ((mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
+                    self._frequencies[f] = ((self.mapped_biotac_values[f] - self.CONST_BIOTAC_MIN) /
                                             (self.CONST_BIOTAC_MAX - self.CONST_BIOTAC_MIN)) * \
                         (self._freq_max - self._freq_min) + self._freq_min
-
+                    '''
+                    if self._amplitudes[f] != 0.0:
+                        self._amplitudes[f] = self._amp_max
+                        self._frequencies[f] = self._freq_max
+                    else:
+                        self._amplitudes[f] = 0
+                        self._frequencies[f] = 0
+                    '''
                     self._amplitudes[f] = max(self._amplitudes[f], self.fading_amplitudes[f])
                     self._frequencies[f] = max(self._frequencies[f], self.fading_frequencies[f])
-
-                    self._prev_values[f] = mapped_biotac_values[f]
-
+                    self._prev_values[f] = self.mapped_biotac_values[f]
         else:
             rospy.logwarn("Missing data. Expected to receive {}, "
                           "but got {} Biotac values".format(len(self.CONST_FINGERS), len(data.pressure)))
