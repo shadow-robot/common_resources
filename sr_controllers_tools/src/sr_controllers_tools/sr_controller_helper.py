@@ -52,8 +52,9 @@ class ControllerHelper(object):
 
         # This section is for any robot
         self.trajectory_controllers = {
-            "run": ["{0}_trajectory_controller".format(robot_id) for robot_id in self.robot_ids],
+            "run": ["{0}_trajectory_controller".format(robot_id) for robot_id in self.robot_ids] + ["{0}_wr_trajectory_controller".format(robot_id) for robot_id in self.robot_ids],
             "stop": []}
+
         self.managed_trajectory_controllers = [
             cont for type_conts in self.trajectory_controllers.values() for cont in type_conts]
 
