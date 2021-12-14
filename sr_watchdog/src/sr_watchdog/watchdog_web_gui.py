@@ -75,7 +75,7 @@ class SgsRequestHandler(BaseHTTPRequestHandler):
         elif self.path[-3:] == "png":
             self.send_header('Content-Type', 'image/png')
             self.end_headers()
-        with  open(page_path, 'rb') as f:
+        with open(page_path, 'rb') as f:
             self.wfile.write(f.read().decode(errors='ignore').encode('utf-8'))
 
 
