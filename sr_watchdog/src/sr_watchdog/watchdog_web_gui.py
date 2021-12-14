@@ -79,7 +79,6 @@ class SgsRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(f.read().decode(errors='ignore').encode('utf-8'))
 
 
-
 if __name__ == "__main__":
     rospy.init_node("watchdog_webserver")
 
