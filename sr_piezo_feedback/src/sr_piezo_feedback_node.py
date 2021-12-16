@@ -31,9 +31,9 @@ from sr_hand.tactile_receiver import TactileReceiver
 import matplotlib.pyplot as plt
 
 from dynamic_reconfigure.server import Server
-from sr_piezo_feedback.cfg import SrFingerMountConfig
+from sr_finger_mount.cfg import SrPiezoFeedbackConfig
 
-from sr_piezo_feedback.msg import PiezoFeedback
+from sr_finger_mount.msg import PiezoFeedback
 
 
 class DeviceHandler(threading.Thread):
@@ -52,9 +52,9 @@ class DeviceHandler(threading.Thread):
         self._offset = np.mean(self._signal_range)
         self._amp_factor = np.mean(np.abs(self._signal_range))
 
-        self.signal_publisher = rospy.Publisher('sr_piezo_feedback/output', PiezoFeedback, queue_size=1)
-        self.amp_publisher = rospy.Publisher('sr_piezo_feedback/amplitude', PiezoFeedback, queue_size=1)
-        self.freq_publisher = rospy.Publisher('sr_piezo_feedback/frequency', PiezoFeedback, queue_size=1)
+        self.signal_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/output', PiezoFeedback, queue_size=1)
+        self.amp_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/amplitude', PiezoFeedback, queue_size=1)
+        self.freq_publisher = rospy.Publisher('sr_finger_mount/piezo_feedback/frequency', PiezoFeedback, queue_size=1)
 
         self.msg = PiezoFeedback()
         self.msg.header = Header()
@@ -89,15 +89,14 @@ class DeviceHandler(threading.Thread):
 
 class SrPiezoFeedback():
 
-    CONST_PST_MAX = 200
+    CONST_PST_MAX = 1
     CONST_PST_MIN = 0
 
     CONST_BIOTAC_MAX = 1
     CONST_BIOTAC_MIN = 0
 
     CONST_FINGERS = ["ff", "mf", "rf", "lf", "th"]
-    # CONST_ACCEPTABLE_DEVICE_NAMES = ["Boreas DevKit", "BOS1901-KIT"]
-    CONST_ACCEPTABLE_DEVICE_NAMES = ["HDA Intel PCH: ALC233 Analog (hw:0,0)"]
+    CONST_ACCEPTABLE_DEVICE_NAMES = ["Boreas DevKit", "BOS1901-KIT"]
     CONST_CHANNELS_PER_DEVICE = 2
 
     def __init__(self, fingers, hand_id):
@@ -147,7 +146,7 @@ class SrPiezoFeedback():
         if not self._check_devices():
             return
 
-        self.init_all()
+        self.initialize()
 
     def _init_thresholds(self):
         samples_to_collect = 50
@@ -175,7 +174,7 @@ class SrPiezoFeedback():
             return False
         return True
 
-    def init_all(self):
+    def initialize(self):
         finger_sets = list(self._sublists())
         for i, finger_set in enumerate(finger_sets):
             device_name = self._used_devices[i]
@@ -252,7 +251,7 @@ class SrPiezoFeedback():
 
 if __name__ == "__main__":
 
-    rospy.init_node('sr_piezo_feedback_node')
+    rospy.init_node('sr_finger_mount_node')
 
     fingers = rospy.get_param("~fingers", 'th')
     hand_id = rospy.get_param("~hand_id", 'rh')
@@ -263,6 +262,6 @@ if __name__ == "__main__":
     if fingers is not None:
         fingers = fingers.split(',')
 
-    mount = SrFingerMount(fingers, hand_id)
+    mount = SrPiezoFeedback(fingers, hand_id)
     # srv = Server(SrFingerMountConfig, mount._reconfigure)
     rospy.spin()

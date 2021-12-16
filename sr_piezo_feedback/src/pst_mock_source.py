@@ -51,8 +51,8 @@ if __name__ == "__main__":
         '''
 
         #msg.pressure = [int(amp*200), 0, 0, int(amp*200), int(amp*200)]
-        msg.pressure = [pressure_ff*1, pressure_mf*0, pressure_rf*0, pressure_lf*0, pressure_th*1]
+        msg.pressure = [pressure_ff*1, pressure_mf*1, pressure_rf*1, pressure_lf*1, pressure_th*1]
         #msg.pressure = [int(amp*200), int(amp*200), int(amp*200), pressure_lf*0, pressure_th*1]
 
         pub.publish(msg)
-        rospy.Rate(20).sleep()
+        rospy.Rate(120).sleep()
