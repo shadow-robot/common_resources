@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020-2021 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -50,7 +50,6 @@ class SrUrLoadCalibration(object):
         self._arm_calibrations_folder = ''
         self._CONST_UR_ARM_SSH_USERNAME = "root"
         self._CONST_UR_ARM_SSH_PASSWORD = "easybot"
-        CONST_E_SERIES_ARMS = ['ur10e', 'ur5e', 'ur3e', 'ur16e']
         if [] == arm_info_in:
             raise NoArmsSpecified("No arms specified, cannot find arm calibration")
         self._arm_info_in = arm_info_in
@@ -67,12 +66,8 @@ class SrUrLoadCalibration(object):
             CONST_SR_UR_ARM_CALIBRATION_ROOT = rospkg.RosPack().get_path('sr_ur_arm_calibration_loader')
         self._arm_calibrations_folder = os.path.join(CONST_SR_UR_ARM_CALIBRATION_ROOT, 'calibrations')
         self._setup_folders()
-        if CONST_ARM_TYPE in CONST_E_SERIES_ARMS:
-            self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_e_description'),
-                                                           'config', CONST_ARM_TYPE + '_default.yaml')
-        else:
-            self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_description'),
-                                                           'config', CONST_ARM_TYPE + '_default.yaml')
+        self._default_kinematics_config = os.path.join(rospkg.RosPack().get_path('ur_description'),
+                                                       'config', CONST_ARM_TYPE + '/default_kinematics.yaml')
         if not os.path.isfile(self._default_kinematics_config):
             raise ArmTypeNotRecognised('Cannot find default config for ' + CONST_ARM_TYPE)
 

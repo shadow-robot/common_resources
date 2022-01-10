@@ -9,7 +9,7 @@ add_compile_options(-std=c++17)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
     roscpp
-    roslint    
+    roslint
     std_msgs
     topic_tools
     tf2_ros
@@ -109,7 +109,9 @@ catkin_package(
   LIBRARIES wait_for_param ros_heartbeat
   CATKIN_DEPENDS
     roscpp
+    std_msgs
     tf2_ros
+    topic_tools
 #  DEPENDS system_lib
 )
 
@@ -123,6 +125,9 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+
+## http://wiki.ros.org/roslint
+roslint_cpp(src/${PROJECT_NAME}/ros_heartbeat.cpp src/${PROJECT_NAME}/wait_for_param.cpp)
 
 ## Declare a C++ library
 add_library(ros_heartbeat src/${PROJECT_NAME}/ros_heartbeat.cpp)
