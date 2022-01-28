@@ -55,8 +55,11 @@ class ControllerHelper(object):
             self.trajectory_controllers = {
                 "run": ["{0}_trajectory_controller".format(robot_id)],
                 "stop": []}
-            if robot_id is 'rh' or 'lh':
+
+            # Add wrist controllers if wrist joints present
+            if "wrj1" in self.joints or "wrj2" in self.joints:
                 self.trajectory_controllers["run"].append("{0}_wr_trajectory_controller".format(robot_id))
+
         self.managed_trajectory_controllers = [
             cont for type_conts in self.trajectory_controllers.values() for cont in type_conts]
 
