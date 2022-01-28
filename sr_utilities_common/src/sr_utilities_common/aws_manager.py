@@ -122,15 +122,15 @@ if __name__ == "__main__":
 
     if upload_param is True:
         status_msg = "File upload failed"
-        rospy.loginfo("Uploading {} file.".format(self.aws_path))
-        if aws_manager.download(bucket_name, files_base_path, files_folder_path, file_names):
+        rospy.loginfo("Uploading {}/{} file.".format(files_folder_path, file_names))
+        if aws_manager.upload(bucket_name, files_base_path, files_folder_path, file_names):
             status_msg = "Completed file upload."
         rospy.loginfo(status_msg)
 
     if download_param is True:
         status_msg = "File download failed"
-        rospy.loginfo("Downloading {} file.".format(self.aws_path))
-        if aws_manager.upload(bucket_name, files_base_path, files_folder_path, file_names):
+        rospy.loginfo("Downloading {}/{} file.".format(files_folder_path, file_names))
+        if aws_manager.download(bucket_name, files_base_path, files_folder_path, file_names):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 
