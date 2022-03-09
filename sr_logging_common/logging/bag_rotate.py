@@ -21,14 +21,22 @@ import rospy
 
 
 def remover(desired_bag_number, path):
+    CONST_MAX_ACTIVE_BAGS_ALLOWED = desired_bag_number//2
+
     while not rospy.is_shutdown():
         bag_files = [f for f in os.listdir(path) if f.endswith('.bag')]
+        active_bag_files = [f for f in os.listdir(path) if f.endswith('.bag.active')]
 
         sorted_bag_files = sorted(bag_files, key=lambda x: os.path.getctime(os.path.join(path, x)))
+        sorted_active_bag_files = sorted(active_bag_files, key=lambda x: os.path.getctime(os.path.join(path, x)))
 
         while len(sorted_bag_files) > desired_bag_number:
             os.remove(os.path.join(path, sorted_bag_files[0]))
             sorted_bag_files.pop(0)
+
+        while len(sorted_active_bag_files) > CONST_MAX_ACTIVE_BAGS_ALLOWED:
+            os.remove(os.path.join(path, sorted_active_bag_files[0]))
+            sorted_active_bag_files.pop(0)
 
         time.sleep(1)
 

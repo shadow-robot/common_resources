@@ -1,7 +1,7 @@
 <launch>
   <arg name="robot_description" default="'$(find sr_description)/robots/shadowhand_motor_plus.urdf.xacro'"/>
 
-  <param name="robot_description" command="xacro --inorder $(arg robot_description)"/>
+  <param name="robot_description" command="xacro $(arg robot_description)" />
 
   <include file="$(find sr_utilities_common)/launch/single_robot_position_republisher.launch">
     <arg name="node_name" value="rh_trajectory_republisher"/>
