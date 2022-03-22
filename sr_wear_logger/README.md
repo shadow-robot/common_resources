@@ -8,7 +8,7 @@ This class is used to collect data from Shadow Hands to calculate metrics in ord
 
 ### Diagram 
 
-Here to post a picture of class diagram in case it's relevant
+![example diagram](https://drive.google.com/file/d/1W686eztRmWDlfMgkv8yb2xHpxSzeseC4/view?usp=sharing)
 
 ### Methods 
 
