@@ -12,7 +12,9 @@ This class is used to collect data from Shadow Hands to calculate metrics in ord
 
 ### Methods 
 
-- **check_parameters()** - verifies if the passed arguments (hand_id, serial, etc) are correct in terms of types and allowed value range.
+- **check_parameters(arg1, arg2)** - verifies if the passed arguments (hand_id, serial, etc) are correct in terms of types and allowed value range.
+  - arg1 - is responsible for ... . it has to be of type dict() with fields... 
+  - arg2 - is optional, type int 
 - **run()** - starts the node by creating an instance of the AWSManager, then verifies the structure of the log file and finally starts the subscriber to /joint_states which callback methods keeps updating the current values. This methods creates 2 timers which will save the data locally and to AWS.
 - **stop()** - stops the timers and kills the node
 
