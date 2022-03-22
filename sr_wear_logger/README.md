@@ -12,9 +12,9 @@ Here to post a picture of class diagram in case it's relevant
 
 ### Methods 
 
--check_parameters() - verifies if the passed arguments (hand_id, serial, etc) are correct in terms of types and allowed value range.
--run() - starts the node by creating an instance of the AWSManager, then verifies the structure of the log file and finally starts the subscriber to /joint_states which callback methods keeps updating the current values. This methods creates 2 timers which will save the data locally and to AWS.
--stop() - stops the timers and kills the node
+- check_parameters() - verifies if the passed arguments (hand_id, serial, etc) are correct in terms of types and allowed value range.
+- run() - starts the node by creating an instance of the AWSManager, then verifies the structure of the log file and finally starts the subscriber to /joint_states which callback methods keeps updating the current values. This methods creates 2 timers which will save the data locally and to AWS.
+- stop() - stops the timers and kills the node
 
 ### Requirements
 
