@@ -124,7 +124,7 @@ class ControllerHelper(object):
         which type of force control has to be sent to the motor or queries what control type:
             - torque demand (sr_robot_msgs::ControlType::FORCE)
             - PWM (sr_robot_msgs::ControlType::PWM)
-            - QUERY (sr_robot_msgs::ControlType::QUERY) 
+            - QUERY (sr_robot_msgs::ControlType::QUERY)
         it will block for time_to_reload_params secs to allow hand_controllers parameters to be updated
         """
         success = True
