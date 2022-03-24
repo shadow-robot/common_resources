@@ -146,8 +146,8 @@ class ControllerHelper(object):
                 current_control_type = change_control_type(query_type_msg)
 
                 if current_control_type.result.control_type != chng_type_msg.control_type:
-                    resp1 = change_control_type(chng_type_msg)
-                    if resp1.result.control_type != chng_type_msg.control_type:
+                    change_control = change_control_type(chng_type_msg)
+                    if change_control.result.control_type != chng_type_msg.control_type:
                         success = False
 
             except (rospy.ServiceException, rospy.ROSException) as e:
