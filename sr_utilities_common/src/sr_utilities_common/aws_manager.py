@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2021 Shadow Robot Company Ltd.
+# Copyright 2020-2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -30,7 +30,6 @@ class AWS_Manager(object):
     def __init__(self):
         self.file_full_paths = []
         self.aws_paths = []
-
         aws_access_key_id = ""
         aws_secret_access_key = ""
         aws_session_token = ""
@@ -75,15 +74,21 @@ class AWS_Manager(object):
                 rospy.logwarn("Failed listing bucket objects. " + str(e))
         return None
 
-    def _prepare_structure(self, bucket_name, files_base_path, files_folder_path, file_names):
+    def _prepare_structure(self, bucket_name, files_base_path, files_folder_path,
+        file_names, bucket_subfolder=None):
         self.file_full_paths = []
         self.aws_paths = []
         for file_name in file_names:
             self.file_full_paths.append("{}/{}/{}".format(files_base_path, files_folder_path, file_name))
-            self.aws_paths.append("{}/{}".format(files_folder_path, file_name))
+            if bucket_subfolder:
+                self.aws_paths.append(f"{bucket_subfolder}/{files_folder_path}/{file_name}")
+            else:
+                self.aws_paths.append(f"{files_folder_path}/{file_name}")
 
-    def download(self, bucket_name, files_base_path, files_folder_path, file_names):
-        self._prepare_structure(bucket_name, files_base_path, files_folder_path, file_names)
+    def download(self, bucket_name, files_base_path, files_folder_path,
+        file_names, bucket_subfolder=None):
+        self._prepare_structure(bucket_name, files_base_path, files_folder_path,
+            file_names, bucket_subfolder)
         directory = "{}/{}".format(files_base_path, files_folder_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -96,8 +101,10 @@ class AWS_Manager(object):
                 rospy.logwarn("File download failed. " + str(e))
         return downloadSucceded
 
-    def upload(self, bucket_name, files_base_path, files_folder_path, file_names):
-        self._prepare_structure(bucket_name, files_base_path, files_folder_path, file_names)
+    def upload(self, bucket_name, files_base_path, files_folder_path,
+        file_names, bucket_subfolder=None):
+        self._prepare_structure(bucket_name, files_base_path, files_folder_path,
+            file_names, bucket_subfolder)
         uploadSucceded = False
         for self.file_full_path, self.aws_path in zip(self.file_full_paths, self.aws_paths):
             try:
@@ -114,6 +121,7 @@ if __name__ == "__main__":
     download_param = rospy.get_param("~download")
     upload_param = rospy.get_param("~upload")
     bucket_name = rospy.get_param("~bucket_name")
+    bucket_subfolder = rospy.get_param("~bucket_subfolder")
     files_base_path = rospy.get_param("~files_base_path")
     files_folder_path = rospy.get_param("~files_folder_path")
     file_names = rospy.get_param("~file_names")
@@ -123,14 +131,16 @@ if __name__ == "__main__":
     if upload_param is True:
         status_msg = "File upload failed"
         rospy.loginfo("Uploading {}/{} file.".format(files_folder_path, file_names))
-        if aws_manager.upload(bucket_name, files_base_path, files_folder_path, file_names):
+        if aws_manager.upload(bucket_name, files_base_path, files_folder_path,
+            file_names, bucket_subfolder):
             status_msg = "Completed file upload."
         rospy.loginfo(status_msg)
 
     if download_param is True:
         status_msg = "File download failed"
         rospy.loginfo("Downloading {}/{} file.".format(files_folder_path, file_names))
-        if aws_manager.download(bucket_name, files_base_path, files_folder_path, file_names):
+        if aws_manager.download(bucket_name, files_base_path, files_folder_path,
+            file_names, bucket_subfolder):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 

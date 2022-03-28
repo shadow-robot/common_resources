@@ -1,0 +1,20 @@
+<launch>
+  <arg name="download" default="true"/>
+  <arg name="upload" default="false"/>
+  <arg name="bucket_name"/>
+  <arg name="bucket_subfolder"/>
+
+  <arg name="files_base_path"/>
+  <arg name="files_folder_path"/>
+  <arg name="file_names"/>
+
+  <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
+    <rosparam param="download" subst_value="True">$(arg download)</rosparam>
+    <rosparam param="upload" subst_value="True">$(arg upload)</rosparam>
+    <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
+    <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
+    <rosparam param="bucket_name" subst_value="True">$(arg bucket_name)</rosparam>
+    <rosparam param="bucket_subfolder" subst_value="True">$(arg bucket_subfolder)</rosparam>
+    <rosparam param="file_names" subst_value="True">$(arg file_names)</rosparam>
+  </node>
+</launch>
