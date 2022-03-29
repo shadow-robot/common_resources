@@ -98,8 +98,9 @@ class ControllerHelper(object):
                 'controller_manager/switch_controller', SwitchController)
             try:
                 resp1 = switch_controllers(
-                    controllers_to_start, controllers_to_stop, SwitchControllerRequest.BEST_EFFORT, False, 0.0)
-            except rospy.ServiceException:
+                    controllers_to_start, controllers_to_stop, SwitchControllerRequest.STRICT, False, 0.0)
+            except Exception as e:
+                rospy.logerr("Service call failed: %s" % (e,))
                 success = False
 
             if not resp1.ok:
