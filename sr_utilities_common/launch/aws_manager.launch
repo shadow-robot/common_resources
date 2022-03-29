@@ -2,11 +2,11 @@
   <arg name="download" default="true"/>
   <arg name="upload" default="false"/>
   <arg name="bucket_name"/>
-  <arg name="bucket_subfolder"/>
+  <arg name="bucket_subfolder" default='""'/>
 
   <arg name="files_base_path"/>
   <arg name="files_folder_path"/>
-  <arg name="file_names"/>
+  <arg name="file_names" default='""'/>
 
   <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
     <rosparam param="download" subst_value="True">$(arg download)</rosparam>
