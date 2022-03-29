@@ -95,9 +95,9 @@ class AWS_Manager(object):
         self.file_full_paths = []
         self.aws_paths = []
         for file_name in file_names:
-            self.file_full_paths.append("{}/{}/{}".format(files_base_path, files_folder_path, file_name))
+            self.file_full_paths.append(f"{files_base_path}/{files_folder_path}/{file_name}")
             if bucket_subfolder:
-                self.aws_paths.append(f"{bucket_subfolder}/{files_folder_path}/{file_name}")
+                self.aws_paths.append(f"{bucket_subfolder}/{file_name}")
             else:
                 self.aws_paths.append(f"{files_folder_path}/{file_name}")
     
@@ -106,7 +106,7 @@ class AWS_Manager(object):
         self.file_full_paths = []
         self.aws_paths = []
         for file_name in file_names:
-            self.file_full_paths.append("{}/{}/{}".format(files_base_path, files_folder_path, file_name))
+                self.file_full_paths.append(f"{files_base_path}/{files_folder_path}/{file_name}")
             if bucket_subfolder:
                 self.aws_paths.append(f"{bucket_subfolder}/{file_name}")
             else:
@@ -116,6 +116,9 @@ class AWS_Manager(object):
         file_names, bucket_subfolder=None):
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
         downloadSucceded = False
+        directory = os.path.join(files_base_path, files_folder_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
             try:
                 directory = os.path.dirname(file_full_path)
@@ -166,11 +169,16 @@ if __name__ == "__main__":
 
     aws_manager = AWS_Manager()
 
+    if upload_param is True and download_param is True:
+        rospy.logerr("You cannot upload and download at the same time. Please select one.")
+        rospy.signal_shutdown("")
+        exit(1)
+
     if upload_param is True:
         if file_names == "":
             file_names = gather_all_files_local(files_base_path, files_folder_path)
         status_msg = "File upload failed"
-        rospy.loginfo("Uploading {}/{} file.".format(files_folder_path, file_names))
+        rospy.loginfo(f"Uploading {}/{} file.".format(files_folder_path, file_names))
         if aws_manager.upload(bucket_name, files_base_path, files_folder_path,
             file_names, bucket_subfolder):
             status_msg = "Completed file upload."
@@ -180,7 +188,7 @@ if __name__ == "__main__":
         if file_names == "":
             file_names = aws_manager.gather_all_files_remote(bucket_name, bucket_subfolder)
         status_msg = "File download failed"
-        rospy.loginfo("Downloading {}/{} file.".format(files_folder_path, file_names))
+        rospy.loginfo(f"Downloading {files_folder_path}/{file_names} file.")
         if aws_manager.download(bucket_name, files_base_path, files_folder_path,
             file_names, bucket_subfolder):
             status_msg = "Completed file download."
