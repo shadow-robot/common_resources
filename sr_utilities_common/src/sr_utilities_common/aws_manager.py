@@ -200,7 +200,7 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
 
 def return_function_mode(function_mode):
     function_mode_edited = function_mode.lower().strip()
-    if function_mode_edited != "download" or function_mode_edited != "upload":
+    if function_mode_edited != "download" and function_mode_edited != "upload":
         err_message = "Please specify either upload or download to use this script"
         err_message += "\nE.g: function_mode:='upload'"
         err_message += "\n     function_mode:='download'"
