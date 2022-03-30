@@ -108,8 +108,8 @@ An example launch file using this script could look like the one below:
 
 ```xml
 <launch>
-  <arg name="download" default="false"/>
-  <arg name="upload" default="true"/>
+  <arg name="function_mode" default="upload"/>
+  <arg name="skip_check" default="false"/>
   <arg name="bucket_name" default="shadowrobot.example-bucket"/>
   <arg name="bucket_subfolder" default='""'/>
 
@@ -118,8 +118,8 @@ An example launch file using this script could look like the one below:
   <arg name="file_names" default='""'/>
 
   <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
-    <rosparam param="download" subst_value="True">$(arg download)</rosparam>
-    <rosparam param="upload" subst_value="True">$(arg upload)</rosparam>
+    <rosparam param="function_mode" subst_value="True">$(arg function_mode)</rosparam>
+    <rosparam param="skip_check" subst_value="True">$(arg skip_check)</rosparam>
     <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
     <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
     <rosparam param="bucket_name" subst_value="True">$(arg bucket_name)</rosparam>
