@@ -151,7 +151,7 @@ def gather_all_files_local(files_base_path, files_folder_path):
 
 def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
                                      file_names, bucket_subfolder):
-    print_msg = f"From bucket {bucket_name} downloading the files:"
+    print_msg = f"\nFrom bucket {bucket_name} downloading the files:"
     print_msg_2 = ""
     for file in file_names:
         print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{file}"
@@ -176,7 +176,7 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
 
 def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
                                    file_names, bucket_subfolder):
-    print_msg = f"From {files_base_path}/{files_folder_path} uploading the files:"
+    print_msg = f"\nFrom {files_base_path}/{files_folder_path} uploading the files:"
     print_msg_2 = ""
     for file in file_names:
         print_msg += f"\n    {files_folder_path}/{file}"
