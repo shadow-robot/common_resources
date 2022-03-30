@@ -199,15 +199,16 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
         exit(1)
 
 def return_function_mode(function_mode):
-    function_mode = function_mode.lower().strip()
-    if function_mode != "download" or function_mode != "upload":
+    function_mode_edited = function_mode.lower().strip()
+    if function_mode_edited != "download" or function_mode_edited != "upload":
         err_message = "Please specify either upload or download to use this script"
         err_message += "\nE.g: function_mode:='upload'"
         err_message += "\n     function_mode:='download'"
+        err_message += f"You entered: {function_mode}"
         rospy.logerr(err_message)
         rospy.signal_shutdown("")
         exit(1)
-    return function_mode
+    return function_mode_edited
 
 
 if __name__ == "__main__":
