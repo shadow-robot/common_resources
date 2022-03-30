@@ -54,7 +54,7 @@ class SrWearLogger():
         if (os.path.exists(self._log_file_path)):
             for file in os.listdir(self._log_file_path):
                 if bool(re.match(pattern, file)):
-                    os.remove(self.path_to_test_folder + "/" + file)
+                    os.remove(cls.path_to_test_folder + "/" + file)
 
     def check_parameters(self):
         check_serial = self._hand_serial is not None and self._hand_serial != ""
