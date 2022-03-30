@@ -37,7 +37,7 @@ class AWS_Manager(object):
         try:
             with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
                 customer_key = customer_key_file.read()
-                headers = {'x-api-key': '{}'.format(customer_key[:-1])}
+                headers = {'x-api-key': f'{customer_key[:-1]}'}
         except Exception:
             rospy.logerr("Could not find customer key, ask software team for help!")
 
@@ -178,7 +178,7 @@ if __name__ == "__main__":
         if file_names == "":
             file_names = gather_all_files_local(files_base_path, files_folder_path)
         status_msg = "File upload failed"
-        rospy.loginfo(f"Uploading {}/{} file.".format(files_folder_path, file_names))
+        rospy.loginfo(f"Uploading {files_folder_path}/{file_names} file.")
         if aws_manager.upload(bucket_name, files_base_path, files_folder_path,
             file_names, bucket_subfolder):
             status_msg = "Completed file upload."
