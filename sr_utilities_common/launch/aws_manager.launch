@@ -1,6 +1,6 @@
 <launch>
-  <arg name="download" default="true"/>
-  <arg name="upload" default="false"/>
+  <arg name="function_mode" default="upload"/>
+  <arg name="skip_check" default="false"/>
   <arg name="bucket_name"/>
   <arg name="bucket_subfolder" default='""'/>
 
