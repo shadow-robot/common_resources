@@ -238,7 +238,6 @@ if __name__ == "__main__":
                 rospy.signal_shutdown("")
                 exit(0)
         status_msg = "File upload failed"
-        rospy.loginfo(f"Uploading {files_folder_path}/{file_names} file.")
         if aws_manager.upload(bucket_name, files_base_path, files_folder_path,
                               file_names, bucket_subfolder):
             status_msg = "Completed file upload."
@@ -253,7 +252,6 @@ if __name__ == "__main__":
                 rospy.signal_shutdown("")
                 exit(0)
         status_msg = "File download failed"
-        rospy.loginfo(f"Downloading {files_folder_path}/{file_names} file.")
         if aws_manager.download(bucket_name, files_base_path, files_folder_path,
                                 file_names, bucket_subfolder):
             status_msg = "Completed file download."
