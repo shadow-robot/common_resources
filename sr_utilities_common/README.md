@@ -108,13 +108,14 @@ An example launch file using this script could look like the one below:
 
 ```xml
 <launch>
-  <arg name="download" default="true"/>
-  <arg name="upload" default="false"/>
+  <arg name="download" default="false"/>
+  <arg name="upload" default="true"/>
   <arg name="bucket_name" default="shadowrobot.example-bucket"/>
+  <arg name="bucket_subfolder" default='""'/>
 
   <arg name="files_base_path" default="$(find example_package)"/>
   <arg name="files_folder_path" default="/example_folder_within_package"/>
-  <arg name="file_names" default="[example_file_0, example_file_1]"/>
+  <arg name="file_names" default='""'/>
 
   <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
     <rosparam param="download" subst_value="True">$(arg download)</rosparam>
@@ -122,11 +123,15 @@ An example launch file using this script could look like the one below:
     <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
     <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
     <rosparam param="bucket_name" subst_value="True">$(arg bucket_name)</rosparam>
+    <rosparam param="bucket_subfolder" subst_value="True">$(arg bucket_subfolder)</rosparam>
     <rosparam param="file_names" subst_value="True">$(arg file_names)</rosparam>
   </node>
+  </launch>
 ```
 
-Launching the above file would upload files `example_file_0` and `example_file_1` located in package `example_package` within folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
+Launching the above file would upload all files located in package `example_package` within the folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
+
+You can also specify specific files by changing the file_names argument to something like 'file_names:="[file1, file2]"'. You can also upload and download from specific subfolders within the bucket by adding bucket_subfolder:="test_folder" which would have the path s3:shadowrobot.example-bucket/test_folder.
 
 ## Conditional Delayed Ros Tool
 
