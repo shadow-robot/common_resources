@@ -128,7 +128,6 @@ class SrWearLogger():
 
     def _check_download_from_AWS_successfull(self):
         success = False
-        rospy.logerr(self._get_latest_file_name_from_AWS())
         success = self.aws_manager.download(BENCHMARK_NAME, rospkg.RosPack().get_path('sr_wear_logger'),
                                             self._hand_serial, [self._get_latest_file_name_from_AWS()])
         if success:
