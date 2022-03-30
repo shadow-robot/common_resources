@@ -226,12 +226,11 @@ if __name__ == "__main__":
     if bucket_subfolder == "":
         bucket_subfolder = None
     aws_manager = AWS_Manager()
-        
-
+    
     if function_mode == "upload":
         if file_names == "":
             file_names = gather_all_files_local(files_base_path, files_folder_path)
-        if skip_check:
+        if not skip_check:
             if not validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
                                                   file_names, bucket_subfolder):
                 rospy.signal_shutdown("")
@@ -246,7 +245,7 @@ if __name__ == "__main__":
     if function_mode == "download":
         if file_names == "":
             file_names = aws_manager.gather_all_files_remote(bucket_name, bucket_subfolder)
-        if skip_check:
+        if not skip_check:
             if not validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
                                                     file_names, bucket_subfolder):
                 rospy.signal_shutdown("")
