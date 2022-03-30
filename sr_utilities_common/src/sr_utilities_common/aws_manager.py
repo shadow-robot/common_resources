@@ -174,8 +174,8 @@ if __name__ == "__main__":
             file_names = gather_all_files_local(files_base_path, files_folder_path)
         status_msg = "File upload failed"
         rospy.loginfo(f"Uploading {files_folder_path}/{file_names} file.")
-        if aws_manager.upload(bucket_name, files_base_path, files_folder_path, 
-        file_names, bucket_subfolder):
+        if aws_manager.upload(bucket_name, files_base_path, files_folder_path,
+                                                file_names, bucket_subfolder):
             status_msg = "Completed file upload."
         rospy.loginfo(status_msg)
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         status_msg = "File download failed"
         rospy.loginfo(f"Downloading {files_folder_path}/{file_names} file.")
         if aws_manager.download(bucket_name, files_base_path, files_folder_path,
-        file_names, bucket_subfolder):
+                                                file_names, bucket_subfolder):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 
