@@ -106,7 +106,7 @@ class AWS_Manager(object):
         self.file_full_paths = []
         self.aws_paths = []
         for file_name in file_names:
-                self.file_full_paths.append(f"{files_base_path}/{files_folder_path}/{file_name}")
+            self.file_full_paths.append(f"{files_base_path}/{files_folder_path}/{file_name}")
             if bucket_subfolder:
                 self.aws_paths.append(f"{bucket_subfolder}/{file_name}")
             else:
