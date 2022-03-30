@@ -19,6 +19,7 @@ from unittest import skip
 import rospy
 import boto3
 from botocore.exceptions import *
+from six.moves import input
 import requests
 import re
 import os
@@ -198,6 +199,7 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
         rospy.signal_shutdown("")
         exit(1)
 
+
 def return_function_mode(function_mode):
     function_mode_edited = function_mode.lower().strip()
     if function_mode_edited != "download" and function_mode_edited != "upload":
@@ -226,7 +228,7 @@ if __name__ == "__main__":
     if bucket_subfolder == "":
         bucket_subfolder = None
     aws_manager = AWS_Manager()
-    
+
     if function_mode == "upload":
         if file_names == "":
             file_names = gather_all_files_local(files_base_path, files_folder_path)
