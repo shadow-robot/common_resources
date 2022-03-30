@@ -54,7 +54,7 @@ class SrWearLogger():
         if (os.path.exists(self._log_file_path)):
             for file in os.listdir(self._log_file_path):
                 if bool(re.match(pattern, file)):
-                    os.remove(cls.path_to_test_folder + "/" + file)
+                    os.remove(self.path_to_test_folder + "/" + file)
 
     def check_parameters(self):
         check_serial = self._hand_serial is not None and self._hand_serial != ""
@@ -128,6 +128,7 @@ class SrWearLogger():
 
     def _check_download_from_AWS_successfull(self):
         success = False
+        rospy.logerr(self._get_latest_file_name_from_AWS())
         success = self.aws_manager.download(BENCHMARK_NAME, rospkg.RosPack().get_path('sr_wear_logger'),
                                             self._hand_serial, [self._get_latest_file_name_from_AWS()])
         if success:
