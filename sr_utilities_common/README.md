@@ -131,7 +131,7 @@ An example launch file using this script could look like the one below:
 
 Launching the above file would upload all files located in package `example_package` within the folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
 
-You can also specify specific files by changing the file_names argument to something like 'file_names:="[file1, file2]"'. You can also upload and download from specific subfolders within the bucket by adding bucket_subfolder:="test_folder" which would have the path s3:shadowrobot.example-bucket/test_folder.
+You can also specify specific files by changing the file_names argument to something like `file_names:="[file1, file2]"`. You can also upload and download from specific subfolders within the bucket by adding `bucket_subfolder:="test_folder"` which would have the path `s3:shadowrobot.example-bucket/test_folder`.
 
 ## Conditional Delayed Ros Tool
 
