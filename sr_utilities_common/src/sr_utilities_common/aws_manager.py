@@ -88,8 +88,7 @@ class AWS_Manager(object):
 
         return filenames
 
-    def _prepare_structure_upload(self, files_base_path, files_folder_path,
-        file_names, bucket_subfolder):
+    def _prepare_structure_upload(self, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self.file_full_paths = []
         self.aws_paths = []
         for file_name in file_names:
@@ -98,7 +97,7 @@ class AWS_Manager(object):
                 self.aws_paths.append(f"{bucket_subfolder}/{file_name}")
             else:
                 self.aws_paths.append(f"{files_folder_path}/{file_name}")
-    
+
     def _prepare_structure_download(self, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self.file_full_paths = []
         self.aws_paths = []
@@ -138,6 +137,7 @@ class AWS_Manager(object):
                 rospy.loginfo("File upload failed" + str(e))
         return uploadSucceded
 
+
 def gather_all_files_local(files_base_path, files_folder_path):
     path_string = f"{files_base_path}/{files_folder_path}"
     file_names = []
@@ -174,8 +174,8 @@ if __name__ == "__main__":
             file_names = gather_all_files_local(files_base_path, files_folder_path)
         status_msg = "File upload failed"
         rospy.loginfo(f"Uploading {files_folder_path}/{file_names} file.")
-        if aws_manager.upload(bucket_name, files_base_path, files_folder_path,
-            file_names, bucket_subfolder):
+        if aws_manager.upload(bucket_name, files_base_path, files_folder_path, 
+        file_names, bucket_subfolder):
             status_msg = "Completed file upload."
         rospy.loginfo(status_msg)
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         status_msg = "File download failed"
         rospy.loginfo(f"Downloading {files_folder_path}/{file_names} file.")
         if aws_manager.download(bucket_name, files_base_path, files_folder_path,
-            file_names, bucket_subfolder):
+        file_names, bucket_subfolder):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 
