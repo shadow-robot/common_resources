@@ -16,14 +16,12 @@
 
 from __future__ import absolute_import
 import rospy
-import logging
 import boto3
 from botocore.exceptions import *
-import subprocess
 import requests
 import re
-import json
 import os
+
 
 class AWS_Manager(object):
     def __init__(self):
@@ -80,7 +78,7 @@ class AWS_Manager(object):
             bucket_data = self._client.list_objects(Bucket=aws_bucket, Prefix=aws_subfolder)
         else:
             bucket_data = self._client.list_objects(Bucket=aws_bucket)
-        
+
         filenames = []
         for content in bucket_data['Contents']:
             if aws_subfolder:
@@ -91,7 +89,7 @@ class AWS_Manager(object):
         return filenames
 
     def _prepare_structure_upload(self, files_base_path, files_folder_path,
-        file_names, bucket_subfolder=None):
+        file_names, bucket_subfolder):
         self.file_full_paths = []
         self.aws_paths = []
         for file_name in file_names:
@@ -101,8 +99,7 @@ class AWS_Manager(object):
             else:
                 self.aws_paths.append(f"{files_folder_path}/{file_name}")
     
-    def _prepare_structure_download(self, files_base_path, files_folder_path,
-        file_names, bucket_subfolder=None):
+    def _prepare_structure_download(self, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self.file_full_paths = []
         self.aws_paths = []
         for file_name in file_names:
@@ -112,8 +109,7 @@ class AWS_Manager(object):
             else:
                 self.aws_paths.append(file_name)
 
-    def download(self, bucket_name, files_base_path, files_folder_path,
-        file_names, bucket_subfolder=None):
+    def download(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
         downloadSucceded = False
         directory = os.path.join(files_base_path, files_folder_path)
@@ -131,8 +127,7 @@ class AWS_Manager(object):
                 rospy.logwarn("File download failed. " + str(e))
         return downloadSucceded
 
-    def upload(self, bucket_name, files_base_path, files_folder_path,
-        file_names, bucket_subfolder=None):
+    def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
         uploadSucceded = False
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
@@ -142,11 +137,11 @@ class AWS_Manager(object):
             except Exception as e:
                 rospy.loginfo("File upload failed" + str(e))
         return uploadSucceded
-    
+
 def gather_all_files_local(files_base_path, files_folder_path):
     path_string = f"{files_base_path}/{files_folder_path}"
     file_names = []
-    for path, subdirs, files in os.walk(path_string):
+    for path, _, files in os.walk(path_string):
         for f in files:
             # We only want the file name, not bucket subfolder.
             file_names.append(f"{path}/{f}"[len(path_string)+1:])
