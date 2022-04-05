@@ -18,7 +18,7 @@ from __future__ import absolute_import
 from unittest import skip
 import rospy
 import boto3
-from botocore.exceptions import *
+import botocore.exceptions as boto_exception
 from six.moves import input
 import requests
 import re
@@ -38,24 +38,23 @@ class AWS_Manager(object):
             with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
                 customer_key = customer_key_file.read()
                 headers = {'x-api-key': f'{customer_key[:-1]}'}
-        except Exception:
+        except IOError:
             rospy.logerr("Could not find customer key, ask software team for help!")
 
         try:
             response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-
             if response.status_code != 200:  # Code for success
+                rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
                 raise Exception()
+        except requests.exceptions.RequestException as e:
+            rospy.logerr(f"Could not request secret AWS access key, ask software team for help!\nError message: {e}")
 
-            result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
-            aws_access_key_id = result.group(1)
-            result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
-            aws_secret_access_key = result.group(1)
-            result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
-            aws_session_token = result.group(1)
-
-        except Exception:
-            rospy.logerr("Could not request secret AWS access key, ask software team for help!")
+        result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
+        aws_access_key_id = result.group(1)
+        result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
+        aws_secret_access_key = result.group(1)
+        result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
+        aws_session_token = result.group(1)
 
         self._client = boto3.client(
             's3',
@@ -69,7 +68,7 @@ class AWS_Manager(object):
             try:
                 if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
                     return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']
-            except Exception as e:
+            except self.client.exceptions.NoSuchBucket as e:
                 rospy.logwarn("Failed listing bucket objects. " + str(e))
         return None
 
@@ -117,11 +116,10 @@ class AWS_Manager(object):
         if not os.path.exists(directory):
             os.makedirs(directory)
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
+            directory = os.path.dirname(file_full_path)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
             try:
-                directory = os.path.dirname(file_full_path)
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-                rospy.loginfo(f"{directory} \n{file_full_path}")
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 downloadSucceded = True
             except Exception as e:
@@ -144,9 +142,9 @@ def gather_all_files_local(files_base_path, files_folder_path):
     path_string = f"{files_base_path}/{files_folder_path}"
     file_names = []
     for path, _, files in os.walk(path_string):
-        for f in files:
+        for file_name in files:
             # We only want the file name, not bucket subfolder.
-            file_names.append(f"{path}/{f}"[len(path_string)+1:])
+            file_names.append(f"{path}/{file_name}"[len(path_string)+1:])
     return file_names
 
 
