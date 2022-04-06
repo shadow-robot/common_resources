@@ -67,7 +67,7 @@ class AWS_Manager(object):
                 if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
                     return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']
             except self.client.exceptions.NoSuchBucket as e:
-                rospy.logwarn("Failed listing bucket objects. " + str(e))
+                rospy.logerr("Failed listing bucket objects. " + str(e))
         return None
 
     def gather_all_files_remote(self, aws_bucket, aws_subfolder=None):
@@ -121,7 +121,7 @@ class AWS_Manager(object):
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 download_succeded = True
             except self.client.exceptions.ClientError as e:
-                rospy.logwarn("File download failed. " + str(e))
+                rospy.logerr("File download failed. " + str(e))
         return download_succeded
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
@@ -132,7 +132,7 @@ class AWS_Manager(object):
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
                 uploadSucceded = True
             except self.client.exceptions.S3UploadFailedError as e:
-                rospy.loginfo("File upload failed" + str(e))
+                rospy.logerr("File upload failed" + str(e))
         return uploadSucceded
 
 
@@ -167,7 +167,7 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
         return False
     else:
         rospy.logerr("Select a valid option")
-        validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
+        validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
                                    file_names, bucket_subfolder)
 
 
