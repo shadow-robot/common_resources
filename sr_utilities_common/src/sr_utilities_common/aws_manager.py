@@ -18,7 +18,6 @@ from __future__ import absolute_import
 from unittest import skip
 import rospy
 import boto3
-import botocore.exceptions as boto_exception
 from six.moves import input
 import requests
 import re
@@ -43,18 +42,17 @@ class AWS_Manager(object):
 
         try:
             response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
+            result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
+            aws_access_key_id = result.group(1)
+            result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
+            aws_secret_access_key = result.group(1)
+            result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
+            aws_session_token = result.group(1)
             if response.status_code != 200:  # Code for success
                 rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
                 raise Exception()
         except requests.exceptions.RequestException as e:
             rospy.logerr(f"Could not request secret AWS access key, ask software team for help!\nError message: {e}")
-
-        result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
-        aws_access_key_id = result.group(1)
-        result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
-        aws_secret_access_key = result.group(1)
-        result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
-        aws_session_token = result.group(1)
 
         self._client = boto3.client(
             's3',
@@ -107,11 +105,11 @@ class AWS_Manager(object):
             if bucket_subfolder:
                 self.aws_paths.append(f"{bucket_subfolder}/{file_name}")
             else:
-                self.aws_paths.append(file_name)
+                self.aws_paths.append(f"{file_name}")
 
     def download(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
-        downloadSucceded = False
+        download_succeded = False
         directory = os.path.join(files_base_path, files_folder_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -121,10 +119,10 @@ class AWS_Manager(object):
                 os.makedirs(directory)
             try:
                 self._client.download_file(bucket_name, aws_path, file_full_path)
-                downloadSucceded = True
-            except Exception as e:
+                download_succeded = True
+            except self.client.exceptions.ClientError as e:
                 rospy.logwarn("File download failed. " + str(e))
-        return downloadSucceded
+        return download_succeded
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
@@ -133,7 +131,7 @@ class AWS_Manager(object):
             try:
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
                 uploadSucceded = True
-            except Exception as e:
+            except self.client.exceptions.S3UploadFailedError as e:
                 rospy.loginfo("File upload failed" + str(e))
         return uploadSucceded
 
@@ -169,8 +167,8 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
         return False
     else:
         rospy.logerr("Select a valid option")
-        rospy.signal_shutdown("")
-        exit(1)
+        validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
+                                   file_names, bucket_subfolder)
 
 
 def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
@@ -194,8 +192,8 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
         return False
     else:
         rospy.logerr("Select a valid option")
-        rospy.signal_shutdown("")
-        exit(1)
+        validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
+                                   file_names, bucket_subfolder)
 
 
 def return_function_mode(function_mode):
