@@ -195,7 +195,7 @@ install(DIRECTORY
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
-  #add_rostest(test/test_sr_wear_logger.test)
+  # add_rostest(test/test_sr_wear_logger.test)
 endif()
 
 ## Add gtest based cpp test target and link libraries
