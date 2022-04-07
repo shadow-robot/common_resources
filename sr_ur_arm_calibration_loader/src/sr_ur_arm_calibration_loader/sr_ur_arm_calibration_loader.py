@@ -95,10 +95,7 @@ class SrUrLoadCalibration(object):
         return arm_serial_number
 
     def _arm_calibration_exists(self, arm_serial):
-        arm_calibration_file = os.path.join(self._arm_calibrations_folder, arm_serial + '.yaml')
-        if os.path.isfile(arm_calibration_file):
-            return True
-        return False
+        return os.path.isfile(os.path.join(self._arm_calibrations_folder, arm_serial + '.yaml'))
 
     def _get_yaml(self, filename):
         with open(filename) as f:
