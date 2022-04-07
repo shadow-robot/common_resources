@@ -30,10 +30,9 @@ def recursive_diff(path):
     output = ""
     if os.path.isdir("./.git"):
         output = "\n\n------------------" + path + "------------------\n\n"
-        output += subprocess.check_output(['git', 'show']).decode("utf-8")
-        output += subprocess.check_output(['git', 'status']).decode("utf-8")
-        output += subprocess.check_output(['git', 'diff']).decode("utf-8")
-
+        output += subprocess.check_output(['git', 'show'], encoding='utf-8', errors='replace')
+        output += subprocess.check_output(['git', 'status'], encoding='utf-8', errors='replace')
+        output += subprocess.check_output(['git', 'diff'], encoding='utf-8', errors='replace')
     for subdir in filter(os.path.isdir, os.listdir(".")):
         output += recursive_diff(subdir)
 
