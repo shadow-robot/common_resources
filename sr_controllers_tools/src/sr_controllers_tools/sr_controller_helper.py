@@ -28,7 +28,7 @@ from sr_robot_msgs.srv import (ChangeControlType, RobotTeachMode,
 class ControllerHelper(object):
 
     def __init__(self, robot_ids, robot_joint_prefixes, robot_joint_names):
-        self.timeout_to_reload_params = 15.0
+        self.timeout_to_reload_params = 20.0
         self.robot_ids = robot_ids
         self.robot_joint_prefixes = robot_joint_prefixes
 
