@@ -146,11 +146,9 @@ class SrUrLoadCalibration(object):
             arm_side = arm_info['prefix']
             arm_serial = self._get_serial_from_arm(arm_ip)
             if '' != arm_serial:
-                calibration_exists = self._check_arm_calibration_exists(arm_serial)
-                if not calibration_exists:
-                    calibration_exists = self._generate_new_arm_calibration(arm_ip, arm_serial)
-                if calibration_exists:
-                    calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
+                if not self._arm_calibration_exists(arm_serial):
+                    self._start_calibration(arm_ip, arm_serial)
+                calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
             else:
                 calibration_file_location = self._default_kinematics_config
             kinematics_config = self._get_yaml(calibration_file_location)
