@@ -52,9 +52,15 @@ class ControllerHelper(object):
             cont for type_conts in self.hand_controllers.values() for cont in type_conts]
 
         # This section is for any robot
-        self.trajectory_controllers = {
-            "run": ["{0}_trajectory_controller".format(robot_id) for robot_id in self.robot_ids],
-            "stop": []}
+        for robot_id in self.robot_ids:
+            self.trajectory_controllers = {
+                "run": ["{0}_trajectory_controller".format(robot_id)],
+                "stop": []}
+
+            # Add wrist controllers if wrist joints present
+            if "wrj1" in self.joints or "wrj2" in self.joints:
+                self.trajectory_controllers["run"].append("{0}_wr_trajectory_controller".format(robot_id))
+
         self.managed_trajectory_controllers = [
             cont for type_conts in self.trajectory_controllers.values() for cont in type_conts]
 
@@ -150,8 +156,9 @@ class ControllerHelper(object):
                 success = False
 
             # Allow some time to reload parameters
-            timeout_time = time.time() + timeout_to_reload_params
+            timeout_time = time.time() + self.timeout_to_reload_params
             while time.time() < timeout_time:
+                rospy.sleep(1.0)
                 try:
                     current_control_type = change_control_type(query_type_msg)
                     if current_control_type.result.control_type != chng_type_msg.control_type:
