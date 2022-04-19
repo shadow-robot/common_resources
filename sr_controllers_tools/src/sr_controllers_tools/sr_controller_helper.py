@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from controller_manager_msgs.srv import (ListControllers, LoadController,
                                          SwitchController, SwitchControllerRequest)
 import rospy
+import time
 from sr_utilities.hand_finder import HandFinder
 from sr_robot_msgs.msg import ControlType
 from sr_robot_msgs.srv import (ChangeControlType, RobotTeachMode,
@@ -27,7 +28,7 @@ from sr_robot_msgs.srv import (ChangeControlType, RobotTeachMode,
 class ControllerHelper(object):
 
     def __init__(self, robot_ids, robot_joint_prefixes, robot_joint_names):
-        self.time_to_reload_params = 6.0
+        self.timeout_to_reload_params = 20.0
         self.robot_ids = robot_ids
         self.robot_joint_prefixes = robot_joint_prefixes
 
@@ -126,7 +127,7 @@ class ControllerHelper(object):
             - torque demand (sr_robot_msgs::ControlType::FORCE)
             - PWM (sr_robot_msgs::ControlType::PWM)
             - QUERY (sr_robot_msgs::ControlType::QUERY)
-        it will block for time_to_reload_params secs to allow hand_controllers parameters to be updated
+        it will block for timeout_to_reload_params secs to allow hand_controllers parameters to be updated
         """
         success = True
         hand_finder = HandFinder()
@@ -155,11 +156,24 @@ class ControllerHelper(object):
                 rospy.logerr("Service call failed: %s" % (e,))
                 success = False
 
-        # Allow some time to reload parameters
-        rospy.sleep(self.time_to_reload_params)
+            # Allow some time to reload parameters
+            timeout_time = time.time() + self.timeout_to_reload_params
+            while time.time() < timeout_time:
+                rospy.sleep(1.0)
+                try:
+                    current_control_type = change_control_type(query_type_msg)
+                    if current_control_type.result.control_type != chng_type_msg.control_type:
+                        change_control = change_control_type(chng_type_msg)
+                    if change_control.result.control_type != chng_type_msg.control_type:
+                        success = False
 
-        if not success:
-            rospy.logwarn("Failed to change the control type.")
+                except (rospy.ServiceException, rospy.ROSException) as e:
+                    rospy.logerr("Service call failed: %s" % (e,))
+                    success = False
+
+                if not success:
+                    rospy.logwarn("Failed to change the control type.")
+                    return success
 
         return success
 
