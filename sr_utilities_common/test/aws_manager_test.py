@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2021 Shadow Robot Company Ltd.
+# Copyright 2021-2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -13,21 +13,21 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import absolute_import
+import os
+import requests
 import rospy
 import rospkg
-from std_msgs.msg import Bool
 from sr_utilities_common.manual_test_suite import ManualTestSuite
 from sr_utilities_common.aws_manager import AWS_Manager
-import os
 
 BUCKET_NAME = "shadowrobot.benchmarks"
+API_URL = "https://ddo2pew5xd.execute-api.eu-west-2.amazonaws.com/prod"
 
 
-class Test_AWS_Manager(object):
+class Test_AWS_Manager:
     def __init__(self):
-        self.aws_manager = AWS_Manager()
+        response = requests.get(API_URL)
+        #self.aws_manager = AWS_Manager()
 
     def aws_get_bucket_structure_with_prefix(self):
         result_1 = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)

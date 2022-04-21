@@ -61,6 +61,16 @@ class AWS_Manager(object):
             aws_session_token=aws_session_token
         )
 
+    def __init__(self, access_key, secret_key, session_token):
+        self.file_full_paths = []
+        self.aws_paths = []
+        self._client = boto3.client(
+            's3',
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            aws_session_token=session_token
+        )
+
     def get_bucket_structure_with_prefix(self, bucket_name, prefix):
         if prefix:
             try:
