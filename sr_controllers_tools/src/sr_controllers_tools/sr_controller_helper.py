@@ -27,7 +27,7 @@ from sr_robot_msgs.srv import (ChangeControlType, RobotTeachMode,
 class ControllerHelper(object):
 
     def __init__(self, robot_ids, robot_joint_prefixes, robot_joint_names):
-        self.time_to_reload_params = 6.0
+        self.time_to_reload_params = 10.0
         self.robot_ids = robot_ids
         self.robot_joint_prefixes = robot_joint_prefixes
 
@@ -156,6 +156,7 @@ class ControllerHelper(object):
                 success = False
 
         # Allow some time to reload parameters
+        # This should be rethought when the controllers are refactored
         rospy.sleep(self.time_to_reload_params)
 
         if not success:
