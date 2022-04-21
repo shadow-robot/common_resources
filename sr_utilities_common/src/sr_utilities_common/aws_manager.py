@@ -71,13 +71,16 @@ class AWS_Manager(object):
             aws_session_token=session_token
         )
 
-    def get_bucket_structure_with_prefix(self, bucket_name, prefix):
-        if prefix:
-            try:
-                if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
-                    return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']
-            except self.client.exceptions.NoSuchBucket as e:
-                rospy.logerr("Failed listing bucket objects. " + str(e))
+    def get_bucket_structure_with_prefix(self, bucket_name, prefix=""):
+        try:
+            if prefix:
+                command = self._client.list_objects(Bucket=bucket_name, Prefix=prefix)
+            else:
+                command = self._client.list_objects(Bucket=bucket_name)
+            if 'Contents' in command:
+                return command['Contents']
+        except self._client.exceptions.NoSuchBucket as e:
+            rospy.logerr("Failed listing bucket objects. " + str(e))
         return None
 
     def gather_all_files_remote(self, aws_bucket, aws_subfolder=None):
@@ -121,6 +124,7 @@ class AWS_Manager(object):
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
         download_succeded = False
         directory = os.path.join(files_base_path, files_folder_path)
+        print(directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
@@ -130,7 +134,7 @@ class AWS_Manager(object):
             try:
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 download_succeded = True
-            except self.client.exceptions.ClientError as e:
+            except self._client.exceptions.ClientError as e:
                 rospy.logerr("File download failed. " + str(e))
         return download_succeded
 
@@ -141,7 +145,7 @@ class AWS_Manager(object):
             try:
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
                 uploadSucceded = True
-            except self.client.exceptions.S3UploadFailedError as e:
+            except self._client.exceptions.S3UploadFailedError as e:
                 rospy.logerr("File upload failed" + str(e))
         return uploadSucceded
 
