@@ -131,7 +131,7 @@ class AWS_Manager(object):
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 download_succeded = True
             except self._client.exceptions.ClientError as e:
-                rospy.logerr("File download failed. " + str(e))
+                rospy.logerr(f"File download failed ({aws_path}). {e}")
         return download_succeded
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
@@ -142,7 +142,7 @@ class AWS_Manager(object):
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
                 uploadSucceded = True
             except self._client.exceptions.S3UploadFailedError as e:
-                rospy.logerr("File upload failed" + str(e))
+                rospy.logerr(f"File upload failed ({file_full_path}). {e}")
         return uploadSucceded
 
 
