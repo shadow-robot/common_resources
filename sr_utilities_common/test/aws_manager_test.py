@@ -13,6 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# pylint: disable=W1618
+# TODO REMOVE ABOVE WHEN USING NEW LINT
 import os
 import requests
 import json
@@ -35,14 +38,13 @@ LETTERS = string.ascii_lowercase
 class TestAWSManager(TestCase):
     @classmethod
     def setUpClass(self):
-        rospy.logerr("AHHHHH")
         response = requests.get(API_URL)
         response_json = json.loads(response.text)
         aws_details = response_json["body"]
         self.aws_manager = AWS_Manager(access_key=aws_details["access_key"],
                                        secret_key=aws_details["secret_key"],
                                        session_token=aws_details["session_token"])
-        self.filename = get_filename()
+        self.filename = self.get_filename()
 
     @classmethod
     def tearDownClass(self):
@@ -60,7 +62,7 @@ class TestAWSManager(TestCase):
         self.assertTrue(result)
 
     def test_aws_02_upload_subfolder(self):
-        self.filename = get_filename()  # Second file should have new filename
+        self.filename = self.get_filename()  # Second file should have new filename
         result = False
         self.make_files_to_be_uploaded()
         self.aws_manager.upload(BUCKET_NAME, "/tmp", "upload", [self.filename], "Subfolder")
@@ -73,19 +75,19 @@ class TestAWSManager(TestCase):
 
     def test_aws_03_download(self):
         result = False
-        delete_download_folder()
+        self.delete_download_folder()
         self.aws_manager.download(BUCKET_NAME, "/tmp", "download", [self.filename], "upload")
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename}"):
             result = True
         self.assertTrue(result)
-    
+
     def test_aws_04_download_subfolder(self):
         result = False
         self.aws_manager.download(BUCKET_NAME, "/tmp", "download", [self.filename], "Subfolder")
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename}"):
             result = True
         self.assertTrue(result)
-    
+
     def test_aws_05_remove_all_files(self):
         rospy.sleep(4)
         folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
@@ -108,6 +110,10 @@ class TestAWSManager(TestCase):
             message = ''.join(random.choice(LETTERS) for i in range(10))
             upload_file.write(message)
 
+    def get_filename(self):
+        time = datetime.now()
+        current_time = time.strftime("%d%m%Y_%H.%M.%S")
+        return f"test_{current_time}"
 
 def get_filename():
     random_string = ''.join(random.choice(LETTERS) for i in range(5))
