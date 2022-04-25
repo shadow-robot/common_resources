@@ -111,11 +111,6 @@ class TestAWSManager(TestCase):
             upload_file.write(message)
 
     def get_filename(self):
-        time = datetime.now()
-        current_time = time.strftime("%d%m%Y_%H.%M.%S")
-        return f"test_{current_time}"
-
-    def get_filename(self):
         random_string = ''.join(random.choice(LETTERS) for i in range(5))
         return f"test_{random_string}"
 
