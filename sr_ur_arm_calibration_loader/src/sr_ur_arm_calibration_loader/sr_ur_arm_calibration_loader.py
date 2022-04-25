@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 
+<<<<<<< HEAD
 # Copyright 2020-2021 Shadow Robot Company Ltd.
+=======
+# Copyright 2020-2022 Shadow Robot Company Ltd.
+>>>>>>> 0e662725c06dc892f058a2c4c65104f6727fe193
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -19,8 +23,11 @@ import os
 import rospy
 import roslaunch
 import rospkg
+<<<<<<< HEAD
 import tkinter as tk
 import tkinter.messagebox as messageBox
+=======
+>>>>>>> 0e662725c06dc892f058a2c4c65104f6727fe193
 import paramiko
 import sys
 import yaml
@@ -96,6 +103,7 @@ class SrUrLoadCalibration(object):
                           " Arm will NOT be calibrated. Ignore if running URSim.".format(ssh_exception_message))
         return arm_serial_number
 
+<<<<<<< HEAD
     def _check_arm_calibration_exists(self, arm_serial):
         arm_calibration_file = os.path.join(self._arm_calibrations_folder, arm_serial + '.yaml')
         if os.path.isfile(arm_calibration_file):
@@ -117,6 +125,10 @@ class SrUrLoadCalibration(object):
             self._start_calibration(arm_ip, arm_serial)
             return True
         return False
+=======
+    def _arm_calibration_exists(self, arm_serial):
+        return os.path.isfile(os.path.join(self._arm_calibrations_folder, arm_serial + '.yaml'))
+>>>>>>> 0e662725c06dc892f058a2c4c65104f6727fe193
 
     def _get_yaml(self, filename):
         with open(filename) as f:
@@ -146,11 +158,17 @@ class SrUrLoadCalibration(object):
             arm_side = arm_info['prefix']
             arm_serial = self._get_serial_from_arm(arm_ip)
             if '' != arm_serial:
+<<<<<<< HEAD
                 calibration_exists = self._check_arm_calibration_exists(arm_serial)
                 if not calibration_exists:
                     calibration_exists = self._generate_new_arm_calibration(arm_ip, arm_serial)
                 if calibration_exists:
                     calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
+=======
+                if not self._arm_calibration_exists(arm_serial):
+                    self._start_calibration(arm_ip, arm_serial)
+                calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
+>>>>>>> 0e662725c06dc892f058a2c4c65104f6727fe193
             else:
                 calibration_file_location = self._default_kinematics_config
             kinematics_config = self._get_yaml(calibration_file_location)
