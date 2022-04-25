@@ -29,6 +29,7 @@ BUCKET_NAME = "shadowtestbucket"
 API_URL = "https://ddo2pew5xd.execute-api.eu-west-2.amazonaws.com/prod"
 UPLOAD_PATH = "/tmp/upload"
 DOWNLOAD_PATH = "/tmp/download"
+LETTERS = string.ascii_lowercase
 
 
 class TestAWSManager(TestCase):
@@ -91,29 +92,26 @@ class TestAWSManager(TestCase):
         if folder_list is not None:
             for element in folder_list:
                 filepath = element['Key']
-                rospy.loginfo(filepath)
                 self.aws_manager._client.delete_object(Bucket=BUCKET_NAME, Key=filepath)
         # Check bucket status after removing everything.
         folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
-        if not folder_list:
-            result = True
-        else:
-            result = False
-        self.assertTrue(result)
+        # if not folder_list:
+        #     result = True
+        # else:
+        #     result = False
+        self.assertTrue(folder_list)
     
     def make_files_to_be_uploaded(self):
         if not os.path.exists(UPLOAD_PATH):
             os.mkdir(UPLOAD_PATH)
         with open(f"{UPLOAD_PATH}/{self.filename}", "w") as upload_file:
-            letters = string.ascii_lowercase
-            message = ''.join(random.choice(letters) for i in range(10))
+            message = ''.join(random.choice(LETTERS) for i in range(10))
             upload_file.write(message)
 
 
 def get_filename():
-    time = datetime.now()
-    current_time = time.strftime("%d%m%Y_%H.%M.%S")
-    return f"test_{current_time}"
+    random_string = ''.join(random.choice(LETTERS) for i in range(5))
+    return f"test_{random_string}"
 
 
 def delete_download_folder():
