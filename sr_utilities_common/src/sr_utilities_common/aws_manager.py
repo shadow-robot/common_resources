@@ -124,13 +124,9 @@ class AWS_Manager(object):
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
         download_succeded = False
         directory = os.path.join(files_base_path, files_folder_path)
-        print(directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
-            directory = os.path.dirname(file_full_path)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
             try:
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 download_succeded = True
