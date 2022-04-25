@@ -37,7 +37,6 @@ DOWNLOAD_PATH = "/tmp/download"
 class TestAWSManager(TestCase):
     @classmethod
     def setUpClass(self):
-        rospy.logerr("AHHHHH")
         response = requests.get(API_URL)
         response_json = json.loads(response.text)
         aws_details = response_json["body"]
