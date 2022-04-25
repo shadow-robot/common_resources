@@ -15,7 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 # pylint: disable=W1618
-#TODO REMOVE ABOVE WHEN USING NEW LINT
+# TODO REMOVE ABOVE WHEN USING NEW LINT
 import rospy
 import boto3
 from six.moves import input

@@ -13,6 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# pylint: disable=W1618
+# TODO REMOVE ABOVE WHEN USING NEW LINT
 import os
 import requests
 import json
