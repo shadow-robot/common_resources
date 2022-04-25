@@ -115,14 +115,14 @@ class TestAWSManager(TestCase):
         current_time = time.strftime("%d%m%Y_%H.%M.%S")
         return f"test_{current_time}"
 
-def get_filename():
-    random_string = ''.join(random.choice(LETTERS) for i in range(5))
-    return f"test_{random_string}"
+    def get_filename(self):
+        random_string = ''.join(random.choice(LETTERS) for i in range(5))
+        return f"test_{random_string}"
 
 
-def delete_download_folder():
-    if os.path.exists(DOWNLOAD_PATH):
-        shutil.rmtree(DOWNLOAD_PATH)
+    def delete_download_folder(self):
+        if os.path.exists(DOWNLOAD_PATH):
+            shutil.rmtree(DOWNLOAD_PATH)
 
 
 if __name__ == '__main__':
