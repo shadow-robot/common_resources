@@ -42,8 +42,8 @@ class TestAWSManager(TestCase):
         response_json = json.loads(response.text)
         aws_details = response_json["body"]
         cls.aws_manager = AWS_Manager(access_key=aws_details["access_key"],
-                                       secret_key=aws_details["secret_key"],
-                                       session_token=aws_details["session_token"])
+                                      secret_key=aws_details["secret_key"],
+                                      session_token=aws_details["session_token"])
         cls.filename = "TestFile"
         cls.make_files_to_be_uploaded(cls.filename)
         cls.filename_sf = "TestFileSubfolder"

@@ -73,10 +73,9 @@ class AWS_Manager(object):
 
     def get_bucket_structure_with_prefix(self, bucket_name, prefix=""):
         try:
+            command = self._client.list_objects(Bucket=bucket_name)
             if prefix:
                 command = self._client.list_objects(Bucket=bucket_name, Prefix=prefix)
-            else:
-                command = self._client.list_objects(Bucket=bucket_name)
             if 'Contents' in command:
                 return command['Contents']
         except self._client.exceptions.NoSuchBucket as e:
