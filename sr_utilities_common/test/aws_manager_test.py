@@ -77,14 +77,14 @@ class TestAWSManager(TestCase):
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename}"):
             result = True
         self.assertTrue(result)
-    
+
     def test_aws_04_download_subfolder(self):
         result = False
         self.aws_manager.download(BUCKET_NAME, "/tmp", "download", [self.filename], "Subfolder")
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename}"):
             result = True
         self.assertTrue(result)
-    
+
     def test_aws_05_remove_all_files(self):
         rospy.sleep(4)
         folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
@@ -100,7 +100,7 @@ class TestAWSManager(TestCase):
         else:
             result = False
         self.assertTrue(result)
-    
+
     def make_files_to_be_uploaded(self):
         if not os.path.exists(UPLOAD_PATH):
             os.mkdir(UPLOAD_PATH)
