@@ -44,7 +44,7 @@ class TestAWSManager(TestCase):
         self.aws_manager = AWS_Manager(access_key=aws_details["access_key"],
                                        secret_key=aws_details["secret_key"],
                                        session_token=aws_details["session_token"])
-        self.filename = get_filename()
+        self.filename = self.get_filename()
 
     @classmethod
     def tearDownClass(self):
@@ -62,7 +62,7 @@ class TestAWSManager(TestCase):
         self.assertTrue(result)
 
     def test_aws_02_upload_subfolder(self):
-        self.filename = get_filename()  # Second file should have new filename
+        self.filename = self.get_filename()  # Second file should have new filename
         result = False
         self.make_files_to_be_uploaded()
         self.aws_manager.upload(BUCKET_NAME, "/tmp", "upload", [self.filename], "Subfolder")
@@ -75,7 +75,7 @@ class TestAWSManager(TestCase):
 
     def test_aws_03_download(self):
         result = False
-        delete_download_folder()
+        self.delete_download_folder()
         self.aws_manager.download(BUCKET_NAME, "/tmp", "download", [self.filename], "upload")
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename}"):
             result = True
@@ -112,16 +112,14 @@ class TestAWSManager(TestCase):
             message = ''.join(random.choice(letters) for i in range(10))
             upload_file.write(message)
 
+    def get_filename(self):
+        time = datetime.now()
+        current_time = time.strftime("%d%m%Y_%H.%M.%S")
+        return f"test_{current_time}"
 
-def get_filename():
-    time = datetime.now()
-    current_time = time.strftime("%d%m%Y_%H.%M.%S")
-    return f"test_{current_time}"
-
-
-def delete_download_folder():
-    if os.path.exists(DOWNLOAD_PATH):
-        shutil.rmtree(DOWNLOAD_PATH)
+    def delete_download_folder(self):
+        if os.path.exists(DOWNLOAD_PATH):
+            shutil.rmtree(DOWNLOAD_PATH)
 
 
 if __name__ == '__main__':
