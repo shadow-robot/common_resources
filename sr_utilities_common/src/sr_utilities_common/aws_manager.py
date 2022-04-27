@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from unittest import skip
+# pylint: disable=W1618
+# TODO REMOVE ABOVE WHEN USING NEW LINT
 import rospy
 import boto3
 from six.moves import input
@@ -25,35 +25,35 @@ import os
 
 
 class AWS_Manager(object):
-    def __init__(self):
+    def __init__(self, access_key=None, secret_key=None, session_token=None):
         self.file_full_paths = []
         self.aws_paths = []
-        aws_access_key_id = ""
-        aws_secret_access_key = ""
-        aws_session_token = ""
+        aws_access_key_id = access_key
+        aws_secret_access_key = secret_key
+        aws_session_token = session_token
         headers = None
-
-        try:
-            with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
-                customer_key = customer_key_file.read()
-                headers = {'x-api-key': f'{customer_key[:-1]}'}
-        except IOError:
-            rospy.logerr("Could not find customer key, ask software team for help!")
-
-        try:
-            response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-            result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
-            aws_access_key_id = result.group(1)
-            result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
-            aws_secret_access_key = result.group(1)
-            result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
-            aws_session_token = result.group(1)
-            if response.status_code != 200:  # Code for success
-                rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
-                raise Exception()
-        except requests.exceptions.RequestException as e:
-            rospy.logerr(f"Could not request secret AWS access key, ask software team for help!\nError message: {e}")
-
+        if not access_key and not secret_key and not session_token:
+            try:
+                with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
+                    customer_key = customer_key_file.read()
+                    headers = {'x-api-key': f'{customer_key[:-1]}'}
+            except IOError:
+                rospy.logerr("Could not find customer key, ask software team for help!")
+            try:
+                response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
+                result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
+                aws_access_key_id = result.group(1)
+                result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
+                aws_secret_access_key = result.group(1)
+                result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
+                aws_session_token = result.group(1)
+                if response.status_code != 200:  # Code for success
+                    rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
+                    raise Exception()
+            except requests.exceptions.RequestException as exception:
+                err = "Could not request secret AWS access key, ask software team for help!"
+                err = err + f"\nError message: {exception}"
+                rospy.logerr(err)
         self._client = boto3.client(
             's3',
             aws_access_key_id=aws_access_key_id,
@@ -61,13 +61,15 @@ class AWS_Manager(object):
             aws_session_token=aws_session_token
         )
 
-    def get_bucket_structure_with_prefix(self, bucket_name, prefix):
-        if prefix:
-            try:
-                if 'Contents' in self._client.list_objects(Bucket=bucket_name, Prefix=prefix):
-                    return self._client.list_objects(Bucket=bucket_name, Prefix=prefix)['Contents']
-            except self.client.exceptions.NoSuchBucket as e:
-                rospy.logerr("Failed listing bucket objects. " + str(e))
+    def get_bucket_structure_with_prefix(self, bucket_name, prefix=""):
+        try:
+            command = self._client.list_objects(Bucket=bucket_name)
+            if prefix:
+                command = self._client.list_objects(Bucket=bucket_name, Prefix=prefix)
+            if 'Contents' in command:
+                return command['Contents']
+        except self._client.exceptions.NoSuchBucket as exception:
+            rospy.logerr(f"Failed listing bucket objects. {exception}")
         return None
 
     def gather_all_files_remote(self, aws_bucket, aws_subfolder=None):
@@ -114,14 +116,11 @@ class AWS_Manager(object):
         if not os.path.exists(directory):
             os.makedirs(directory)
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
-            directory = os.path.dirname(file_full_path)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
             try:
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 download_succeded = True
-            except self.client.exceptions.ClientError as e:
-                rospy.logerr("File download failed. " + str(e))
+            except self._client.exceptions.ClientError as exception:
+                rospy.logerr(f"File download failed ({aws_path}). {exception}")
         return download_succeded
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
@@ -131,8 +130,8 @@ class AWS_Manager(object):
             try:
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
                 uploadSucceded = True
-            except self.client.exceptions.S3UploadFailedError as e:
-                rospy.logerr("File upload failed" + str(e))
+            except self._client.exceptions.S3UploadFailedError as exception:
+                rospy.logerr(f"File upload failed ({file_full_path}). {exception}")
         return uploadSucceded
 
 
@@ -253,3 +252,4 @@ if __name__ == "__main__":
         rospy.loginfo(status_msg)
 
     rospy.signal_shutdown("")
+    exit(0)
