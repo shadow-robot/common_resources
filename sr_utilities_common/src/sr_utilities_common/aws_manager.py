@@ -252,3 +252,4 @@ if __name__ == "__main__":
         rospy.loginfo(status_msg)
 
     rospy.signal_shutdown("")
+    exit(0)
