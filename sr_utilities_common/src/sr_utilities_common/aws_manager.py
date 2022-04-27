@@ -69,7 +69,7 @@ class AWS_Manager(object):
             if 'Contents' in command:
                 return command['Contents']
         except self._client.exceptions.NoSuchBucket as exception:
-            rospy.logerr(f"Failed listing bucket objects. {exception}" )
+            rospy.logerr(f"Failed listing bucket objects. {exception}")
         return None
 
     def gather_all_files_remote(self, aws_bucket, aws_subfolder=None):
