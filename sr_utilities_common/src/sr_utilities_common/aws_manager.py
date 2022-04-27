@@ -50,8 +50,10 @@ class AWS_Manager(object):
                 if response.status_code != 200:  # Code for success
                     rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
                     raise Exception()
-            except requests.exceptions.RequestException as e:
-                rospy.logerr(f"Could not request secret AWS access key, ask software team for help!\nError message: {e}")
+            except requests.exceptions.RequestException as exception:
+                err = "Could not request secret AWS access key, ask software team for help!"
+                err = err + f"\nError message: {exception}"
+                rospy.logerr(err)
         self._client = boto3.client(
             's3',
             aws_access_key_id=aws_access_key_id,
@@ -66,8 +68,8 @@ class AWS_Manager(object):
                 command = self._client.list_objects(Bucket=bucket_name, Prefix=prefix)
             if 'Contents' in command:
                 return command['Contents']
-        except self._client.exceptions.NoSuchBucket as e:
-            rospy.logerr("Failed listing bucket objects. " + str(e))
+        except self._client.exceptions.NoSuchBucket as exception:
+            rospy.logerr(f"Failed listing bucket objects. {exception}" )
         return None
 
     def gather_all_files_remote(self, aws_bucket, aws_subfolder=None):
@@ -117,8 +119,8 @@ class AWS_Manager(object):
             try:
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 download_succeded = True
-            except self._client.exceptions.ClientError as e:
-                rospy.logerr(f"File download failed ({aws_path}). {e}")
+            except self._client.exceptions.ClientError as exception:
+                rospy.logerr(f"File download failed ({aws_path}). {exception}")
         return download_succeded
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
@@ -128,8 +130,8 @@ class AWS_Manager(object):
             try:
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
                 uploadSucceded = True
-            except self._client.exceptions.S3UploadFailedError as e:
-                rospy.logerr(f"File upload failed ({file_full_path}). {e}")
+            except self._client.exceptions.S3UploadFailedError as exception:
+                rospy.logerr(f"File upload failed ({file_full_path}). {exception}")
         return uploadSucceded
 
 
