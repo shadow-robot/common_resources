@@ -25,50 +25,38 @@ import os
 
 
 class AWS_Manager(object):
-    def __init__(self):
+    def __init__(self, access_key=None, secret_key=None, session_token=None):
         self.file_full_paths = []
         self.aws_paths = []
-        aws_access_key_id = ""
-        aws_secret_access_key = ""
-        aws_session_token = ""
+        aws_access_key_id = access_key
+        aws_secret_access_key = secret_key
+        aws_session_token = session_token
         headers = None
-
-        try:
-            with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
-                customer_key = customer_key_file.read()
-                headers = {'x-api-key': f'{customer_key[:-1]}'}
-        except IOError:
-            rospy.logerr("Could not find customer key, ask software team for help!")
-
-        try:
-            response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-            result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
-            aws_access_key_id = result.group(1)
-            result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
-            aws_secret_access_key = result.group(1)
-            result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
-            aws_session_token = result.group(1)
-            if response.status_code != 200:  # Code for success
-                rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
-                raise Exception()
-        except requests.exceptions.RequestException as e:
-            rospy.logerr(f"Could not request secret AWS access key, ask software team for help!\nError message: {e}")
-
+        if not access_key and not secret_key and not session_token:
+            try:
+                with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
+                    customer_key = customer_key_file.read()
+                    headers = {'x-api-key': f'{customer_key[:-1]}'}
+            except IOError:
+                rospy.logerr("Could not find customer key, ask software team for help!")
+            try:
+                response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
+                result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
+                aws_access_key_id = result.group(1)
+                result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
+                aws_secret_access_key = result.group(1)
+                result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
+                aws_session_token = result.group(1)
+                if response.status_code != 200:  # Code for success
+                    rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
+                    raise Exception()
+            except requests.exceptions.RequestException as e:
+                rospy.logerr(f"Could not request secret AWS access key, ask software team for help!\nError message: {e}")
         self._client = boto3.client(
             's3',
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
             aws_session_token=aws_session_token
-        )
-
-    def __init__(self, access_key, secret_key, session_token):
-        self.file_full_paths = []
-        self.aws_paths = []
-        self._client = boto3.client(
-            's3',
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            aws_session_token=session_token
         )
 
     def get_bucket_structure_with_prefix(self, bucket_name, prefix=""):
