@@ -122,4 +122,4 @@ class SrRunTrajectories(object):
             raise ValueError("Unknown hand prefix!")
 
     def get_hand_trajectories(self):
-        return self._hand_trajectories 
+        return self._hand_trajectories
