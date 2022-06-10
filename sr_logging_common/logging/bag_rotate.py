@@ -15,7 +15,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-import os
+from os import listdir, remove
+from os.path import getctime, join
 import time
 import rospy
 import subprocess
@@ -25,38 +26,36 @@ def remover(desired_bag_number, path):
     CONST_MAX_ACTIVE_BAGS_ALLOWED = desired_bag_number//2
 
     while not rospy.is_shutdown():
-        bag_files = [f for f in os.listdir(path) if f.endswith('.bag')]
-        active_bag_files = [f for f in os.listdir(path) if f.endswith('.bag.active')]
+        bag_files = [bagfile for bagfile in listdir(path) if bagfile.endswith('.bag')]
+        active_bag_files = [bagfile for bagfile in listdir(path) if bagfile.endswith('.bag.active')]
 
-        sorted_bag_files = sorted(bag_files, key=lambda x: os.path.getctime(os.path.join(path, x)))
-        sorted_active_bag_files = sorted(active_bag_files, key=lambda x: os.path.getctime(os.path.join(path, x)))
+        sorted_bag_files = sorted(bag_files, key=lambda x: getctime(join(path, x)))
+        sorted_active_bag_files = sorted(active_bag_files, key=lambda x: getctime(join(path, x)))
 
         while len(sorted_bag_files) > desired_bag_number:
-            os.remove(os.path.join(path, sorted_bag_files[0]))
+            remove(join(path, sorted_bag_files[0]))
             sorted_bag_files.pop(0)
 
         while len(sorted_active_bag_files) > CONST_MAX_ACTIVE_BAGS_ALLOWED:
-            os.remove(os.path.join(path, sorted_active_bag_files[0]))
+            remove(join(path, sorted_active_bag_files[0]))
             sorted_active_bag_files.pop(0)
 
         time.sleep(1)
 
 
 def gather_and_fix_all_active_rosbag_files(path):
-    fixed_files = []
-    onlyfiles = [os.path.join(path, rosfile) for rosfile in os.path.listdir(path)
-                 if os.path.isfile(os.path.join(path, rosfile))]
-    for bag_file in onlyfiles:
-        if ".active" in bag_file and ".bag" in bag_file:
-            file_name = bag_file.split(".")[0] + ".bag"
-            subprocess.run(["rosbag", "reindex", bag_file])
-            subprocess.run(["rosbag", "fix", bag_file, file_name])
-            os.remove(file_name + ".active")
-            os.remove(file_name + ".orig.active")
-            fixed_files.append(file_name)
-    if len(fixed_files) > 0:
+    active_rosbags = [join(path, bagfile) for bagfile in listdir(path) if bagfile.endswith('.bag.active')]
+    print("Fixing unfinished rosbag files")
+    for bag_file in active_rosbags:
+        file_name = bag_file.split(".")[0] + ".bag"
+        subprocess.run(["rosbag", "reindex", bag_file])
+        subprocess.run(["rosbag", "fix", bag_file, file_name])
+        remove(file_name + ".active")
+        remove(file_name + ".orig.active")
+
+    if len(active_rosbags) > 0:
         print("Fixed the rosbag files:")
-        [print("  " + filename) for filename in fixed_files]
+        [print("  " + filename) for filename in active_rosbags]
 
 
 if __name__ == '__main__':
