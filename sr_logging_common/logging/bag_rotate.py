@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import os
 import time
 import rospy
+import subprocess
 
 
 def remover(desired_bag_number, path):
@@ -41,8 +42,26 @@ def remover(desired_bag_number, path):
         time.sleep(1)
 
 
+def gather_and_fix_all_active_rosbag_files(path):
+    fixed_files = []
+    onlyfiles = [os.path.join(path, rosfile) for rosfile in os.path.listdir(path)
+                 if os.path.isfile(os.path.join(path, rosfile))]
+    for bag_file in onlyfiles:
+        if ".active" in bag_file and ".bag" in bag_file:
+            file_name = bag_file.split(".")[0] + ".bag"
+            subprocess.run(["rosbag", "reindex", bag_file])
+            subprocess.run(["rosbag", "fix", bag_file, file_name])
+            os.remove(file_name + ".active")
+            os.remove(file_name + ".orig.active")
+            fixed_files.append(file_name)
+    if len(fixed_files) > 0:
+        print("Fixed the rosbag files:")
+        [print("  " + filename) for filename in fixed_files]
+
+
 if __name__ == '__main__':
     rospy.init_node('bag_rotate', anonymous=True)
     desired_bag_number = rospy.get_param('~bag_files_num')
     path = rospy.get_param('~bag_files_path')
+    gather_and_fix_all_active_rosbag_files(path)
     remover(desired_bag_number, path)
