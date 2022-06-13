@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import
 from os import listdir, remove
-from os.path import getctime, join
+from os.path import getctime, join, exists
 import time
 import rospy
 import subprocess
@@ -44,14 +44,19 @@ def remover(desired_bag_number, path):
 
 
 def gather_and_fix_all_active_rosbag_files(path):
-    active_rosbags = [bagfile for bagfile in listdir(path) if bagfile.endswith('.bag.active')]
-    rospy.loginfo("Fixing unfinished rosbag files")
+    active_rosbags = [join(path, bagfile) for bagfile in listdir(path) if bagfile.endswith('.bag.active')]
     for bag_file in active_rosbags:
-        file_name = bag_file.split(".")[0] + ".bag"
-        subprocess.run(["rosbag", "reindex", bag_file])
-        subprocess.run(["rosbag", "fix", bag_file, file_name])
-        remove(file_name + ".active")
-        remove(file_name + ".orig.active")
+        file_name = bag_file.split(".active")[0]
+        process = subprocess.run(["rosbag", "reindex", bag_file], capture_output=True, text=True)
+        if process.returncode != 0:
+            rospy.logerr(f"\nCOMMAND REINDEX:\nstdout: {process.stdout}\nstderr: {process.stderr}")
+        process = subprocess.run(["rosbag", "fix", bag_file, file_name], capture_output=True, text=True)
+        if process.returncode != 0:
+            rospy.logerr(f"\nCOMMAND FIX:\nstdout: {process.stdout}\nstderr: {process.stderr}")
+        if exists(file_name + ".active"):
+            remove(file_name + ".active")
+        if exists(file_name + ".orig.active"):
+            remove(file_name + ".orig.active")
 
     if len(active_rosbags) > 0:
         string = "Fixed the rosbag files:"
