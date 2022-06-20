@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 from os import listdir, remove
 from os.path import getctime, join, exists
+import sys
 import time
 import rospy
 import subprocess
@@ -61,7 +62,10 @@ def gather_and_fix_all_active_rosbag_files(path):
 
 if __name__ == '__main__':
     rospy.init_node('bag_rotate', anonymous=True)
-    desired_bag_number = rospy.get_param('~bag_files_num')
-    path = rospy.get_param('~bag_files_path')
+    desired_bag_number = rospy.get_param('~bag_files_num', 6)
+    path = rospy.get_param('~bag_files_path', '/home/user/.ros/log')
+    if not exists(path):
+        rospy.logerr(f"Path {path} cannot be found.")
+        sys.exit(1)
     gather_and_fix_all_active_rosbag_files(path)
     remover(desired_bag_number, path)
