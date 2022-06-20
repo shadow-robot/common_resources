@@ -6,7 +6,7 @@
   <arg name="log_split_size" default="1024"/>
 
   <arg name="log_max_splits" default="6"/>
-  <arg name="log_directory" default="/home/user/.ros/log"/>
+  <arg name="log_directory" default="."/>
   <arg name="log_bag_prefix" default="sr_log"/>
 
   <arg name="core_dump_path" default="/home/user/.ros/log/core_dumps"/>
