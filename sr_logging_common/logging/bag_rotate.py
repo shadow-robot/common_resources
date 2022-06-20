@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 from os import listdir, remove
 from os.path import getctime, join, exists
 import sys
@@ -23,8 +24,6 @@ import subprocess
 
 
 def remover(desired_bag_number, path):
-    CONST_MAX_ACTIVE_BAGS_ALLOWED = desired_bag_number//2
-
     while not rospy.is_shutdown():
         bag_files = [bagfile for bagfile in listdir(path) if bagfile.endswith('.bag')]
 
