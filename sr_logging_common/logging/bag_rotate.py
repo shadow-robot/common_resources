@@ -22,10 +22,12 @@ import time
 import rospy
 import subprocess
 
+def starts_and_ends_with(file_name, prefix, suffix):
+    return file_name.startswith(prefix) and file_name.endswith(suffix)
 
-def remover(desired_bag_number, path):
+def remover(desired_bag_number, path, file_name_prefix):
     while not rospy.is_shutdown():
-        bag_files = [bagfile for bagfile in listdir(path) if bagfile.endswith('.bag')]
+        bag_files = [bagfile for bagfile in listdir(path) if starts_and_ends_with(bagfile, file_name_prefix, '.bag')]
 
         sorted_bag_files = sorted(bag_files, key=lambda x: getctime(join(path, x)))
 
@@ -36,8 +38,8 @@ def remover(desired_bag_number, path):
         time.sleep(1)
 
 
-def gather_and_fix_all_active_rosbag_files(path):
-    active_rosbags = [join(path, bagfile) for bagfile in listdir(path) if bagfile.endswith('.bag.active')]
+def gather_and_fix_all_active_rosbag_files(path, file_name_prefix):
+    active_rosbags = [join(path, bagfile) for bagfile in listdir(path) if starts_and_ends_with(bagfile, file_name_prefix, '.bag.active')]  
     for bag_file in active_rosbags:
         file_name = bag_file.split(".active")[0]
         process = subprocess.run(["rosbag", "reindex", bag_file], capture_output=True, text=True)
@@ -62,8 +64,9 @@ if __name__ == '__main__':
     rospy.init_node('bag_rotate', anonymous=True)
     desired_bag_number = rospy.get_param('~bag_files_num', 6)
     path = rospy.get_param('~bag_files_path', '/home/user/.ros/log')
+    file_name_prefix = rospy.get_param('~bag_files_prefix', '')
     if not exists(path):
         rospy.logerr(f"Path {path} cannot be found.")
         sys.exit(1)
-    gather_and_fix_all_active_rosbag_files(path)
-    remover(desired_bag_number, path)
+    gather_and_fix_all_active_rosbag_files(path, file_name_prefix)
+    remover(desired_bag_number, path, file_name_prefix)
