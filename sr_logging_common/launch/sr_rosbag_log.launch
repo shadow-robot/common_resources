@@ -37,6 +37,7 @@
   <node if="$(arg clear_old_sessions)" pkg="sr_logging_common" type="bag_rotate.py" name="$(anon bag_rotate)">
     <param name="bag_files_num" value="$(arg log_max_splits)"/>
     <param name="bag_files_path" value="$(arg log_directory)"/>
+    <param name="bag_files_prefix" value="$(arg log_bag_prefix)"/>
   </node>
 
   <node if="$(arg save_params)" pkg="sr_logging_common" type="record_params.py" name="$(anon param_dump)">
