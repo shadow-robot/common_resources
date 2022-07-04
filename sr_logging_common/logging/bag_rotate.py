@@ -22,8 +22,10 @@ import time
 import rospy
 import subprocess
 
+
 def starts_and_ends_with(file_name, prefix, suffix):
     return file_name.startswith(prefix) and file_name.endswith(suffix)
+
 
 def remover(desired_bag_number, path, file_name_prefix):
     while not rospy.is_shutdown():
@@ -39,7 +41,8 @@ def remover(desired_bag_number, path, file_name_prefix):
 
 
 def gather_and_fix_all_active_rosbag_files(path, file_name_prefix):
-    active_rosbags = [join(path, bagfile) for bagfile in listdir(path) if starts_and_ends_with(bagfile, file_name_prefix, '.bag.active')]  
+    active_rosbags = [join(path, bagfile) for bagfile in listdir(path)
+                      if starts_and_ends_with(bagfile, file_name_prefix, '.bag.active')]
     for bag_file in active_rosbags:
         file_name = bag_file.split(".active")[0]
         process = subprocess.run(["rosbag", "reindex", bag_file], capture_output=True, text=True)
