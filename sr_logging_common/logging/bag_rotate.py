@@ -25,9 +25,12 @@ import subprocess
 
 
 def rosbag_starts_and_ends_with(bag_file_name, prefix, suffix):
-    match = search(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', bag_file_name)
-    bag_prefix = rosbag_name[0:match.span()[0]-1]
-    return bag_prefix == prefix and bag_file_name.endswith(suffix)
+    if bag_file_name.endswith(suffix):
+        match = search(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', bag_file_name)
+        bag_prefix = bag_file_name[0:match.span()[0]-1]
+        return bag_prefix == prefix
+
+    return False
 
 
 def remover(desired_bag_number, path, file_name_prefix):
