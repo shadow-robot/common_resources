@@ -17,19 +17,22 @@
 from __future__ import absolute_import
 from os import listdir, remove
 from os.path import getctime, join, exists
+from re import search
 import sys
 import time
 import rospy
 import subprocess
 
 
-def starts_and_ends_with(file_name, prefix, suffix):
-    return file_name.startswith(prefix) and file_name.endswith(suffix)
+def rosbag_starts_and_ends_with(bag_file_name, prefix, suffix):
+    match = search(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', bag_file_name)
+    bag_prefix = rosbag_name[0:match.span()[0]-1]
+    return bag_prefix == prefix and bag_file_name.endswith(suffix)
 
 
 def remover(desired_bag_number, path, file_name_prefix):
     while not rospy.is_shutdown():
-        bag_files = [bagfile for bagfile in listdir(path) if starts_and_ends_with(bagfile, file_name_prefix, '.bag')]
+        bag_files = [bagfile for bagfile in listdir(path) if rosbag_starts_and_ends_with(bagfile, file_name_prefix, '.bag')]
 
         sorted_bag_files = sorted(bag_files, key=lambda x: getctime(join(path, x)))
 
@@ -42,7 +45,7 @@ def remover(desired_bag_number, path, file_name_prefix):
 
 def gather_and_fix_all_active_rosbag_files(path, file_name_prefix):
     active_rosbags = [join(path, bagfile) for bagfile in listdir(path)
-                      if starts_and_ends_with(bagfile, file_name_prefix, '.bag.active')]
+                      if rosbag_starts_and_ends_with(bagfile, file_name_prefix, '.bag.active')]
     for bag_file in active_rosbags:
         file_name = bag_file.split(".active")[0]
         process = subprocess.run(["rosbag", "reindex", bag_file], capture_output=True, text=True)
