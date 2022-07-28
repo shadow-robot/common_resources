@@ -32,6 +32,7 @@ def rosbag_starts_and_ends_with(bag_file_name, prefix, suffix):
     bag_prefix = bag_file_name[0:match.span()[0]-1]
     return bag_prefix == prefix
 
+
 def remover(desired_bag_number, path, file_name_prefix):
     while not rospy.is_shutdown():
         bag_files = [bagfile for bagfile in listdir(path)
