@@ -35,7 +35,8 @@ def rosbag_starts_and_ends_with(bag_file_name, prefix, suffix):
 
 def remover(desired_bag_number, path, file_name_prefix):
     while not rospy.is_shutdown():
-        bag_files = [bagfile for bagfile in listdir(path) if rosbag_starts_and_ends_with(bagfile, file_name_prefix, '.bag')]
+        bag_files = [bagfile for bagfile in listdir(path)
+                     if rosbag_starts_and_ends_with(bagfile, file_name_prefix, '.bag')]
 
         sorted_bag_files = sorted(bag_files, key=lambda x: getctime(join(path, x)))
 
