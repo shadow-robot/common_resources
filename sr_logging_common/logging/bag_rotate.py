@@ -67,7 +67,7 @@ class SrBagRotate:
             active_bags = self.get_suffixed_bags(".bag.active")
             for bag in active_bags:
                 self.reindex_bag(bag)
-                
+
             sorted_bag_files = sorted(self.get_suffixed_bags(".bag"))
             if len(sorted_bag_files) > self._desired_bag_number:
                 remove(self._path + "/" + sorted_bag_files[0])
