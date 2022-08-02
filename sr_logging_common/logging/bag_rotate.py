@@ -74,6 +74,7 @@ class SrBagRotate:
 
             rate.sleep()
 
+
 if __name__ == '__main__':
     rospy.init_node('bag_rotate', anonymous=True)
     desired_bag_number = rospy.get_param('~bag_files_num', 6)
