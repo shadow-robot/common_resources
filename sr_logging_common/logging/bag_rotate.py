@@ -24,59 +24,59 @@ import rospy
 import subprocess
 
 
-def rosbag_starts_and_ends_with(bag_file_name, prefix, suffix):
-    if not bag_file_name.endswith(suffix):
+class SrBagRotate:
+    def __init__(self, path, desired_bag_number, prefix):
+        self._path = path
+        self._prefix = prefix
+        self._desired_prefix_parts = set(self._prefix.split("_"))
+        self._desired_bag_number = desired_bag_number
+        self.remove_old_backups()
+        self.run()
+
+    def remove_old_backups(self):
+        for file in self.get_suffixed_bags(".bag.orig.active"):
+            remove(self._path + "/" + file)
+
+    def get_suffixed_bags(self, suffix):
+        all_files = listdir(self._path)
+        all_active_bags = [file for file in all_files if file.endswith(suffix)]
+        prefixed_active_bags = []
+        for active_bag in all_active_bags:
+            actual_prefix_parts = set([t for t in active_bag.split("_") if t.isalpha()])
+            if self._desired_prefix_parts == actual_prefix_parts:
+                prefixed_active_bags.append(active_bag)
+        return prefixed_active_bags
+
+    def reindex_bag(self, active_bag_filename):
+        process = subprocess.run(["rosbag", "reindex", active_bag_filename], capture_output=True, text=True)
+        if process.returncode == 0:
+            active_bag_filename = self._path + "/" + active_bag_filename.split(".")[0]
+            if exists(active_bag_filename + ".bag.active"):
+                remove(active_bag_filename + ".bag.active")
+            if exists(active_bag_filename + ".bag.orig.active"):
+                remove(active_bag_filename + ".bag.orig.active")
+            return True
+
+        rospy.logerr(f"\nReindexing failed: \n{process.stdout}\n{process.stderr}")
         return False
 
-    match = search(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', bag_file_name)
-    bag_prefix = bag_file_name[0:match.span()[0]-1]
-    return bag_prefix == prefix
+    def run(self):
+        rate = rospy.Rate(0.1)
+        while not rospy.is_shutdown():
 
+            active_bags = self.get_suffixed_bags(".bag.active")
+            for bag in active_bags:
+                self.reindex_bag(bag)
+                
+            sorted_bag_files = sorted(self.get_suffixed_bags(".bag"))
+            if len(sorted_bag_files) > self._desired_bag_number:
+                remove(self._path + "/" + sorted_bag_files[0])
 
-def remover(desired_bag_number, path, file_name_prefix):
-    while not rospy.is_shutdown():
-        bag_files = [bagfile for bagfile in listdir(path)
-                     if rosbag_starts_and_ends_with(bagfile, file_name_prefix, '.bag')]
-
-        sorted_bag_files = sorted(bag_files, key=lambda x: getctime(join(path, x)))
-
-        while len(sorted_bag_files) > desired_bag_number:
-            remove(join(path, sorted_bag_files[0]))
-            sorted_bag_files.pop(0)
-
-        time.sleep(1)
-
-
-def gather_and_fix_all_active_rosbag_files(path, file_name_prefix):
-    active_rosbags = [join(path, bagfile) for bagfile in listdir(path)
-                      if rosbag_starts_and_ends_with(bagfile, file_name_prefix, '.bag.active')]
-    for bag_file in active_rosbags:
-        file_name = bag_file.split(".active")[0]
-        process = subprocess.run(["rosbag", "reindex", bag_file], capture_output=True, text=True)
-        if process.returncode != 0:
-            rospy.logerr(f"\nCOMMAND REINDEX:\nstdout: {process.stdout}\nstderr: {process.stderr}")
-        process = subprocess.run(["rosbag", "fix", bag_file, file_name], capture_output=True, text=True)
-        if process.returncode != 0:
-            rospy.logerr(f"\nCOMMAND FIX:\nstdout: {process.stdout}\nstderr: {process.stderr}")
-        if exists(file_name + ".active"):
-            remove(file_name + ".active")
-        if exists(file_name + ".orig.active"):
-            remove(file_name + ".orig.active")
-
-    if len(active_rosbags) > 0:
-        string = "Fixed the rosbag files:"
-        for filename in active_rosbags:
-            string += f"  {filename}"
-        rospy.loginfo(string)
-
+            rate.sleep()
 
 if __name__ == '__main__':
     rospy.init_node('bag_rotate', anonymous=True)
     desired_bag_number = rospy.get_param('~bag_files_num', 6)
     path = rospy.get_param('~bag_files_path', '/home/user/.ros/log')
     file_name_prefix = rospy.get_param('~bag_files_prefix', '')
-    if not exists(path):
-        rospy.logerr(f"Path {path} cannot be found.")
-        sys.exit(1)
-    gather_and_fix_all_active_rosbag_files(path, file_name_prefix)
-    remover(desired_bag_number, path, file_name_prefix)
+    SrBagRotate(path, desired_bag_number, "sr_hand")
