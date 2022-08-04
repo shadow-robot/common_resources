@@ -120,3 +120,6 @@ class SrRunTrajectories(object):
             self.hand_side = 'left'
         else:
             raise ValueError("Unknown hand prefix!")
+
+    def get_hand_trajectories(self):
+        return self._hand_trajectories
