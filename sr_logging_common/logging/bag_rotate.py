@@ -39,7 +39,6 @@ class SrBagRotate:
 
         for i, bag in enumerate(bags_to_remove):
             if i < len(bags_to_remove)-self._desired_bag_number - 1:
-                rospy.logwarn(f"removing {bag}")
                 remove(bag)
 
     def get_suffixed_bags(self, suffix):
@@ -65,13 +64,9 @@ class SrBagRotate:
 
     def run(self):
         while not rospy.is_shutdown():
-            rospy.logwarn("---")
             active_bags = self.get_suffixed_bags(".bag.active")
-            rospy.logwarn(f"Active bags: {active_bags}")
-            
             for bag in active_bags:
                 self.reindex_bag(bag)
-
             self.remove_old_bags()
             rospy.sleep(1)
 
