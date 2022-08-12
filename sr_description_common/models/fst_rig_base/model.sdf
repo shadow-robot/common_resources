@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<sdf version="1.4">
+<model name="fst_rig_base">
+  <static>true</static>
+    <static>true</static>
+    <link name="link">
+      <collision name="collision_fst_rig">
+        <geometry>
+          <box>
+            <size>0.16 0.19 0.86</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual_fst_rig">
+        <geometry>
+          <box>
+            <size>0.16 0.19 0.86</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
