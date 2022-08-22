@@ -1,11 +1,12 @@
 <launch>
+  <arg name="rosbag" default="true"/>
   <arg name="rosbag_path" default=""/>
   <arg name="tf_topic_name" default="/tf"/>
-  <arg name="remapped_tf_topic_name" default="tf_bag"/>
+  <arg name="remapped_tf_topic_name" default="/tf_bag"/>
   <arg name="tf_name_regexes" default="[]"/>
   <arg name="tcp_nodelay" default="true"/>
 
-  <node unless="$(eval arg('rosbag_path') == '')" pkg="rosbag" type="play" name="rosbag_mocap_tf" args="$(arg rosbag_path) --topics $(arg tf_topic_name) $(arg tf_topic_name):=$(arg remapped_tf_topic_name) -l" output="screen" />
+  <node if="$(eval arg('rosbag') and arg('rosbag_path') != '')" pkg="rosbag" type="play" name="rosbag_mocap_tf" args="$(arg rosbag_path) --topics $(arg tf_topic_name) $(arg tf_topic_name):=$(arg remapped_tf_topic_name) -l" output="screen" />
   <node pkg="sr_utilities_common" type="real_time_tf_republisher.py" name="real_time_tf_republisher" output="screen">
     <param name="bag_tf_topic_name" value="$(arg remapped_tf_topic_name)" />
     <param name="tcp_nodelay" value="$(arg tcp_nodelay)" />

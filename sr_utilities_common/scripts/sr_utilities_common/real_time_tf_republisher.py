@@ -31,11 +31,14 @@ class RealTimeTfRepublisher(object):
         self._published_tfs = []
         self._matched_regexes = []
         self._last_published_times = {}
-        self._bag_tf_sub = rospy.Subscriber(bag_tf_topic_name, TFMessage,
+        self._tf_bag_topic_name = bag_tf_topic_name
+        rospy.loginfo(f'Waiting for TFs on {self._tf_bag_topic_name}')
+        self._bag_tf_sub = rospy.Subscriber(self._tf_bag_topic_name, TFMessage,
                                             self._bag_tf_cb, tcp_nodelay=tcp_nodelay, queue_size=1)
         threading.Timer(10, self._check_matched_regexes, [10]).start()
 
     def _bag_tf_cb(self, data):
+        rospy.loginfo_once(f'Receiving TFs on {self._tf_bag_topic_name}')
         list_of_tfs_to_publish = []
         current_time = rospy.Time.now()
         for tf in data.transforms:
@@ -73,7 +76,7 @@ class RealTimeTfRepublisher(object):
 
 if __name__ == "__main__":
     rospy.init_node("real_time_tf_republisher")
-    bag_tf_topic_name = rospy.get_param('~bag_tf_topic_name', 'tf_bag')
+    bag_tf_topic_name = rospy.get_param('~bag_tf_topic_name', '/tf_bag')
     tf_name_regexes = rospy.get_param('~tf_name_regexes', [])
     tcp_nodelay = rospy.get_param('~tcp_nodelay', True)
     real_time_tf_republisher = RealTimeTfRepublisher(bag_tf_topic_name, tf_name_regexes, tcp_nodelay)
