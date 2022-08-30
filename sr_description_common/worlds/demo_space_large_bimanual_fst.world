@@ -244,7 +244,7 @@
     </scene>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>0.974207 -0.758556 0.574668 -0 0.0498 1.22022</pose>
+        <pose>2.4953 -0.320812 1.40518 0 0.3658 2.86822</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -261,10 +261,10 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>3122 608000000</sim_time>
-      <real_time>101 430936498</real_time>
-      <wall_time>1660205581 422542700</wall_time>
-      <iterations>98667</iterations>
+      <sim_time>3195 341000000</sim_time>
+      <real_time>75 943552325</real_time>
+      <wall_time>1660891484 384717446</wall_time>
+      <iterations>72733</iterations>
       <model name='fst_rig_base'>
         <pose>1.04012 0.003974 0.431554 0 -0 0</pose>
         <scale>1 1 1</scale>
