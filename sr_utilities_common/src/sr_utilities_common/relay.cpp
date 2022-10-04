@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // relay just passes messages on. it can be useful if you're trying to ensure
-// that a message doesn't get sent twice over a wireless link, by having the 
-// relay catch the message and then do the fanout on the far side of the 
+// that a message doesn't get sent twice over a wireless link, by having the
+// relay catch the message and then do the fanout on the far side of the
 // wireless link.
 //
 // Copyright (C) 2009, Morgan Quigley
@@ -37,6 +37,7 @@
 #include <cstdio>
 #include "topic_tools/shape_shifter.h"
 #include "topic_tools/parse.h"
+#include <string>
 
 using std::string;
 using std::vector;
@@ -44,9 +45,9 @@ using topic_tools;
 
 ros::NodeHandle *g_node = NULL;
 bool g_advertised = false;
-const char* g_input_topic;
-const char* g_output_topic;
-const char* g_monitor_topic;
+string g_input_topic;
+string g_output_topic;
+string g_monitor_topic;
 ros::Publisher g_pub;
 ros::Subscriber* g_sub;
 bool g_lazy;
@@ -103,9 +104,9 @@ void in_cb(const ros::MessageEvent<ShapeShifter>& msg_event)
     g_advertised = true;
     ROS_INFO("advertised as %s\n", g_output_topic.c_str());
   }
-  // If we're in lazy subscribe mode, and nobody's listening, 
+  // If we're in lazy subscribe mode, and nobody's listening,
   // then unsubscribe, #3389.
-  if((g_lazy || g_stealth) && !g_pub.getNumSubscribers())
+  if ((g_lazy || g_stealth) && !g_pub.getNumSubscribers())
   {
     ROS_DEBUG("lazy mode; unsubscribing");
     unsubscribe();
@@ -117,7 +118,7 @@ void in_cb(const ros::MessageEvent<ShapeShifter>& msg_event)
 void timer_cb(const ros::TimerEvent&)
 {
   if (!g_advertised) return;
-  
+
   // get subscriber num of ~monitor_topic
   XmlRpc::XmlRpcValue req(ros::this_node::getName()), res, data;
   if (!ros::master::execute("getSystemState", req, res, data, false))
