@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # Copyright 2018 Open Source Robotics Foundation
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # Creative Commons Attribution 3.0
 # https://creativecommons.org/licenses/by/3.0/
