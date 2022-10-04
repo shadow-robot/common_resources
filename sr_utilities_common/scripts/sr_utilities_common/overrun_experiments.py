@@ -17,15 +17,21 @@
 # example use: ./overrun_experiments.py -ht hand_e -t 60 -id lh
 
 from __future__ import absolute_import, division
-import rospy
+import os
 import argparse
+import rospy
 from std_msgs.msg import String
 from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
-import csv
-import os
 
 
+def get_recent_overruns_by_regex(self, msg):
+    for status in msg.status:
+        for value_dict in status.values:
+            if value_dict.key == 'Recent Control Loop Overruns':
+                return value_dict.value
+    raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
+    
 class OverrunExperiment:
     def __init__(self, hand_type, time, hand_id):
         self.hand_type = hand_type
@@ -37,19 +43,12 @@ class OverrunExperiment:
         self.overrun_average = 0
         self.drop_average = 0
 
-    def get_recent_overruns_by_regex(self, msg):
-        for status in msg.status:
-            for value_dict in status.values:
-                if value_dict.key == 'Recent Control Loop Overruns':
-                    return value_dict.value
-        raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
-
     def overruns_callback_hand_h(self, data):
-        overrun = self.get_recent_overruns_by_regex(data)
+        overrun = get_recent_overruns_by_regex(data)
         rospy.loginfo(overrun)
         self.num_of_drops = sum(int(data.status[idx].values[8].value) for idx in range(4, 7))
 
-        with open("overruns_data.txt", "a+") as myfile:
+        with open("overruns_data.txt", "a+", encoding="utf-8") as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
         self.overrun_average += int(overrun)
@@ -58,7 +57,7 @@ class OverrunExperiment:
         self.iterations += 1
 
     def overruns_callback_hand_e(self, data):
-        overrun = self.get_recent_overruns_by_regex(data)
+        overrun = get_recent_overruns_by_regex(data)
         with open("overruns_data.txt", "a+", encoding='UTF-8') as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
@@ -68,33 +67,33 @@ class OverrunExperiment:
         self.iterations += 1
 
     def drops_callback_hand_e(self, data):
-        if 0 == data.sensors[10]:
+        if data.sensors[10] == 0:
             self.num_of_drops += 1
 
     def listener(self):
         if not self.hand_type:
             raise ValueError('Please specify hand type using -ht (--hand_type) flag! (e.g. -ht hand_e or -ht hand_h)')
         elif self.hand_type not in self.supported_hand_types:
-            raise ValueError('Unrecognized hand type: {}!'.format(self.hand_type))
+            raise ValueError(f'Unrecognized hand type: {self.hand_type}!')
         elif self.time < 1:
             raise ValueError('Please specify the experiment duration in seconds with -t 60 for example')
         try:
-            rospy.wait_for_message("/" + self.hand_id + "/debug_etherCAT_data", EthercatDebug, timeout=2)
+            rospy.wait_for_message(f"/{self.hand_id}/debug_etherCAT_data", EthercatDebug, timeout=2)
         except rospy.exceptions.ROSException:
-            rospy.logerr("Cannot find hand id: %s", self.hand_id)
+            rospy.logerr(f"Cannot find hand id: {self.hand_id}")
             raise
         rospy.loginfo("Your data is being recorded, please wait for " + str(self.time) + " seconds")
-        if 'hand_h' == self.hand_type:
+        if self.hand_type == 'hand_h':
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_h)
-        elif 'hand_e' == self.hand_type:
+        elif self.hand_type == 'hand_e':
             rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.overruns_callback_hand_e)
-            rospy.Subscriber("/" + self.hand_id + "/debug_etherCAT_data", EthercatDebug, self.drops_callback_hand_e)
+            rospy.Subscriber(f"/{self.hand_id}/debug_etherCAT_data", EthercatDebug, self.drops_callback_hand_e)
         while (self.iterations < self.time) and (not rospy.is_shutdown()):
             rospy.sleep(0.1)
         rospy.loginfo("Your data has been recorded to ./overruns_data.txt file.")
         self.overrun_average = self.overrun_average / (1.0*self.time)
         self.drop_average = self.drop_average / (1.0*self.time)
-        rospy.loginfo("Overrun average: "+str(self.overrun_average)+" Drop average: "+str(self.drop_average))
+        rospy.loginfo(f"Overrun average: {self.overrun_average}. Drop average: {self.drop_average}")
 
 
 if __name__ == '__main__':

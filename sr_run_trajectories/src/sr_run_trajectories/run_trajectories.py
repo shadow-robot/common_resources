@@ -23,20 +23,19 @@ from sr_utilities.hand_finder import HandFinder
 from moveit_commander.exception import MoveItCommanderException
 
 
-def _parse_trajectories_dict(self, trajectories_dict, joints_order):
+def parse_trajectories_dict(self, trajectories_dict, joints_order):
     parsed_trajectories_dict = {}
     for traj_name, traj_waypoint in trajectories_dict.items():
         parsed_trajectory = []
         for waypoint in traj_waypoint:
             joint_angles_dict = dict(list(zip(joints_order, waypoint['joint_angles'])))
             interpolate_time = waypoint['interpolate_time']
-            parsed_trajectory.append({'joint_angles': joint_angles_dict,
-                                        'interpolate_time': interpolate_time})
+            parsed_trajectory.append({'joint_angles': joint_angles_dict, 'interpolate_time': interpolate_time})
         parsed_trajectories_dict[traj_name] = parsed_trajectory
     return parsed_trajectories_dict
 
-    
-class SrRunTrajectories(object):
+
+class SrRunTrajectories:
     def __init__(self, trajectories_file_path, arm=True, hand=True):
         self.arm = arm
         self.hand = hand
@@ -83,17 +82,17 @@ class SrRunTrajectories(object):
         if self.arm:
             arm_joints_order = trajectories_info['arm_joints_order']
             arm_trajectories = trajectories_info['arm_trajectories']
-            self._arm_trajectories = self._parse_trajectories_dict(arm_trajectories, arm_joints_order)
+            self._arm_trajectories = parse_trajectories_dict(arm_trajectories, arm_joints_order)
 
         if self.hand:
             hand_joints_order = [self.hand_prefix + joint for joint in trajectories_info['hand_joints_order']]
             hand_trajectories = trajectories_info['hand_trajectories']
-            self._hand_trajectories = self._parse_trajectories_dict(hand_trajectories, hand_joints_order)
+            self._hand_trajectories = parse_trajectories_dict(hand_trajectories, hand_joints_order)
 
         if self.arm_and_hand:
             arm_and_hand_joints_order = trajectories_info['arm_joints_order'] + trajectories_info['hand_joints_order']
             arm_and_hand_trajectories = trajectories_info['arm_and_hand_trajectories']
-            self._arm_and_hand_trajectories = self._parse_trajectories_dict(arm_and_hand_trajectories,
+            self._arm_and_hand_trajectories = parse_trajectories_dict(arm_and_hand_trajectories,
                                                                             arm_and_hand_joints_order)
 
     def run_trajectory(self, configuration, trajectory_name):
@@ -116,7 +115,7 @@ class SrRunTrajectories(object):
         self.hand_prefix = next(value_iterator)
 
     def get_hand_side(self):
-        if self.hand_prefix == 'rh_' :
+        if self.hand_prefix == 'rh_':
             self.hand_side = 'right'
         elif self.hand_prefix == 'lh_':
             self.hand_side = 'left'

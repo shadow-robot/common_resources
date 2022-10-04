@@ -16,14 +16,13 @@
 
 from __future__ import absolute_import
 import re
-import rospy
 import threading
+import rospy
 import tf2_ros
-from geometry_msgs.msg import TransformStamped
 from tf2_msgs.msg import TFMessage
 
 
-class RealTimeTfRepublisher(object):
+class RealTimeTfRepublisher:
     def __init__(self, bag_tf_topic_name, tf_name_regexes=[], tcp_nodelay=True):
         rospy.loginfo("TF republisher will republish TFs that match these regexes: {}".format(tf_name_regexes))
         self._tf_name_regexes = [re.compile(x) for x in tf_name_regexes]
@@ -49,10 +48,10 @@ class RealTimeTfRepublisher(object):
                 continue
             for regex in self._tf_name_regexes:
                 if regex.match(tf.child_frame_id) is not None:
-                    if (tf.child_frame_id not in self._published_tfs):
-                        rospy.loginfo("Republishing matching TF: {}".format(tf.child_frame_id))
+                    if tf.child_frame_id not in self._published_tfs:
+                        rospy.loginfo(f"Republishing matching TF: {tf.child_frame_id}")
                         self._published_tfs.append(tf.child_frame_id)
-                    if (regex not in self._matched_regexes):
+                    if regex not in self._matched_regexes:
                         self._matched_regexes.append(regex)
                     tf_to_be_republished = tf
                     self._last_published_times[tf.child_frame_id] = current_time
@@ -73,8 +72,8 @@ class RealTimeTfRepublisher(object):
 
 if __name__ == "__main__":
     rospy.init_node("real_time_tf_republisher")
-    bag_tf_topic_name = rospy.get_param('~bag_tf_topic_name', 'tf_bag')
-    tf_name_regexes = rospy.get_param('~tf_name_regexes', [])
-    tcp_nodelay = rospy.get_param('~tcp_nodelay', True)
-    real_time_tf_republisher = RealTimeTfRepublisher(bag_tf_topic_name, tf_name_regexes, tcp_nodelay)
+    bag_tf_topic_name_param = rospy.get_param('~bag_tf_topic_name', 'tf_bag')
+    tf_name_regexes_param = rospy.get_param('~tf_name_regexes', [])
+    tcp_nodelay_param = rospy.get_param('~tcp_nodelay', True)
+    real_time_tf_republisher = RealTimeTfRepublisher(bag_tf_topic_name_param, tf_name_regexes_param, tcp_nodelay_param)
     rospy.spin()

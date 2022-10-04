@@ -89,9 +89,9 @@ class SrUrLoadCalibration:
             arm_serial_number = stdout.readline()
             client.close()
         except (BadHostKeyException, AuthenticationException, SSHException, socket.error) as exception:
-            ssh_exception_message = " Failed to SSH into arm - {exception}")
+            ssh_exception_message = " Failed to SSH into arm - {exception}"
         except NoValidConnectionsError as exception:
-            ssh_exception_message = " Failed to SSH into arm - {exception}")
+            ssh_exception_message = " Failed to SSH into arm - {exception}"
 
         if arm_serial_number == '':
             rospy.logwarn("Could not retrieve arm serial number.{ssh_exception_message}" \

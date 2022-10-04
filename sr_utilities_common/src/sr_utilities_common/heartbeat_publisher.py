@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -23,7 +23,7 @@ from std_msgs.msg import Bool
 from threading import Thread, Lock
 
 
-class HeartbeatPublisher(object):
+class HeartbeatPublisher:
     def __init__(self, topic_name='heartbeat', publishing_rate=20):
         self._publishing_thread_running = False
         self._heartbeat_status = False

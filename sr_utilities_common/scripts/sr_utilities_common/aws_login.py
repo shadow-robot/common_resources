@@ -46,7 +46,7 @@ if __name__ == "__main__":
             sys.exit(1)
     print(f"Using API/customer key: {customer_key}")
 
-    headers = {'x-api-key': customer_key[:-1])}
+    headers = {'x-api-key': customer_key[:-1]}
 
     try:
         response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)

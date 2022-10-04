@@ -33,7 +33,7 @@ import rospy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
-class RePubTrajectory(object):
+class RePubTrajectory:
     def __init__(self,
                  joints_to_move,
                  left_hand=False,
@@ -74,16 +74,16 @@ if __name__ == "__main__":
     left_hand = False
 
     if left_hand:
-        trajectory_pub_topic = "/lh_trajectory_controller/command"
+        trajectory_pub_topic_arg = "/lh_trajectory_controller/command"
     else:
-        trajectory_pub_topic = "/rh_trajectory_controller/command"
+        trajectory_pub_topic_arg = "/rh_trajectory_controller/command"
 
-    joints_to_move = ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
-                      "rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4",
-                      "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4",
-                      "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5",
-                      "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
-                      "rh_WRJ1", "rh_WRJ2"]
+    joints_to_move_arg = ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
+                          "rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4",
+                          "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4",
+                          "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5",
+                          "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
+                          "rh_WRJ1", "rh_WRJ2"]
 
-    pub_traj = RePubTrajectory(joints_to_move, left_hand=left_hand, trajectory_pub_topic=trajectory_pub_topic)
+    pub_traj = RePubTrajectory(joints_to_move_arg, left_hand=left_hand, trajectory_pub_topic=trajectory_pub_topic_arg)
     rospy.spin()

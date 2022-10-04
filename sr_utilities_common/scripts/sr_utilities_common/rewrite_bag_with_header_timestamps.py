@@ -8,17 +8,16 @@
 # Copied from http://wiki.ros.org/rosbag/Cookbook
 
 from __future__ import absolute_import, division
-from builtins import input, round
+from builtins import round
 import sys
-import rosbag
 import time
 import subprocess
 import yaml
-import rospy
 import os
 import argparse
 import math
 from shutil import move
+import rosbag
 
 
 def status(length, percent):
@@ -56,7 +55,7 @@ def main(args):
 
     move(bagfile, orig)
 
-    with rosbag.Bag(bagfile, 'w') as outbag:
+    with rosbag.Bag(bagfile, 'w', encoding="utf-8") as outbag:
 
         last_time = time.clock()
         for topic, msg, t in rosbag.Bag(orig).read_messages():

@@ -17,17 +17,15 @@
 from __future__ import absolute_import
 
 import time
-import speech_recognition as sr
 from difflib import get_close_matches
+from threading import Thread
+import subprocess
+import wave
+import speech_recognition as sr
 from std_msgs.msg import String
 import yaml
-
 from gtts import gTTS
 import pyaudio
-import subprocess
-from threading import Thread
-import wave
-
 import rospy
 import rospkg
 
@@ -35,6 +33,38 @@ import rospkg
 def write_mp3(tts, proc):
     tts.write_to_fp(proc.stdin)
     proc.stdin.close()
+
+def text_to_speech(text, device_name):
+    pyaud = pyaudio.PyAudio()
+    device_index = None
+    sample_rate = None
+    for index in range(0, pyaud.get_device_count()):
+        device_info = pyaud.get_device_info_by_index(index)
+        if device_name == device_info['name']:
+            device_index = index
+            sample_rate = device_info['defaultSampleRate']
+            break
+    tts = gTTS(text=text, lang='en', slow=False)
+    # Use ffmpeg top convert mp3 to wav
+    with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:',
+                            '-ar', str(sample_rate), '-ac', '1', '-f', 'wav', 'pipe:'],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
+        # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
+        # buffers are relatively small and process will block before any output is received
+        thread = Thread(target=write_mp3, args=(tts, proc, ))
+        thread.start()
+        # Read wav from ffmpeg standard output
+        waveform = wave.open(proc.stdout, 'rb')
+        stream = pyaud.open(format=pyaud.get_format_from_width(waveform.getsampwidth()),
+                            channels=waveform.getnchannels(),
+                            rate=waveform.getframerate(),
+                            output_device_index=device_index,
+                            output=True)
+        stream.write(waveform.readframes(waveform.getnframes()))
+        stream.stop_stream()
+        stream.close()
+        pyaud.terminate()
+        thread.join()
 
 
 class SpeechControl:
@@ -86,39 +116,7 @@ class SpeechControl:
 
     def text_to_speech_callback(self, message):
         if self.speaker != '':
-            self.text_to_speech(message.data, self.speaker)
-
-    def text_to_speech(self, text, device_name):
-        pyaud = pyaudio.PyAudio()
-        device_index = None
-        sample_rate = None
-        for index in range(0, pyaud.get_device_count()):
-            device_info = pyaud.get_device_info_by_index(index)
-            if device_name == device_info['name']:
-                device_index = index
-                sample_rate = device_info['defaultSampleRate']
-                break
-        tts = gTTS(text=text, lang='en', slow=False)
-        # Use ffmpeg top convert mp3 to wav
-        with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:',
-                               '-ar', str(sample_rate), '-ac', '1', '-f', 'wav', 'pipe:'],
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
-            # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
-            # buffers are relatively small and process will block before any output is received
-            thread = Thread(target=write_mp3, args=(tts, proc, ))
-            thread.start()
-            # Read wav from ffmpeg standard output
-            waveform = wave.open(proc.stdout, 'rb')
-            stream = pyaud.open(format=pyaud.get_format_from_width(waveform.getsampwidth()),
-                            channels=waveform.getnchannels(),
-                            rate=waveform.getframerate(),
-                            output_device_index=device_index,
-                            output=True)
-            stream.write(waveform.readframes(waveform.getnframes()))
-            stream.stop_stream()
-            stream.close()
-            pyaud.terminate()
-            thread.join()
+            text_to_speech(message.data, self.speaker)
 
     def parse_similar_words_dict(self, path_name):
         with open(path_name, 'r', encoding='UTF-8') as stream:
@@ -177,5 +175,6 @@ if __name__ == "__main__":
                                       "open": "opened"}
     similar_words_dict_path_arg = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
 
-    sc = SpeechControl(trigger_word_arg, command_words_and_feedback_arg, similar_words_dict_path=similar_words_dict_path_arg)
+    sc = SpeechControl(trigger_word_arg, command_words_and_feedback_arg,
+                       similar_words_dict_path=similar_words_dict_path_arg)
     sc.run()

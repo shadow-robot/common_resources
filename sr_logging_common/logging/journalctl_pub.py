@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     while not rospy.is_shutdown():
         if polling_object.poll(100):
-            journal_log_line = f.stdout.readline()
+            journal_log_line = process.stdout.readline()
             if journal_log_line:
                 journal_msg = journal_log()
                 journal_msg.data = journal_log_line.strip()

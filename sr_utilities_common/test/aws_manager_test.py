@@ -82,7 +82,6 @@ class TestAWSManager(TestCase):
 
     def test_aws_04_download_subfolder(self):
         result = False
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
         self.aws_manager.download(BUCKET_NAME, "/tmp", "download", [self.filename_sf], "Subfolder")
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename_sf}"):
             result = True

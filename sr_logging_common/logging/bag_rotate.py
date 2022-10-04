@@ -21,7 +21,7 @@ import subprocess
 import rospy
 
 
-def reindex_bag(self, active_bag):
+def reindex_bag(active_bag):
     reindexing = subprocess.run(["rosbag", "reindex", active_bag], capture_output=True, text=True, check=False)
     fixed_bag = f"{active_bag[:-len('.active')]}"
 
