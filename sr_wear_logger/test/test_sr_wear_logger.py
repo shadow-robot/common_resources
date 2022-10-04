@@ -49,9 +49,8 @@ class TestSrWearLogger(TestCase):
         for key, value in list(dictionary.items()):
             if isinstance(value, dict):
                 dictionary[key] = self.check_are_values_numeric(value)
-            else:
-                if not(isinstance(dictionary[key]), float) or isinstance(dictionary[key]), int)):
-                    return False
+            elif not(isinstance(dictionary[key], float) or isinstance(dictionary[key]), int):
+                return False
         return True
 
     def test_10_check_param_case_wrong_hand_serial(self):

@@ -42,8 +42,8 @@ class TestAWSManager(TestCase):
         response_json = json.loads(response.text)
         aws_details = response_json["body"]
         cls.AWSManager = AWSManager(access_key=aws_details["access_key"],
-                                      secret_key=aws_details["secret_key"],
-                                      session_token=aws_details["session_token"])
+                                    secret_key=aws_details["secret_key"],
+                                    session_token=aws_details["session_token"])
         cls.filename = "TestFile"
         cls.make_files_to_be_uploaded(cls.filename)
         cls.filename_sf = "TestFileSubfolder"
@@ -94,7 +94,7 @@ class TestAWSManager(TestCase):
         if folder_list is not None:
             for element in folder_list:
                 filepath = element['Key']
-                self.AWSManager._client.delete_object(Bucket=BUCKET_NAME, Key=filepath)  # pylint: disable=97
+                self.AWSManager._client.delete_object(Bucket=BUCKET_NAME, Key=filepath)  # pylint: disable=W0212
         # Check bucket status after removing everything.
         folder_list = self.AWSManager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
         if not folder_list:

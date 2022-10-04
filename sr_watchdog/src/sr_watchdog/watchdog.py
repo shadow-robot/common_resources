@@ -120,7 +120,7 @@ class SrWatchdog:
         for checks_class in self.checks_classes_list:
             if checks_class.__class__.__name__ == check.check_class_name:
                 return checks_class
-        return
+        return []
 
     def _run_single_check(self, check):
         used_class = self._find_class_corresponding_to_check(check)
@@ -137,7 +137,7 @@ class SrWatchdog:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}: {}\'."
                                        " Skipping and blacklisting this check..."
                                        .format(check.check_name, type(exception).__name__,
-                                       str(exception)), SystemLog.WARN))
+                                               str(exception)), SystemLog.WARN))
             raise CheckThrowingException from exception
         return result
 

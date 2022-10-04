@@ -168,9 +168,8 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
         return False
 
     rospy.logerr("Select a valid option")
-    validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                     file_names, bucket_subfolder)
-    return
+    self.validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
+                                          file_names, bucket_subfolder)
 
 
 def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,

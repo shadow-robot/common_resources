@@ -19,8 +19,8 @@ import os
 import paramiko
 import yaml
 from rosparam import upload_params
-from paramiko.ssh_exception import BadHostKeyException, AuthenticationException, SSHException, NoValidConnectionsErro
 import socket.error
+from paramiko.ssh_exception import BadHostKeyException, AuthenticationException, SSHException, NoValidConnectionsError
 import rospy
 import roslaunch
 import rospkg
@@ -40,6 +40,11 @@ class ArmTypeNotRecognised(SrUrLoadCalibrationExceptions):
 
 class DifferentArmTypes(SrUrLoadCalibrationExceptions):
     pass
+
+
+def get_yaml(self, filename):
+    with open(filename, encoding='UTF-8') as file:
+        return yaml.safe_load(file)
 
 
 class SrUrLoadCalibration:
@@ -84,25 +89,21 @@ class SrUrLoadCalibration:
         try:
             client.connect(arm_ip, username=self._CONST_UR_ARM_SSH_USERNAME,
                            password=self._CONST_UR_ARM_SSH_PASSWORD, timeout=5.0)
-            stdin, stdout, stderr = client.exec_command('cat /root/ur-serial')
+            _, stdout, _ = client.exec_command('cat /root/ur-serial')
             arm_serial_number = stdout.readline()
             client.close()
         except (BadHostKeyException, AuthenticationException, SSHException, socket.error) as exception:
-            ssh_exception_message = " Failed to SSH into arm - {exception}"
+            ssh_exception_message = f"Failed to SSH into arm - {exception}"
         except NoValidConnectionsError as exception:
-            ssh_exception_message = " Failed to SSH into arm - {exception}"
+            ssh_exception_message = f"Failed to SSH into arm - {exception}"
 
         if arm_serial_number == '':
-            rospy.logwarn("Could not retrieve arm serial number.{ssh_exception_message}"
+            rospy.logwarn(f"Could not retrieve arm serial number.{ssh_exception_message}" \
                           " Arm will NOT be calibrated. Ignore if running URSim.")
         return arm_serial_number
 
     def _arm_calibration_exists(self, arm_serial):
         return os.path.isfile(os.path.join(self._arm_calibrations_folder, arm_serial + '.yaml'))
-
-    def _get_yaml(self, filename):
-        with open(filename) as f:
-            return yaml.safe_load(f)
 
     def _start_calibration(self, arm_ip, arm_serial):
         output_file = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
@@ -127,13 +128,13 @@ class SrUrLoadCalibration:
             arm_ip = arm_info['ip_address']
             arm_side = arm_info['prefix']
             arm_serial = self._get_serial_from_arm(arm_ip)
-            if '' != arm_serial:
+            if arm_serial != '':
                 if not self._arm_calibration_exists(arm_serial):
                     self._start_calibration(arm_ip, arm_serial)
                 calibration_file_location = os.path.join(self._arm_calibrations_folder, arm_serial + ".yaml")
             else:
                 calibration_file_location = self._default_kinematics_config
-            kinematics_config = self._get_yaml(calibration_file_location)
+            kinematics_config = get_yaml(calibration_file_location)
             upload_params('/' + arm_side + '_sr_ur_robot_hw', kinematics_config)
             arm_info_out = {}
             arm_info_out['prefix'] = arm_side
