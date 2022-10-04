@@ -85,5 +85,6 @@ if __name__ == "__main__":
                           "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
                           "rh_WRJ1", "rh_WRJ2"]
 
-    pub_traj = RePubTrajectory(joints_to_move_arg, left_hand=left_hand_arg, trajectory_pub_topic=trajectory_pub_topic_arg)
+    pub_traj = RePubTrajectory(joints_to_move_arg, left_hand=left_hand_arg,
+                               trajectory_pub_topic=trajectory_pub_topic_arg)
     rospy.spin()

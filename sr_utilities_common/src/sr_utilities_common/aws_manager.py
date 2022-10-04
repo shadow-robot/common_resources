@@ -164,7 +164,7 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
 
     if value == "y":
         return True
-    elif value == "n":
+    if value == "n":
         return False
 
     rospy.logerr("Select a valid option")
@@ -188,9 +188,10 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
     rospy.loginfo(print_msg)
     value = input("Would you like to upload these files? (Y/N) ")
     value = value.lower().strip()
+
     if value == "y":
         return True
-    elif value == "n":
+    if value == "n":
         return False
 
     rospy.logerr("Select a valid option")

@@ -16,12 +16,10 @@
 # pylint: disable=W0212
 
 from __future__ import absolute_import
-import argparse
 import sys
-import rospy
 import unittest
+import rospy
 import rostest
-import os
 from std_msgs.msg import String
 from sr_utilities_common.conditional_delayed_rostool import RosElementsHandler
 from sr_utilities_common.conditional_delayed_rostool import wait_for_conditions
@@ -91,12 +89,12 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     def test_check_if_elements_is_available_empty_string(self):
         required_topics_list = [""]
         with self.assertRaises(ValueError):
-            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
+            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)  # pylint: disable=W0612
 
     def test_check_if_elements_is_available_not_a_string(self):
         required_topics_list = [0]
         with self.assertRaises(ValueError):
-            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
+            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)  # pylint: disable=W0612
 
     def test_requested_topic_not_available(self):
         conditions_to_satisfy = {}

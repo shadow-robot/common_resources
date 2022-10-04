@@ -43,7 +43,8 @@ def create_new_check_object(check_name, component, check_type, check_class_name)
     new_test.check_class_name = check_class_name
     return new_test
 
-def map_check_type_to_log_type(self, check_type):
+
+def map_check_type_to_log_type(check_type):
     if CheckStatus.ERROR == check_type:
         log_type = SystemLog.ERROR
     elif CheckStatus.WARN == check_type:
@@ -51,6 +52,7 @@ def map_check_type_to_log_type(self, check_type):
     else:
         raise ValueError("Wrong status check type")
     return log_type
+
 
 class SrWatchdog:
     def __init__(self, tested_system_name="tested system", checks_classes_list=None, initial_wait_for_checks=60):
@@ -118,7 +120,7 @@ class SrWatchdog:
         for checks_class in self.checks_classes_list:
             if checks_class.__class__.__name__ == check.check_class_name:
                 return checks_class
-        return 
+        return
 
     def _run_single_check(self, check):
         used_class = self._find_class_corresponding_to_check(check)
@@ -134,7 +136,8 @@ class SrWatchdog:
         except Exception as exception:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}: {}\'."
                                        " Skipping and blacklisting this check..."
-                                       .format(check.check_name, type(ex).__name__, str(ex)), SystemLog.WARN))
+                                       .format(check.check_name, type(exception).__name__,
+                                       str(exception)), SystemLog.WARN))
             raise CheckThrowingException from exception
         return result
 
@@ -205,7 +208,7 @@ class SrWatchdog:
         rospy.sleep(1)
 
 
-class SrWatchdogChecks(object):
+class SrWatchdogChecks:
     def __init__(self, component=None):
         self.component = component
 
@@ -243,13 +246,12 @@ class SrWatchdogChecks(object):
     @staticmethod
     def watchdog_check_decorator(function):
         def wrapper(self):
-            CONST_RETURN_TUPLE_EXPECTED_SIZE = 2
+            return_tuple_size = 2
             return_value = function(self)
             if isinstance(return_value, bool):
                 result = return_value
                 error_msg = None
-            elif isinstance(return_value, tuple) and \
-                    CONST_RETURN_TUPLE_EXPECTED_SIZE == len(return_value):
+            elif isinstance(return_value, tuple) and return_tuple_size == len(return_value):
                 result = return_value[0]
                 error_msg = return_value[1]
             else:

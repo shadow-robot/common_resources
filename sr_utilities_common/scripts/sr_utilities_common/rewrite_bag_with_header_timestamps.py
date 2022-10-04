@@ -47,7 +47,7 @@ def main(args):
 
     bagfile = args.bagfile[0]
 
-    info_dict = yaml.safe_load(subprocess.Popen(
+    info_dict = yaml.safe_load(subprocess.Popen(  # pylint: disable=R1732
         ['rosbag', 'info', '--yaml', bagfile], stdout=subprocess.PIPE).communicate()[0])
     duration = info_dict['duration']
     start_time = info_dict['start']
@@ -73,7 +73,7 @@ def main(args):
                     msg.transforms[0].header.stamp.to_sec() - time_point.to_sec())
                 outbag.write(
                     topic, msg, msg.transforms[0].header.stamp if diff < args.max_offset else time_point)
-            elif msg._has_header:
+            elif msg._has_header:  # pylint: disable=W0212
                 diff = math.fabs(msg.header.stamp.to_sec() - time_point.to_sec())
                 outbag.write(topic, msg, msg.header.stamp if diff <
                              args.max_offset else time_point)
