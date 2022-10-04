@@ -23,7 +23,7 @@ from sr_utilities.hand_finder import HandFinder
 from moveit_commander.exception import MoveItCommanderException
 
 
-def parse_trajectories_dict(self, trajectories_dict, joints_order):
+def parse_trajectories_dict(trajectories_dict, joints_order):
     parsed_trajectories_dict = {}
     for traj_name, traj_waypoint in trajectories_dict.items():
         parsed_trajectory = []
@@ -93,7 +93,7 @@ class SrRunTrajectories:
             arm_and_hand_joints_order = trajectories_info['arm_joints_order'] + trajectories_info['hand_joints_order']
             arm_and_hand_trajectories = trajectories_info['arm_and_hand_trajectories']
             self._arm_and_hand_trajectories = parse_trajectories_dict(arm_and_hand_trajectories,
-                                                                            arm_and_hand_joints_order)
+                                                                      arm_and_hand_joints_order)
 
     def run_trajectory(self, configuration, trajectory_name):
         if configuration == 'arm':

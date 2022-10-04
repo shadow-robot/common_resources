@@ -27,18 +27,18 @@ from sr_utilities_common.conditional_delayed_rostool import wait_for_conditions
 
 class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     @classmethod
-    def setUp(self):
+    def setUp(cls):
         rospy.wait_for_message("test_mocap_topic", String)
 
     @classmethod
-    def tearDown(self):
+    def tearDown(cls):
         pass
 
     def test_topic_element_type_is_valid(self):
         element_type = "topic"
         topics_list = ["test_mocap_topic"]
         ros_topic_handler_class = RosElementsHandler(element_type, topics_list)
-        result = ros_topic_handler_class._retrieve_available_elements()
+        result = ros_topic_handler_class._retrieve_available_elements()  # pylint: disable=W0212
         self.assertIsNotNone(result)
 
     def test_param_element_type_is_valid(self):

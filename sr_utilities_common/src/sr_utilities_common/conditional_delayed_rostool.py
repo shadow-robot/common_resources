@@ -17,9 +17,9 @@
 from __future__ import absolute_import
 import os
 import re
-import rosservice
 import sys
 import time
+import rosservice
 import rospy
 from sr_utilities_common.wait_for_param import wait_for_param
 
@@ -50,7 +50,7 @@ class RosElementsHandler:
 
     def _verify_elements(self):
         for element in list(self.missing_elements):
-            if not (element and type(element) == str):
+            if not (element and isinstance(element, str)):
                 raise ValueError("{}: Required element is not a string or an empty string".format(rospy.get_name()))
 
     def _strip_elements_of_leading_slash_if_present(self):
@@ -62,9 +62,9 @@ class RosElementsHandler:
         if self._element_type == "topic":
             list_of_topics = [item[0][1:] for item in rospy.get_published_topics()]
             return list_of_topics
-        elif self._element_type == "service":
+        if self._element_type == "service":
             return [item[1:] for item in rosservice.get_service_list()]
-        elif self._element_type == "param":
+        if self._element_type == "param":
             return [item[1:] for item in rospy.get_param_names()]
 
         rospy.logerr("Requested ros element %s does not exist", self._element_type)
@@ -83,7 +83,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
         time.sleep(0.01)
         if timeout <= 0:
             continue
-        if (rospy.Time.now().to_sec() - start_time.to_sec() >= timeout):
+        if rospy.Time.now().to_sec() - start_time.to_sec() >= timeout:
             rospy.logerr("Timeout of {}s exceeded".format(timeout))
             for condition_type, condition in conditions_to_satisfy.items():
                 if condition.missing_elements:

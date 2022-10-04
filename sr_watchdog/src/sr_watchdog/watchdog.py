@@ -21,7 +21,6 @@ import rospy
 import psutil
 import inspect
 from threading import Thread, Lock
-from optparse import OptionParser
 from sr_watchdog.msg import CheckStatus, SystemStatus, SystemLog
 
 
@@ -37,10 +36,22 @@ class CheckResultWrongFormat(SrWatchdogExceptions):
     pass
 
 
+def create_new_check_object(check_name, component, check_type, check_class_name):
+    new_test = CheckStatus()
+    new_test.check_name = check_name
+    new_test.component = component
+    new_test.check_type = check_type
+    new_test.result = True
+    new_test.check_class_name = check_class_name
+    return new_test
+
+
 class SrWatchdog(object):
-    def __init__(self, tested_system_name="tested system", checks_classes_list=[], initial_wait_for_checks=60):
+    def __init__(self, tested_system_name="tested system", checks_classes_list=None, initial_wait_for_checks=60):
         self.tested_system_name = tested_system_name
         self.checks_classes_list = checks_classes_list
+        if not checks_classes_list:
+            self.checks_classes_list = self.checks_classes_list
         self.initial_wait_for_checks = initial_wait_for_checks
         self.logs_remembered = rospy.get_param('~logs_remembered', 10)
 
@@ -55,8 +66,8 @@ class SrWatchdog(object):
 
     def run(self):
         self.start_time = rospy.Time.now()
-        main_thread = Thread(target=self._report_thread_method).start()
-        checks_thread = Thread(target=self._checks_thread_method).start()
+        Thread(target=self._report_thread_method).start()
+        Thread(target=self._checks_thread_method).start()
 
     def _report_thread_method(self):
         while not rospy.is_shutdown():
@@ -87,24 +98,15 @@ class SrWatchdog(object):
         self.watchdog_publisher.publish(system_status)
         rate.sleep()
 
-    def _create_new_check_object(self, check_name, component, check_type, check_class_name):
-        new_test = CheckStatus()
-        new_test.check_name = check_name
-        new_test.component = component
-        new_test.check_type = check_type
-        new_test.result = True
-        new_test.check_class_name = check_class_name
-        return new_test
-
     def _parse_checks(self):
         for checks_class in self.checks_classes_list:
             component = checks_class.component
             for watchdog_check_name in checks_class.get_all_watchdog_check_names():
                 check_type = getattr(checks_class, watchdog_check_name).__dict__['check_type']
-                self.checks_list.append(self._create_new_check_object(watchdog_check_name,
-                                                                      component,
-                                                                      check_type,
-                                                                      checks_class.__class__.__name__))
+                self.checks_list.append(create_new_check_object(watchdog_check_name,
+                                                                component,
+                                                                check_type,
+                                                                checks_class.__class__.__name__))
 
     def _find_class_corresponding_to_check(self, check):
         for checks_class in self.checks_classes_list:

@@ -15,8 +15,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-import rospy
 import time
+import rospy
 
 CONST_TIME_BEFORE_INFO = 60
 
@@ -24,7 +24,7 @@ CONST_TIME_BEFORE_INFO = 60
 def wait_for_param(param_name, timeout_in_secs=0):
     start_time = time.time()
     if timeout_in_secs <= 0:
-        
+
         while not rospy.is_shutdown():
             if rospy.has_param(param_name):
                 return True
@@ -36,7 +36,7 @@ def wait_for_param(param_name, timeout_in_secs=0):
             rospy.sleep(0.1)
         return False
 
-    while (time.time() - start_time < timeout_in_secs):
+    while time.time() - start_time < timeout_in_secs:
         if rospy.has_param(param_name):
             return True
         rospy.sleep(0.1)

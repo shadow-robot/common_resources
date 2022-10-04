@@ -16,11 +16,10 @@
 
 from __future__ import absolute_import
 from builtins import input
-import rospy
-import rospkg
 import argparse
-from std_msgs.msg import Bool
 from threading import Thread, Lock
+import rospy
+from std_msgs.msg import Bool
 
 
 class HeartbeatPublisher:

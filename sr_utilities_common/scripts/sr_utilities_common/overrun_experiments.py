@@ -20,18 +20,18 @@ from __future__ import absolute_import, division
 import os
 import argparse
 import rospy
-from std_msgs.msg import String
 from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
 
 
-def get_recent_overruns_by_regex(self, msg):
+def get_recent_overruns_by_regex(msg):
     for status in msg.status:
         for value_dict in status.values:
             if value_dict.key == 'Recent Control Loop Overruns':
                 return value_dict.value
     raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
-    
+
+
 class OverrunExperiment:
     def __init__(self, hand_type, time, hand_id):
         self.hand_type = hand_type
@@ -73,9 +73,9 @@ class OverrunExperiment:
     def listener(self):
         if not self.hand_type:
             raise ValueError('Please specify hand type using -ht (--hand_type) flag! (e.g. -ht hand_e or -ht hand_h)')
-        elif self.hand_type not in self.supported_hand_types:
+        if self.hand_type not in self.supported_hand_types:
             raise ValueError(f'Unrecognized hand type: {self.hand_type}!')
-        elif self.time < 1:
+        if self.time < 1:
             raise ValueError('Please specify the experiment duration in seconds with -t 60 for example')
         try:
             rospy.wait_for_message(f"/{self.hand_id}/debug_etherCAT_data", EthercatDebug, timeout=2)

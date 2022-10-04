@@ -23,9 +23,11 @@ from tf2_msgs.msg import TFMessage
 
 
 class RealTimeTfRepublisher:
-    def __init__(self, bag_tf_topic_name, tf_name_regexes=[], tcp_nodelay=True):
+    def __init__(self, bag_tf_topic_name, tf_name_regexes=None, tcp_nodelay=True):
         rospy.loginfo("TF republisher will republish TFs that match these regexes: {}".format(tf_name_regexes))
-        self._tf_name_regexes = [re.compile(x) for x in tf_name_regexes]
+        if not tf_name_regexes:
+            tf_name_regexes = []
+        self._tf_name_regexes = [re.compile(tf_regex) for tf_regex in tf_name_regexes]
         self._tf_republisher = tf2_ros.TransformBroadcaster()
         self._published_tfs = []
         self._matched_regexes = []
@@ -37,24 +39,24 @@ class RealTimeTfRepublisher:
     def _bag_tf_cb(self, data):
         list_of_tfs_to_publish = []
         current_time = rospy.Time.now()
-        for tf in data.transforms:
-            if (tf.child_frame_id in [x.child_frame_id for x in list_of_tfs_to_publish]):
+        for transform in data.transforms:
+            if (transform.child_frame_id in [tf_to_publish.child_frame_id for tf_to_publish in list_of_tfs_to_publish]):
                 # This TF is already going to be republished, either more than one regex matches it, or originally
                 # bagged TF tree is invalid (TFs can't have multiple parents)
                 continue
-            if ((tf.child_frame_id in self._last_published_times) and (self._last_published_times[tf.child_frame_id] ==
-                                                                       current_time)):
+            if transform.child_frame_id in self._last_published_times and 
+               self._last_published_times[transform.child_frame_id] == current_time:
                 # This TF has already been published at this timestamp; don't republish (to avoid TF_REPEATED DATA)
                 continue
             for regex in self._tf_name_regexes:
-                if regex.match(tf.child_frame_id) is not None:
-                    if tf.child_frame_id not in self._published_tfs:
-                        rospy.loginfo(f"Republishing matching TF: {tf.child_frame_id}")
-                        self._published_tfs.append(tf.child_frame_id)
+                if regex.match(transform.child_frame_id) is not None:
+                    if transform.child_frame_id not in self._published_tfs:
+                        rospy.loginfo(f"Republishing matching TF: {transform.child_frame_id}")
+                        self._published_tfs.append(transform.child_frame_id)
                     if regex not in self._matched_regexes:
                         self._matched_regexes.append(regex)
-                    tf_to_be_republished = tf
-                    self._last_published_times[tf.child_frame_id] = current_time
+                    tf_to_be_republished = transform
+                    self._last_published_times[transform.child_frame_id] = current_time
                     tf_to_be_republished.header.stamp = current_time
                     list_of_tfs_to_publish.append(tf_to_be_republished)
         if len(list_of_tfs_to_publish) > 0:
@@ -66,8 +68,9 @@ class RealTimeTfRepublisher:
             if regex not in self._matched_regexes:
                 unmatched_regexes.append(regex)
         if unmatched_regexes:
-            rospy.logwarn("The following TFs were not found in the first {}s of the supplied ROSBag: {}".format(
-                timeout, [unmatched_regex.pattern for unmatched_regex in unmatched_regexes]))
+            rospy.logwarn(f"The following TFs were not found in the first {timeout}s \
+                            of the supplied ROSBag: \
+                            {[unmatched_regex.pattern for unmatched_regex in unmatched_regexes]}")
 
 
 if __name__ == "__main__":

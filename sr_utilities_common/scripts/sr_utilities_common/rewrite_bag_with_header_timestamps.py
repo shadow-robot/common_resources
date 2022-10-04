@@ -12,11 +12,11 @@ from builtins import round
 import sys
 import time
 import subprocess
-import yaml
 import os
 import argparse
 import math
 from shutil import move
+import yaml
 import rosbag
 
 
@@ -55,13 +55,13 @@ def main(args):
 
     move(bagfile, orig)
 
-    with rosbag.Bag(bagfile, 'w', encoding="utf-8") as outbag:
+    with rosbag.Bag(bagfile, 'w') as outbag:
 
         last_time = time.clock()
-        for topic, msg, t in rosbag.Bag(orig).read_messages():
+        for topic, msg, time_point in rosbag.Bag(orig).read_messages():
 
             if time.clock() - last_time > .1:
-                percent = (t.to_sec() - start_time) / duration
+                percent = (time_point.to_sec() - start_time) / duration
                 status(40, percent)
                 last_time = time.clock()
 
@@ -69,13 +69,13 @@ def main(args):
             # that all transforms in the message share the same timestamp
             if topic == "/tf" and msg.transforms:
                 diff = math.fabs(
-                    msg.transforms[0].header.stamp.to_sec() - t.to_sec())
+                    msg.transforms[0].header.stamp.to_sec() - time_point.to_sec())
                 outbag.write(
-                    topic, msg, msg.transforms[0].header.stamp if diff < args.max_offset else t)
+                    topic, msg, msg.transforms[0].header.stamp if diff < args.max_offset else time_point)
             elif msg._has_header:
-                diff = math.fabs(msg.header.stamp.to_sec() - t.to_sec())
+                diff = math.fabs(msg.header.stamp.to_sec() - time_point.to_sec())
                 outbag.write(topic, msg, msg.header.stamp if diff <
-                             args.max_offset else t)
+                             args.max_offset else time_point)
             else:
                 outbag.write(topic, msg, t)
     status(40, 1)

@@ -20,8 +20,7 @@ import paramiko
 import yaml
 from rosparam import upload_params
 from paramiko.ssh_exception import (BadHostKeyException, AuthenticationException,
-                                    SSHException, socket.error,
-                                    NoValidConnectionsErro)
+                                    SSHException, socket.error, NoValidConnectionsErro)
 import rospy
 import roslaunch
 import rospkg
@@ -94,7 +93,7 @@ class SrUrLoadCalibration:
             ssh_exception_message = " Failed to SSH into arm - {exception}"
 
         if arm_serial_number == '':
-            rospy.logwarn("Could not retrieve arm serial number.{ssh_exception_message}" \
+            rospy.logwarn("Could not retrieve arm serial number.{ssh_exception_message}"
                           " Arm will NOT be calibrated. Ignore if running URSim.")
         return arm_serial_number
 

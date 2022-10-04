@@ -73,7 +73,7 @@ class DummyClass:
         self.dummy_variable = 1
 
     def dummy_method_1(self):
-        return 1 == self.dummy_variable
+        return self.dummy_variable == 1
 
     def dummy_method_2(self):
         return 2 * self.dummy_variable
@@ -88,7 +88,6 @@ class DummyClassClient:
 
     def test_dummy_method_2(self):
         return self.dummy_class_instance.dummy_method_2() == 2
-
 
 
 if __name__ == '__main__':

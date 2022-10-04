@@ -127,14 +127,14 @@ class AWSManager:
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
-        uploadSucceded = False
+        upload_succeded = False
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
             try:
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
                 uploadSucceded = True
             except self._client.exceptions.S3UploadFailedError as exception:
                 rospy.logerr(f"File upload failed ({file_full_path}). {exception}")
-        return uploadSucceded
+        return upload_succeded
 
 
 def gather_all_files_local(files_base_path, files_folder_path):
@@ -166,10 +166,10 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
         return True
     elif value == "n":
         return False
-    else:
-        rospy.logerr("Select a valid option")
-        validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                         file_names, bucket_subfolder)
+
+    rospy.logerr("Select a valid option")
+    validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
+                                        file_names, bucket_subfolder)
 
 
 def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
@@ -191,10 +191,10 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
         return True
     elif value == "n":
         return False
-    else:
-        rospy.logerr("Select a valid option")
-        validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
-                                       file_names, bucket_subfolder)
+
+    rospy.logerr("Select a valid option")
+    validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
+                                    file_names, bucket_subfolder)
 
 
 def return_function_mode(function_mode):
@@ -241,7 +241,7 @@ if __name__ == "__main__":
 
     if function_mode_param == "download":
         if file_names_param == "":
-            file_names = aws_manager.gather_all_files_remote(bucket_name_param, bucket_subfolder_param)
+            file_names_param = aws_manager.gather_all_files_remote(bucket_name_param, bucket_subfolder_param)
         if not skip_check_param:
             if not validated_files_to_be_downloaded(bucket_name_param, files_base_path_param, files_folder_path_param,
                                                     file_names_param, bucket_subfolder_param):

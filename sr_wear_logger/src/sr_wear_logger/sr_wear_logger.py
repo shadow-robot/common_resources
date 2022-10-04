@@ -18,11 +18,11 @@ from __future__ import absolute_import
 from builtins import round
 import os
 import re
-import yaml
 import shutil
 import datetime
+import yaml
 from sensor_msgs.msg import JointState
-from sr_utilities_common.aws_manager import AWS_Manager
+from sr_utilities_common.aws_manager import AWSManager
 import rospy
 import rospkg
 
@@ -70,7 +70,7 @@ class SrWearLogger():
 
     def run(self):
         if self.check_parameters():
-            self.aws_manager = AWS_Manager()
+            self.aws_manager = AWSManager()
             self._verify_log_structure()
             self.t_local = rospy.Timer(rospy.Duration(self._local_save_period), self._save_data_localy)
             self.t_aws = rospy.Timer(rospy.Duration(self._aws_save_period), self._upload_to_aws)
@@ -97,10 +97,11 @@ class SrWearLogger():
                 local_file_path = self._log_file_path + "/wear_data_local.yaml"
                 aws_file_path = self._log_file_path + "/wear_data.yaml"
                 try:
-                    with open(local_file_path, 'r', encoding="utf-8") as f_local, open(aws_file_path, 'r', encoding="utf-8") as f_aws:
+                    with open(local_file_path, 'r', encoding="utf-8") as f_local:
                         data_local = yaml.load(f_local, Loader=yaml.SafeLoader)
+                    with open(aws_file_path, 'r', encoding="utf-8") as f_aws:
                         data_aws = yaml.load(f_aws, Loader=yaml.SafeLoader)
-                        self._complete_data = self._update_with_higher_values(data_local, data_aws)
+                    self._complete_data = self._update_with_higher_values(data_local, data_aws)
                     if self._complete_data is not None:
                         self._current_values = self._complete_data['total_angles_[rad]']
                         self._current_time = self._complete_data['total_time_[s]']
@@ -136,11 +137,11 @@ class SrWearLogger():
         success = self.aws_manager.download(BENCHMARK_NAME, rospkg.RosPack().get_path('sr_wear_logger'),
                                             self._hand_serial, [self._get_latest_file_name_from_aws()])
         if success:
-            latest_file_name_from_AWS = self._get_latest_file_name_from_aws()
-            if os.path.exists(self._log_file_path + latest_file_name_from_AWS):
-                shutil.copy(self._log_file_path + latest_file_name_from_AWS, self._log_file_path + self._log_file_name)
+            latest_file_name_from_aws = self._get_latest_file_name_from_aws()
+            if os.path.exists(self._log_file_path + latest_file_name_from_aws):
+                shutil.copy(self._log_file_path + latest_file_name_from_aws, self._log_file_path + self._log_file_name)
                 rospy.sleep(0.5)
-                os.remove(self._log_file_path + latest_file_name_from_AWS)
+                os.remove(self._log_file_path + latest_file_name_from_aws)
         return success
 
     def _get_latest_file_name_from_aws(self):
@@ -149,8 +150,8 @@ class SrWearLogger():
             return ""
         files.sort(key=lambda x: x['LastModified'])
         last_file_path = files[-1]['Key']
-        latest_file_name_from_AWS = last_file_path[last_file_path.find("/")+1:]
-        return latest_file_name_from_AWS
+        latest_file_name_from_aws = last_file_path[last_file_path.find("/")+1:]
+        return latest_file_name_from_aws
 
     def _update_with_higher_values(self, local_data, aws_data):
         try:
@@ -171,8 +172,8 @@ class SrWearLogger():
             self._complete_data['total_time_[s]'] += rospy.get_rostime().secs - self._time_counter
             self._time_counter = rospy.get_rostime().secs
             try:
-                with open(self._log_file_path+self._log_file_name, 'w', encoding="utf-8") as f:
-                    yaml.safe_dump(self._complete_data, f)
+                with open(self._log_file_path+self._log_file_name, 'w', encoding="utf-8") as file:
+                    yaml.safe_dump(self._complete_data, file)
                 success = True
             except Exception as exception:
                 rospy.logwarn(f"{rospy.get_name()} Failed to sava data. {exception}")
@@ -186,7 +187,7 @@ class SrWearLogger():
             is_empty = True
         return is_empty
 
-    def _upload_to_aws(self, event=None):  # pylint: disable=W0612
+    def _upload_to_aws(self, event=None):  # pylint: disable=W0613
         success = False
         orignal_file = self._log_file_path + self._log_file_name
         now = datetime.datetime.now()

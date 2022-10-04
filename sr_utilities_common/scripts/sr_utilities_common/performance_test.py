@@ -37,8 +37,8 @@ class PerformanceTest:
 
         self.total_control_loop_overruns = 0
         self.max_recent_control_loop_overruns = 0
-        self.total_invalid_packets = []]
-        self.max_invalid_packets_recent = []]
+        self.total_invalid_packets = []
+        self.max_invalid_packets_recent = []
         self.invalid_hand_e_packets_total = 0
         self._old_invalid_hand_e_packets = 0
         self.max_invalid_hand_e_packets_recent = 0

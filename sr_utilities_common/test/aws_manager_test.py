@@ -26,7 +26,7 @@ import rospy
 import rostest
 from datetime import datetime
 from unittest import TestCase
-from sr_utilities_common.aws_manager import AWS_Manager
+from sr_utilities_common.aws_manager import AWSManager
 
 BUCKET_NAME = "shadowtestbucket"
 API_URL = "https://ddo2pew5xd.execute-api.eu-west-2.amazonaws.com/prod"
