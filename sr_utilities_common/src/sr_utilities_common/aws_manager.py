@@ -228,7 +228,7 @@ if __name__ == "__main__":
     if function_mode_param == "upload":
         if file_names_param == "":
             file_names_param = gather_all_files_local(files_base_path_param, files_folder_path_param)
-        if not skip_check:_param
+        if not skip_check_param:
             if not validated_files_to_be_uploaded(bucket_name_param, files_base_path_param, files_folder_path_param,
                                                   file_names_param, bucket_subfolder_param):
                 rospy.signal_shutdown("")
