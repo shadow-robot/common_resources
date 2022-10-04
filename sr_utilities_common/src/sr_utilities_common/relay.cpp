@@ -40,13 +40,13 @@
 
 using std::string;
 using std::vector;
-using namespace topic_tools;
+using topic_tools;
 
 ros::NodeHandle *g_node = NULL;
 bool g_advertised = false;
-string g_input_topic;
-string g_output_topic;
-string g_monitor_topic;
+const char* g_input_topic;
+const char* g_output_topic;
+const char* g_monitor_topic;
 ros::Publisher g_pub;
 ros::Subscriber* g_sub;
 bool g_lazy;
@@ -74,7 +74,7 @@ void conn_cb(const ros::SingleSubscriberPublisher&)
 {
   // If we're in lazy subscribe mode, and the first subscriber just
   // connected, then subscribe, #3389.
-  if(g_lazy && !g_stealth && !g_sub)
+  if (g_lazy && !g_stealth && !g_sub)
   {
     ROS_DEBUG("lazy mode; resubscribing");
     subscribe();
@@ -93,7 +93,7 @@ void in_cb(const ros::MessageEvent<ShapeShifter>& msg_event)
     if (connection_header)
     {
       ros::M_string::const_iterator it = connection_header->find("latching");
-      if((it != connection_header->end()) && (it->second == "1"))
+      if ((it != connection_header->end()) && (it->second == "1"))
       {
         ROS_DEBUG("input topic is latched; latching output topic to match");
         latch = true;
@@ -154,24 +154,24 @@ int main(int argc, char **argv)
     return 1;
   }
   std::string topic_name;
-  if(!getBaseName(string(argv[1]), topic_name))
+  if (!getBaseName(string(argv[1]), topic_name))
     return 1;
   ros::init(argc, argv, topic_name + string("_relay"),
             ros::init_options::AnonymousName);
   if (argc == 2)
     g_output_topic = string(argv[1]) + string("_relay");
-  else // argc == 3
+  else  // argc == 3
     g_output_topic = string(argv[2]);
   g_input_topic = string(argv[1]);
   ros::NodeHandle n;
   g_node = &n;
-  
+
   ros::NodeHandle pnh("~");
   bool unreliable = false;
   pnh.getParam("unreliable", unreliable);
   pnh.getParam("lazy", g_lazy);
   if (unreliable)
-    g_th.unreliable().reliable(); // Prefers unreliable, but will accept reliable.
+    g_th.unreliable().reliable();  // Prefers unreliable, but will accept reliable.
 
   pnh.param<bool>("stealth", g_stealth, false);
   ros::Timer monitor_timer;

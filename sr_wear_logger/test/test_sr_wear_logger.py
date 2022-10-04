@@ -86,7 +86,7 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                with open(self.path_to_test_file, 'r') as file:
+                with open(self.path_to_test_file, 'r', encoding='UTF-8') as file:
                     data = yaml.load(file, Loader=yaml.SafeLoader)
                     success = self.check_are_values_numeric(data)
                 rospy.sleep(1)
