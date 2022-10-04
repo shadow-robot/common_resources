@@ -21,9 +21,7 @@ from unittest import TestCase
 import rospy
 import rospkg
 import rostest
-from sr_utilities_common.aws_manager import AWSManager
 from sr_wear_logger.sr_wear_logger import SrWearLogger
-from sr_wear_logger.dummy_publisher import DummyPublisher
 import yaml
 
 
@@ -48,7 +46,7 @@ class TestSrWearLogger(TestCase):
     def check_are_values_numeric(cls, dictionary):
         for key, value in list(dictionary.items()):
             if isinstance(value, dict):
-                dictionary[key] = self.check_are_values_numeric(value)
+                dictionary[key] = cls.check_are_values_numeric(value)
             elif not(isinstance(dictionary[key], float) or isinstance(dictionary[key]), int):
                 return False
         return True
@@ -76,11 +74,11 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                with open(self.path_to_test_file, 'r') as file:
+                with open(self.path_to_test_file, 'r', encoding='UTF-8') as file:
                     data = yaml.load(file, Loader=yaml.SafeLoader)
                     success = all(key in list(data.keys()) for key in self.log_file_key_list)
                 rospy.sleep(1)
-            except Exception as exception:
+            except Exception:
                 pass
         self.assertTrue(success)
 
@@ -92,7 +90,7 @@ class TestSrWearLogger(TestCase):
                     data = yaml.load(file, Loader=yaml.SafeLoader)
                     success = self.check_are_values_numeric(data)
                 rospy.sleep(1)
-            except Exception as eexception:
+            except Exception:
                 pass
         self.assertTrue(success)
 

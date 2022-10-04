@@ -16,10 +16,10 @@
 
 from __future__ import absolute_import
 import os
+import socket.error
 import paramiko
 import yaml
 from rosparam import upload_params
-import socket.error
 from paramiko.ssh_exception import BadHostKeyException, AuthenticationException, SSHException, NoValidConnectionsError
 import rospy
 import roslaunch
@@ -42,7 +42,7 @@ class DifferentArmTypes(SrUrLoadCalibrationExceptions):
     pass
 
 
-def get_yaml(self, filename):
+def get_yaml(filename):
     with open(filename, encoding='UTF-8') as file:
         return yaml.safe_load(file)
 
@@ -92,13 +92,13 @@ class SrUrLoadCalibration:
             _, stdout, _ = client.exec_command('cat /root/ur-serial')
             arm_serial_number = stdout.readline()
             client.close()
-        except (BadHostKeyException, AuthenticationException, SSHException, socket.error) as exception:
-            ssh_exception_message = f"Failed to SSH into arm - {exception}"
         except NoValidConnectionsError as exception:
+            ssh_exception_message = f"Failed to SSH into arm - {exception}"
+        except (BadHostKeyException, AuthenticationException, SSHException, socket.error) as exception:
             ssh_exception_message = f"Failed to SSH into arm - {exception}"
 
         if arm_serial_number == '':
-            rospy.logwarn(f"Could not retrieve arm serial number.{ssh_exception_message}" \
+            rospy.logwarn(f"Could not retrieve arm serial number.{ssh_exception_message}"
                           " Arm will NOT be calibrated. Ignore if running URSim.")
         return arm_serial_number
 
