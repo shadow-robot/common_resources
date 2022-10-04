@@ -26,7 +26,7 @@ import csv
 import os
 
 
-class OverrunExperiment(object):
+class OverrunExperiment:
     def __init__(self, hand_type, time, hand_id):
         self.hand_type = hand_type
         self.hand_id = hand_id
@@ -40,7 +40,7 @@ class OverrunExperiment(object):
     def get_recent_overruns_by_regex(self, msg):
         for status in msg.status:
             for value_dict in status.values:
-                if 'Recent Control Loop Overruns' == value_dict.key:
+                if value_dict.key == 'Recent Control Loop Overruns':
                     return value_dict.value
         raise ValueError("\'Recent Control Loop overruns\' not present in the topic!")
 
@@ -59,7 +59,7 @@ class OverrunExperiment(object):
 
     def overruns_callback_hand_e(self, data):
         overrun = self.get_recent_overruns_by_regex(data)
-        with open("overruns_data.txt", "a+") as myfile:
+        with open("overruns_data.txt", "a+", encoding='UTF-8') as myfile:
             myfile.write(overrun + "\t" + str(self.num_of_drops))
             myfile.write("\n")
         self.overrun_average += int(float(overrun))
@@ -68,7 +68,7 @@ class OverrunExperiment(object):
         self.iterations += 1
 
     def drops_callback_hand_e(self, data):
-        if (0 == data.sensors[10]):
+        if 0 == data.sensors[10]:
             self.num_of_drops += 1
 
     def listener(self):

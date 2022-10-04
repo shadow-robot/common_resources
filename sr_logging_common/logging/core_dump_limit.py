@@ -16,11 +16,11 @@
 
 from __future__ import absolute_import
 import os
-import rospy
 import time
+import rospy
 
 
-def getFolderSize(folder):
+def get_folder_size(folder):
     if os.path.isdir(folder):
         total_size = os.path.getsize(folder)
         for item in os.listdir(folder):
@@ -28,7 +28,7 @@ def getFolderSize(folder):
             if os.path.isfile(itempath):
                 total_size += os.path.getsize(itempath)
             elif os.path.isdir(itempath):
-                total_size += getFolderSize(itempath)
+                total_size += get_folder_size(itempath)
     else:
         total_size = 0
     return total_size
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     desired_size = rospy.get_param('~desired_folder_size', 1024000000)
     path = rospy.get_param('~core_dump_path', '/home/user/.ros/log/core_dumps')
     while not rospy.is_shutdown():
-        if getFolderSize(path) > desired_size:
+        if get_folder_size(path) > desired_size:
             oldest = min(os.listdir(path), key=lambda f: os.path.getctime("{}/{}".format(path, f)))
             rospy.loginfo("Core dump size greater than limit. Removing oldest file: " + oldest)
             os.remove(path + '/' + oldest)

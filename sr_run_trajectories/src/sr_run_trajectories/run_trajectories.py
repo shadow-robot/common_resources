@@ -20,8 +20,22 @@ import yaml
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 from sr_robot_commander.sr_hand_commander import SrHandCommander
 from sr_utilities.hand_finder import HandFinder
+from moveit_commander.exception import MoveItCommanderException
 
 
+def _parse_trajectories_dict(self, trajectories_dict, joints_order):
+    parsed_trajectories_dict = {}
+    for traj_name, traj_waypoint in trajectories_dict.items():
+        parsed_trajectory = []
+        for waypoint in traj_waypoint:
+            joint_angles_dict = dict(list(zip(joints_order, waypoint['joint_angles'])))
+            interpolate_time = waypoint['interpolate_time']
+            parsed_trajectory.append({'joint_angles': joint_angles_dict,
+                                        'interpolate_time': interpolate_time})
+        parsed_trajectories_dict[traj_name] = parsed_trajectory
+    return parsed_trajectories_dict
+
+    
 class SrRunTrajectories(object):
     def __init__(self, trajectories_file_path, arm=True, hand=True):
         self.arm = arm
@@ -63,7 +77,7 @@ class SrRunTrajectories(object):
             self._arm_and_hand_commander.set_max_velocity_scaling_factor(0.3)
 
     def _parse_all_trajectories(self, trajectories_file_path):
-        with open(trajectories_file_path, 'r') as stream:
+        with open(trajectories_file_path, 'r', encoding='UTF-8') as stream:
             trajectories_info = yaml.safe_load(stream)
 
         if self.arm:
@@ -81,18 +95,6 @@ class SrRunTrajectories(object):
             arm_and_hand_trajectories = trajectories_info['arm_and_hand_trajectories']
             self._arm_and_hand_trajectories = self._parse_trajectories_dict(arm_and_hand_trajectories,
                                                                             arm_and_hand_joints_order)
-
-    def _parse_trajectories_dict(self, trajectories_dict, joints_order):
-        parsed_trajectories_dict = {}
-        for traj_name, traj_waypoint in trajectories_dict.items():
-            parsed_trajectory = []
-            for waypoint in traj_waypoint:
-                joint_angles_dict = dict(list(zip(joints_order, waypoint['joint_angles'])))
-                interpolate_time = waypoint['interpolate_time']
-                parsed_trajectory.append({'joint_angles': joint_angles_dict,
-                                          'interpolate_time': interpolate_time})
-            parsed_trajectories_dict[traj_name] = parsed_trajectory
-        return parsed_trajectories_dict
 
     def run_trajectory(self, configuration, trajectory_name):
         if configuration == 'arm':
@@ -114,9 +116,9 @@ class SrRunTrajectories(object):
         self.hand_prefix = next(value_iterator)
 
     def get_hand_side(self):
-        if 'rh_' == self.hand_prefix:
+        if self.hand_prefix == 'rh_' :
             self.hand_side = 'right'
-        elif 'lh_' == self.hand_prefix:
+        elif self.hand_prefix == 'lh_':
             self.hand_side = 'left'
         else:
             raise ValueError("Unknown hand prefix!")

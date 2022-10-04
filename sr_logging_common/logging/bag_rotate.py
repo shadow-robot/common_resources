@@ -16,12 +16,20 @@
 
 from __future__ import absolute_import
 from os import listdir, remove, rename
-from os.path import getctime, join, exists
-from re import search
-import sys
-import time
-import rospy
+from os.path import exists
 import subprocess
+import rospy
+
+
+def reindex_bag(self, active_bag):
+    reindexing = subprocess.run(["rosbag", "reindex", active_bag], capture_output=True, text=True, check=False)
+    fixed_bag = f"{active_bag[:-len('.active')]}"
+
+    if reindexing.returncode == 0:
+        backup_file = f"{fixed_bag}.orig.active"
+        if exists(backup_file):
+            remove(backup_file)
+        rename(active_bag, fixed_bag)
 
 
 class SrBagRotate:
@@ -51,22 +59,11 @@ class SrBagRotate:
                 suffixed_bags.append(f"{self._path}/{bag}")
         return suffixed_bags
 
-    def reindex_bag(self, active_bag):
-
-        reindexing = subprocess.run(["rosbag", "reindex", active_bag], capture_output=True, text=True)
-        fixed_bag = f"{active_bag[:-len('.active')]}"
-
-        if reindexing.returncode == 0:
-            backup_file = f"{fixed_bag}.orig.active"
-            if exists(backup_file):
-                remove(backup_file)
-            rename(active_bag, fixed_bag)
-
     def run(self):
         while not rospy.is_shutdown():
             active_bags = self.get_suffixed_bags(".bag.active")
             for bag in active_bags:
-                self.reindex_bag(bag)
+                reindex_bag(bag)
             self.remove_old_bags()
             rospy.sleep(1)
 
@@ -74,8 +71,8 @@ class SrBagRotate:
 if __name__ == '__main__':
     rospy.init_node('bag_rotate', anonymous=True)
 
-    desired_bag_number = rospy.get_param('~bag_files_num')
-    path = rospy.get_param('~bag_files_path', '/home/user/.ros/log')
-    file_name_prefix = rospy.get_param('~bag_files_prefix', '')
+    desired_bag_number_param = rospy.get_param('~bag_files_num')
+    path_param = rospy.get_param('~bag_files_path', '/home/user/.ros/log')
+    file_name_prefix_param = rospy.get_param('~bag_files_prefix', '')
 
-    SrBagRotate(path, desired_bag_number, file_name_prefix)
+    SrBagRotate(path_param, desired_bag_number_param, file_name_prefix_param)

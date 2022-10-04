@@ -15,9 +15,10 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from unittest import TestCase
 import rospy
 import rostest
-from unittest import TestCase
+
 
 PKG = "sr_tests_template"
 
