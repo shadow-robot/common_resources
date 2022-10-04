@@ -47,9 +47,8 @@ def text_to_speech(text, device_name):
             break
     tts = gTTS(text=text, lang='en', slow=False)
     # Use ffmpeg top convert mp3 to wav
-    with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:',
-                           '-ar', str(sample_rate), '-ac', '1', '-f', 'wav', 'pipe:'],
-                           stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
+    with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:', '-ar', str(sample_rate), '-ac',
+                           '1', '-f', 'wav', 'pipe:'], stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
         # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
         # buffers are relatively small and process will block before any output is received
         thread = Thread(target=write_mp3, args=(tts, proc, ))

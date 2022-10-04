@@ -71,9 +71,9 @@ if __name__ == "__main__":
     rospy.init_node("republish_trajectory")
 
     # Select if left hand is used
-    left_hand = False
+    left_hand_arg = False
 
-    if left_hand:
+    if left_hand_arg:
         trajectory_pub_topic_arg = "/lh_trajectory_controller/command"
     else:
         trajectory_pub_topic_arg = "/rh_trajectory_controller/command"
@@ -85,5 +85,5 @@ if __name__ == "__main__":
                           "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5",
                           "rh_WRJ1", "rh_WRJ2"]
 
-    pub_traj = RePubTrajectory(joints_to_move_arg, left_hand=left_hand, trajectory_pub_topic=trajectory_pub_topic_arg)
+    pub_traj = RePubTrajectory(joints_to_move_arg, left_hand=left_hand_arg, trajectory_pub_topic=trajectory_pub_topic_arg)
     rospy.spin()

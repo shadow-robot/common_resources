@@ -165,7 +165,7 @@ class SrWearLogger():
             rospy.logwarn(f"{rospy.get_name()} Could not perform update. {exception}")
             return None
 
-    def _save_data_localy(self, event=None):  # pylint: disable=W0612
+    def _save_data_localy(self, event=None):  # pylint: disable=W0613
         success = False
         if not self._data_is_empty():
             self._complete_data['total_angles_[rad]'] = self._current_values

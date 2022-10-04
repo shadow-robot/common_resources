@@ -19,8 +19,8 @@ import os
 import paramiko
 import yaml
 from rosparam import upload_params
-from paramiko.ssh_exception import (BadHostKeyException, AuthenticationException,
-                                    SSHException, socket.error, NoValidConnectionsErro)
+from paramiko.ssh_exception import BadHostKeyException, AuthenticationException, SSHException,  \
+    socket.error, NoValidConnectionsErro
 import rospy
 import roslaunch
 import rospkg

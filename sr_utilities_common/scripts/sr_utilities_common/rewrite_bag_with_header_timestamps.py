@@ -6,6 +6,7 @@
 # Creative Commons Attribution 3.0
 # https://creativecommons.org/licenses/by/3.0/
 # Copied from http://wiki.ros.org/rosbag/Cookbook
+# pylint: disable=E1101
 
 from __future__ import absolute_import, division
 from builtins import round
@@ -77,7 +78,7 @@ def main(args):
                 outbag.write(topic, msg, msg.header.stamp if diff <
                              args.max_offset else time_point)
             else:
-                outbag.write(topic, msg, t)
+                outbag.write(topic, msg, time_point)
     status(40, 1)
     print("\ndone")
 

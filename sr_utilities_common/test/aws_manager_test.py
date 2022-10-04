@@ -17,15 +17,15 @@
 # pylint: disable=W1618
 # TODO REMOVE ABOVE WHEN USING NEW LINT
 import os
-import requests
-import json
 import random
 import string
 import shutil
-import rospy
-import rostest
 from datetime import datetime
 from unittest import TestCase
+import requests
+import json
+import rospy
+import rostest
 from sr_utilities_common.aws_manager import AWSManager
 
 BUCKET_NAME = "shadowtestbucket"
@@ -102,7 +102,7 @@ class TestAWSManager(TestCase):
         self.assertTrue(result)
 
     @classmethod
-    def make_files_to_be_uploaded(self, file_name):
+    def make_files_to_be_uploaded(cls, file_name):
         if not os.path.exists(UPLOAD_PATH):
             os.mkdir(UPLOAD_PATH)
         with open(f"{UPLOAD_PATH}/{file_name}", "w") as upload_file:
@@ -110,7 +110,7 @@ class TestAWSManager(TestCase):
             upload_file.write(message)
 
     @classmethod
-    def delete_download_folder(self):
+    def delete_download_folder(cls):
         if os.path.exists(DOWNLOAD_PATH):
             shutil.rmtree(DOWNLOAD_PATH)
 

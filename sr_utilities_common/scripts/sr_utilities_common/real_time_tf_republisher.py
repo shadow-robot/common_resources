@@ -44,8 +44,8 @@ class RealTimeTfRepublisher:
                 # This TF is already going to be republished, either more than one regex matches it, or originally
                 # bagged TF tree is invalid (TFs can't have multiple parents)
                 continue
-            if transform.child_frame_id in self._last_published_times and 
-               self._last_published_times[transform.child_frame_id] == current_time:
+            if transform.child_frame_id in self._last_published_times and \
+                self._last_published_times[transform.child_frame_id] == current_time:
                 # This TF has already been published at this timestamp; don't republish (to avoid TF_REPEATED DATA)
                 continue
             for regex in self._tf_name_regexes:

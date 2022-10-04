@@ -15,11 +15,11 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from copy import deepcopy
 import rospy
 from sr_utilities.hand_finder import HandFinder
 from diagnostic_msgs.msg import DiagnosticArray
 from sr_robot_msgs.msg import EthercatDebug
-from copy import deepcopy
 
 
 class PerformanceTest:
@@ -103,8 +103,8 @@ class PerformanceTest:
             for i, value in enumerate(self.max_invalid_packets_recent):
                 rospy.loginfo(f"Max Invalid Packets Recent in finger {i}: {value}")
         else:
-            rospy.loginfo(f"Invalid Packets Total: {invalid_hand_e_packets_total}")
-            rospy.loginfo(f"Max Invalid Packets Recent: {max_invalid_hand_e_packets_recent}")
+            rospy.loginfo(f"Invalid Packets Total: {self.invalid_hand_e_packets_total}")
+            rospy.loginfo(f"Max Invalid Packets Recent: {self.max_invalid_hand_e_packets_recent}")
 
     def _check_threshold_validity(self):
         total_control_loop_overruns_threshold = rospy.get_param('~total_control_loop_overruns_threshold', 1)

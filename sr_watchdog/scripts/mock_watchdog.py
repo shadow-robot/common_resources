@@ -48,7 +48,7 @@ class MockChecksClass(SrWatchdogChecks):
         self.tmp[2] += 1
         if self.tmp[2] > 5 and self.tmp[2] < 10:
             return (False, "Hand not running!")
-        elif self.tmp[2] == 36:
+        if self.tmp[2] == 36:
             self.tmp[2] = 0
             return True
         return True

@@ -20,13 +20,12 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import threading
 import rospy
-import urllib.parse
 import rospkg
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
-    pass
+    pass  # pylint: disable=W0107
 
 
 class SgsRequestHandler(BaseHTTPRequestHandler):

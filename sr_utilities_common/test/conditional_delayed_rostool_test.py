@@ -13,9 +13,11 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
+# pylint: disable=W0212
 
 from __future__ import absolute_import
 import argparse
+import sys
 import rospy
 import unittest
 import rostest
@@ -58,8 +60,8 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     def test_invalid_element_type(self):
         element_type = "invalid_element_type"
         services_list = ["test_mocap_topic"]
-        self.ros_topic_handler_class = RosElementsHandler(element_type, services_list)
-        result = self.ros_topic_handler_class._retrieve_available_elements()
+        ros_topic_handler_class = RosElementsHandler(element_type, services_list)
+        result = ros_topic_handler_class._retrieve_available_elements()
         self.assertIsNone(result)
 
     def test_check_if_required_element_is_available_list(self):
@@ -152,4 +154,4 @@ if __name__ == '__main__':
 
     rostest.rosrun(PKGNAME, NODENAME, ConditionalDelayedRosToolTestCase)
 
-    os._exit(0)
+    sys.exit(0)

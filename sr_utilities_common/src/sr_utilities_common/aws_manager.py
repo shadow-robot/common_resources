@@ -25,7 +25,6 @@ from six.moves import input
 import requests
 
 
-
 class AWSManager:
     def __init__(self, access_key=None, secret_key=None, session_token=None):
         self.file_full_paths = []
@@ -131,7 +130,7 @@ class AWSManager:
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
             try:
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
-                uploadSucceded = True
+                upload_succeded = True
             except self._client.exceptions.S3UploadFailedError as exception:
                 rospy.logerr(f"File upload failed ({file_full_path}). {exception}")
         return upload_succeded
@@ -162,6 +161,7 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
     rospy.loginfo(print_msg)
     value = input("Would you like to download these files? (Y/N) ")
     value = value.lower().strip()
+
     if value == "y":
         return True
     elif value == "n":
@@ -169,7 +169,8 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
 
     rospy.logerr("Select a valid option")
     validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                        file_names, bucket_subfolder)
+                                     file_names, bucket_subfolder)
+    return
 
 
 def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
@@ -194,7 +195,7 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
 
     rospy.logerr("Select a valid option")
     validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
-                                    file_names, bucket_subfolder)
+                                   file_names, bucket_subfolder)
 
 
 def return_function_mode(function_mode):

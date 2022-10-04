@@ -16,11 +16,9 @@
 
 from __future__ import absolute_import
 from builtins import round
-import sys
-import rospy
-import psutil
 import inspect
-from threading import Thread, Lock
+from threading import Thread
+import rospy
 from sr_watchdog.msg import CheckStatus, SystemStatus, SystemLog
 
 
@@ -45,8 +43,16 @@ def create_new_check_object(check_name, component, check_type, check_class_name)
     new_test.check_class_name = check_class_name
     return new_test
 
+def map_check_type_to_log_type(self, check_type):
+    if CheckStatus.ERROR == check_type:
+        log_type = SystemLog.ERROR
+    elif CheckStatus.WARN == check_type:
+        log_type = SystemLog.WARN
+    else:
+        raise ValueError("Wrong status check type")
+    return log_type
 
-class SrWatchdog(object):
+class SrWatchdog:
     def __init__(self, tested_system_name="tested system", checks_classes_list=None, initial_wait_for_checks=60):
         self.tested_system_name = tested_system_name
         self.checks_classes_list = checks_classes_list
@@ -112,23 +118,24 @@ class SrWatchdog(object):
         for checks_class in self.checks_classes_list:
             if checks_class.__class__.__name__ == check.check_class_name:
                 return checks_class
+        return 
 
     def _run_single_check(self, check):
         used_class = self._find_class_corresponding_to_check(check)
         method_to_call = getattr(used_class, check.check_name)
         try:
             result = method_to_call()
-        except CheckResultWrongFormat:
+        except CheckResultWrongFormat as exception:
             self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
                                        "Need either a bool or (bool, string) tuple!"
                                        " Skipping and blacklisting this check..."
                                        .format(check.check_name), SystemLog.WARN))
-            raise CheckResultWrongFormat
-        except Exception as ex:
+            raise CheckResultWrongFormat from exception
+        except Exception as exception:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}: {}\'."
                                        " Skipping and blacklisting this check..."
                                        .format(check.check_name, type(ex).__name__, str(ex)), SystemLog.WARN))
-            raise CheckThrowingException
+            raise CheckThrowingException from exception
         return result
 
     def _update_check_result(self, check_name, new_result):
@@ -136,15 +143,6 @@ class SrWatchdog(object):
             if check_name == self.checks_list[i].check_name:
                 self.checks_list[i].result = new_result
                 return
-
-    def _map_check_type_to_log_type(self, check_type):
-        if CheckStatus.ERROR == check_type:
-            log_type = SystemLog.ERROR
-        elif CheckStatus.WARN == check_type:
-            log_type = SystemLog.WARN
-        else:
-            raise ValueError("Wrong status check type")
-        return log_type
 
     def _blacklist_single_check(self, check_name):
         for i in range(len(self.checks_list)):
@@ -160,7 +158,7 @@ class SrWatchdog(object):
             self.demo_status = SystemStatus.ERROR
 
     def _add_system_log_on_check_result_change(self, check, new_result, error_msg):
-        log_type = self._map_check_type_to_log_type(check.check_type)
+        log_type = map_check_type_to_log_type(check.check_type)
         if new_result != check.result:
             if not new_result:
                 if error_msg is None:
