@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2021 Shadow Robot Company Ltd.
+# Copyright 2021-2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -15,17 +15,13 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+import os
+import re
+from unittest import TestCase
 import rospy
 import rospkg
 import rostest
-from unittest import TestCase
-from std_msgs.msg import Bool
-from sr_utilities_common.manual_test_suite import ManualTestSuite
-from sr_utilities_common.aws_manager import AWS_Manager
 from sr_wear_logger.sr_wear_logger import SrWearLogger
-from sr_wear_logger.dummy_publisher import DummyPublisher
-import os
-import re
 import yaml
 
 
@@ -47,13 +43,12 @@ class TestSrWearLogger(TestCase):
             os.remove(cls.path_to_test_folder + "/wear_data.yaml")
 
     @classmethod
-    def check_are_values_numeric(self, dictionary):
-        for k, v in list(dictionary.items()):
-            if isinstance(v, dict):
-                dictionary[k] = self.check_are_values_numeric(v)
-            else:
-                if not(type(dictionary[k]) is float or type(dictionary[k]) is int):
-                    return False
+    def check_are_values_numeric(cls, dictionary):
+        for key, value in list(dictionary.items()):
+            if isinstance(value, dict):
+                dictionary[key] = cls.check_are_values_numeric(value)
+            elif not(isinstance(dictionary[key], float) or isinstance(dictionary[key]), int):
+                return False
         return True
 
     def test_10_check_param_case_wrong_hand_serial(self):
@@ -79,12 +74,11 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                f = open(self.path_to_test_file, 'r')
-                data = yaml.load(f, Loader=yaml.SafeLoader)
-                success = all(k in list(data.keys()) for k in self.log_file_key_list)
-                f.close()
+                with open(self.path_to_test_file, 'r', encoding='UTF-8') as file:
+                    data = yaml.load(file, Loader=yaml.SafeLoader)
+                    success = all(key in list(data.keys()) for key in self.log_file_key_list)
                 rospy.sleep(1)
-            except Exception as e:
+            except Exception:
                 pass
         self.assertTrue(success)
 
@@ -92,12 +86,11 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                f = open(self.path_to_test_file, 'r')
-                data = yaml.load(f, Loader=yaml.SafeLoader)
-                success = self.check_are_values_numeric(data)
-                f.close()
+                with open(self.path_to_test_file, 'r', encoding='UTF-8') as file:
+                    data = yaml.load(file, Loader=yaml.SafeLoader)
+                    success = self.check_are_values_numeric(data)
                 rospy.sleep(1)
-            except Exception as e:
+            except Exception:
                 pass
         self.assertTrue(success)
 

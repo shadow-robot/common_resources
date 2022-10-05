@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -18,8 +18,8 @@ from __future__ import absolute_import
 import argparse
 import os
 import re
-import requests
 import sys
+import requests
 
 
 if __name__ == "__main__":
@@ -34,21 +34,19 @@ if __name__ == "__main__":
                                                "requesting access keys.", default=default_customer_key_file_path)
     args = parser.parse_args()
     if args.api_key:
-        customer_key = "{}\n".format(args.api_key)
+        customer_key = f"{args.api_key}\n"
     else:
         customer_key_file_path = os.path.expanduser(args.api_key_file)
-        print("Reading API/customer key from: {}".format(customer_key_file_path))
+        print(f"Reading API/customer key from: {customer_key_file_path}")
         try:
-            with open(customer_key_file_path, 'r') as customer_key_file:
+            with open(customer_key_file_path, 'r', encoding='UTF-8') as customer_key_file:
                 customer_key = customer_key_file.read()
         except Exception:
-            print("Could not read API/customer key from {}, ask software team for help!".format(customer_key_file_path))
+            print(f"Could not read API/customer key from {customer_key_file_path}, ask software team for help!")
             sys.exit(1)
-    print(("Using API/customer key: {}".format(customer_key)))
+    print(f"Using API/customer key: {customer_key}")
 
-    headers = {
-        'x-api-key': '{}'.format(customer_key[:-1]),
-    }
+    headers = {'x-api-key': customer_key[:-1]}
 
     try:
         response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
@@ -80,14 +78,14 @@ if __name__ == "__main__":
     aws_dir_path = os.path.expanduser("~/.aws")
     if os.path.exists(aws_dir_path):
         if os.path.isfile(aws_dir_path):
-            print("{} exists but it is not a directory.".format(aws_dir_path))
+            print(f"{aws_dir_path} exists but it is not a directory.")
             sys.exit(1)
     else:
         os.mkdir(aws_dir_path)
-    aws_credentials_filename = "{}/credentials".format(aws_dir_path)
+    aws_credentials_filename = f"{aws_dir_path}/credentials"
     try:
-        with open(aws_credentials_filename, "w+") as aws_credentials_file:
+        with open(aws_credentials_filename, "w+", encoding='UTF-8') as aws_credentials_file:
             aws_credentials_file.write(output)
-    except Exception as e:
-        print(("Failed to write to {}:\n{}".format(aws_credentials_filename, e)))
+    except Exception as exception:
+        print(f"Failed to write to {aws_credentials_filename}:\n{exception}")
     print("Successfully obtained AWS credentials. You can now use the AWS CLI.")

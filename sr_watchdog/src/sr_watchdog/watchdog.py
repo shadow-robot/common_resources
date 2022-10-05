@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -16,12 +16,9 @@
 
 from __future__ import absolute_import
 from builtins import round
-import sys
-import rospy
-import psutil
 import inspect
-from threading import Thread, Lock
-from optparse import OptionParser
+from threading import Thread
+import rospy
 from sr_watchdog.msg import CheckStatus, SystemStatus, SystemLog
 
 
@@ -37,10 +34,32 @@ class CheckResultWrongFormat(SrWatchdogExceptions):
     pass
 
 
-class SrWatchdog(object):
-    def __init__(self, tested_system_name="tested system", checks_classes_list=[], initial_wait_for_checks=60):
+def create_new_check_object(check_name, component, check_type, check_class_name):
+    new_test = CheckStatus()
+    new_test.check_name = check_name
+    new_test.component = component
+    new_test.check_type = check_type
+    new_test.result = True
+    new_test.check_class_name = check_class_name
+    return new_test
+
+
+def map_check_type_to_log_type(check_type):
+    if CheckStatus.ERROR == check_type:
+        log_type = SystemLog.ERROR
+    elif CheckStatus.WARN == check_type:
+        log_type = SystemLog.WARN
+    else:
+        raise ValueError("Wrong status check type")
+    return log_type
+
+
+class SrWatchdog:
+    def __init__(self, tested_system_name="tested system", checks_classes_list=None, initial_wait_for_checks=60):
         self.tested_system_name = tested_system_name
         self.checks_classes_list = checks_classes_list
+        if not checks_classes_list:
+            self.checks_classes_list = self.checks_classes_list
         self.initial_wait_for_checks = initial_wait_for_checks
         self.logs_remembered = rospy.get_param('~logs_remembered', 10)
 
@@ -55,8 +74,8 @@ class SrWatchdog(object):
 
     def run(self):
         self.start_time = rospy.Time.now()
-        main_thread = Thread(target=self._report_thread_method).start()
-        checks_thread = Thread(target=self._checks_thread_method).start()
+        Thread(target=self._report_thread_method).start()
+        Thread(target=self._checks_thread_method).start()
 
     def _report_thread_method(self):
         while not rospy.is_shutdown():
@@ -87,46 +106,39 @@ class SrWatchdog(object):
         self.watchdog_publisher.publish(system_status)
         rate.sleep()
 
-    def _create_new_check_object(self, check_name, component, check_type, check_class_name):
-        new_test = CheckStatus()
-        new_test.check_name = check_name
-        new_test.component = component
-        new_test.check_type = check_type
-        new_test.result = True
-        new_test.check_class_name = check_class_name
-        return new_test
-
     def _parse_checks(self):
         for checks_class in self.checks_classes_list:
             component = checks_class.component
             for watchdog_check_name in checks_class.get_all_watchdog_check_names():
                 check_type = getattr(checks_class, watchdog_check_name).__dict__['check_type']
-                self.checks_list.append(self._create_new_check_object(watchdog_check_name,
-                                                                      component,
-                                                                      check_type,
-                                                                      checks_class.__class__.__name__))
+                self.checks_list.append(create_new_check_object(watchdog_check_name,
+                                                                component,
+                                                                check_type,
+                                                                checks_class.__class__.__name__))
 
     def _find_class_corresponding_to_check(self, check):
         for checks_class in self.checks_classes_list:
             if checks_class.__class__.__name__ == check.check_class_name:
                 return checks_class
+        return []
 
     def _run_single_check(self, check):
         used_class = self._find_class_corresponding_to_check(check)
         method_to_call = getattr(used_class, check.check_name)
         try:
             result = method_to_call()
-        except CheckResultWrongFormat:
+        except CheckResultWrongFormat as exception:
             self.watchdog_logs.append(("[WARN] Wrong method result format for \'{}\'. "
                                        "Need either a bool or (bool, string) tuple!"
                                        " Skipping and blacklisting this check..."
                                        .format(check.check_name), SystemLog.WARN))
-            raise CheckResultWrongFormat
-        except Exception as ex:
+            raise CheckResultWrongFormat from exception
+        except Exception as exception:
             self.watchdog_logs.append(("[WARN] Check \'{}\' threw an exception: \'{}: {}\'."
                                        " Skipping and blacklisting this check..."
-                                       .format(check.check_name, type(ex).__name__, str(ex)), SystemLog.WARN))
-            raise CheckThrowingException
+                                       .format(check.check_name, type(exception).__name__,
+                                               str(exception)), SystemLog.WARN))
+            raise CheckThrowingException from exception
         return result
 
     def _update_check_result(self, check_name, new_result):
@@ -134,15 +146,6 @@ class SrWatchdog(object):
             if check_name == self.checks_list[i].check_name:
                 self.checks_list[i].result = new_result
                 return
-
-    def _map_check_type_to_log_type(self, check_type):
-        if CheckStatus.ERROR == check_type:
-            log_type = SystemLog.ERROR
-        elif CheckStatus.WARN == check_type:
-            log_type = SystemLog.WARN
-        else:
-            raise ValueError("Wrong status check type")
-        return log_type
 
     def _blacklist_single_check(self, check_name):
         for i in range(len(self.checks_list)):
@@ -158,7 +161,7 @@ class SrWatchdog(object):
             self.demo_status = SystemStatus.ERROR
 
     def _add_system_log_on_check_result_change(self, check, new_result, error_msg):
-        log_type = self._map_check_type_to_log_type(check.check_type)
+        log_type = map_check_type_to_log_type(check.check_type)
         if new_result != check.result:
             if not new_result:
                 if error_msg is None:
@@ -205,7 +208,7 @@ class SrWatchdog(object):
         rospy.sleep(1)
 
 
-class SrWatchdogChecks(object):
+class SrWatchdogChecks:
     def __init__(self, component=None):
         self.component = component
 
@@ -243,13 +246,12 @@ class SrWatchdogChecks(object):
     @staticmethod
     def watchdog_check_decorator(function):
         def wrapper(self):
-            CONST_RETURN_TUPLE_EXPECTED_SIZE = 2
+            return_tuple_size = 2
             return_value = function(self)
             if isinstance(return_value, bool):
                 result = return_value
                 error_msg = None
-            elif isinstance(return_value, tuple) and \
-                    CONST_RETURN_TUPLE_EXPECTED_SIZE == len(return_value):
+            elif isinstance(return_value, tuple) and return_tuple_size == len(return_value):
                 result = return_value[0]
                 error_msg = return_value[1]
             else:

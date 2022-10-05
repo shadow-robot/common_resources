@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,10 @@
 
 from __future__ import absolute_import
 import os
-import rospy
 import datetime
 import subprocess
 import gzip
+import rospy
 
 
 def recursive_diff(path):
@@ -43,19 +43,17 @@ def recursive_diff(path):
 rospy.init_node("ws_diff")
 
 package_path = os.environ['ROS_PACKAGE_PATH']
-package_dirs = [x for x in package_path.split(":") if ("/opt/ros" not in x)]
+package_dirs = [x for x in package_path.split(":") if "/opt/ros" not in x]
 
 run_time = datetime.datetime.fromtimestamp(rospy.get_rostime().secs)
 name_string = "ws_diff_%04d-%02d-%02d-%02d-%02d-%02d" % (
     run_time.year, run_time.month, run_time.day, run_time.hour, run_time.minute, run_time.second)
 
 output_dir = rospy.get_param("~log_directory", ".")
-
 output_path = "%s/wsdiff_%s.gz" % (output_dir, name_string)
-
-output = package_path + "\n"
+out = package_path + "\n"
 
 for directory in package_dirs:
-    output = output + recursive_diff(directory)
-with gzip.open(output_path, 'w') as f:
-    f.write(str.encode(output))
+    out = out + recursive_diff(directory)
+with gzip.open(output_path, 'w') as file:
+    file.write(str.encode(out))

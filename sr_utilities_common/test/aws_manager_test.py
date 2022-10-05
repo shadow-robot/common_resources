@@ -17,16 +17,16 @@
 # pylint: disable=W1618
 # TODO REMOVE ABOVE WHEN USING NEW LINT
 import os
-import requests
-import json
+import sys
 import random
 import string
 import shutil
+from unittest import TestCase
+import json
+import requests
 import rospy
 import rostest
-from datetime import datetime
-from unittest import TestCase
-from sr_utilities_common.aws_manager import AWS_Manager
+from sr_utilities_common.aws_manager import AWSManager
 
 BUCKET_NAME = "shadowtestbucket"
 API_URL = "https://ddo2pew5xd.execute-api.eu-west-2.amazonaws.com/prod"
@@ -41,9 +41,9 @@ class TestAWSManager(TestCase):
         response = requests.get(API_URL)
         response_json = json.loads(response.text)
         aws_details = response_json["body"]
-        cls.aws_manager = AWS_Manager(access_key=aws_details["access_key"],
-                                      secret_key=aws_details["secret_key"],
-                                      session_token=aws_details["session_token"])
+        cls.AWSManager = AWSManager(access_key=aws_details["access_key"],
+                                    secret_key=aws_details["secret_key"],
+                                    session_token=aws_details["session_token"])
         cls.filename = "TestFile"
         cls.make_files_to_be_uploaded(cls.filename)
         cls.filename_sf = "TestFileSubfolder"
@@ -55,8 +55,8 @@ class TestAWSManager(TestCase):
 
     def test_aws_01_upload(self):
         result = False
-        self.aws_manager.upload(BUCKET_NAME, "/tmp", "upload", [self.filename], None)
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
+        self.AWSManager.upload(BUCKET_NAME, "/tmp", "upload", [self.filename], None)
+        folder_list = self.AWSManager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
         if folder_list is not None:
             for element in folder_list:
                 if element['Key'] == f"upload/{self.filename}":
@@ -65,8 +65,8 @@ class TestAWSManager(TestCase):
 
     def test_aws_02_upload_subfolder(self):
         result = False
-        self.aws_manager.upload(BUCKET_NAME, "/tmp", "upload", [self.filename_sf], "Subfolder")
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
+        self.AWSManager.upload(BUCKET_NAME, "/tmp", "upload", [self.filename_sf], "Subfolder")
+        folder_list = self.AWSManager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
         if folder_list is not None:
             for element in folder_list:
                 if element['Key'] == f"Subfolder/{self.filename_sf}":
@@ -75,15 +75,14 @@ class TestAWSManager(TestCase):
 
     def test_aws_03_download(self):
         result = False
-        self.aws_manager.download(BUCKET_NAME, "/tmp", "download", [self.filename], "upload")
+        self.AWSManager.download(BUCKET_NAME, "/tmp", "download", [self.filename], "upload")
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename}"):
             result = True
         self.assertTrue(result)
 
     def test_aws_04_download_subfolder(self):
         result = False
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
-        self.aws_manager.download(BUCKET_NAME, "/tmp", "download", [self.filename_sf], "Subfolder")
+        self.AWSManager.download(BUCKET_NAME, "/tmp", "download", [self.filename_sf], "Subfolder")
         if os.path.exists(f"{DOWNLOAD_PATH}/{self.filename_sf}"):
             result = True
         self.assertTrue(result)
@@ -91,34 +90,34 @@ class TestAWSManager(TestCase):
     def test_aws_05_remove_all_files(self):
         rospy.sleep(5)
         result = False
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
+        folder_list = self.AWSManager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
         if folder_list is not None:
             for element in folder_list:
                 filepath = element['Key']
-                self.aws_manager._client.delete_object(Bucket=BUCKET_NAME, Key=filepath)
+                self.AWSManager._client.delete_object(Bucket=BUCKET_NAME, Key=filepath)  # pylint: disable=W0212
         # Check bucket status after removing everything.
-        folder_list = self.aws_manager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
+        folder_list = self.AWSManager.get_bucket_structure_with_prefix(BUCKET_NAME, None)
         if not folder_list:
             result = True
         self.assertTrue(result)
 
     @classmethod
-    def make_files_to_be_uploaded(self, file_name):
+    def make_files_to_be_uploaded(cls, file_name):
         if not os.path.exists(UPLOAD_PATH):
             os.mkdir(UPLOAD_PATH)
-        with open(f"{UPLOAD_PATH}/{file_name}", "w") as upload_file:
+        with open(f"{UPLOAD_PATH}/{file_name}", "w", encoding='UTF-8') as upload_file:
             message = ''.join(random.choice(LETTERS) for i in range(10))
             upload_file.write(message)
 
     @classmethod
-    def delete_download_folder(self):
+    def delete_download_folder(cls):
         if os.path.exists(DOWNLOAD_PATH):
             shutil.rmtree(DOWNLOAD_PATH)
 
 
 if __name__ == '__main__':
     PKGNAME = 'sr_utilities_common'
-    NODENAME = 'aws_manager_test'
+    NODENAME = 'AWSManager_test'
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, TestAWSManager)
-    os._exit(0)
+    sys.exit(0)

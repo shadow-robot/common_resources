@@ -16,15 +16,16 @@
 
 # pylint: disable=W1618
 # TODO REMOVE ABOVE WHEN USING NEW LINT
+import re
+import os
+import sys
 import rospy
 import boto3
 from six.moves import input
 import requests
-import re
-import os
 
 
-class AWS_Manager(object):
+class AWSManager:
     def __init__(self, access_key=None, secret_key=None, session_token=None):
         self.file_full_paths = []
         self.aws_paths = []
@@ -34,7 +35,7 @@ class AWS_Manager(object):
         headers = None
         if not access_key and not secret_key and not session_token:
             try:
-                with open('/usr/local/bin/customer.key', 'r') as customer_key_file:
+                with open('/usr/local/bin/customer.key', 'r', encoding="utf-8") as customer_key_file:
                     customer_key = customer_key_file.read()
                     headers = {'x-api-key': f'{customer_key[:-1]}'}
             except IOError:
@@ -125,14 +126,14 @@ class AWS_Manager(object):
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
-        uploadSucceded = False
+        upload_succeded = False
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
             try:
                 self._client.upload_file(file_full_path, bucket_name, aws_path)
-                uploadSucceded = True
+                upload_succeded = True
             except self._client.exceptions.S3UploadFailedError as exception:
                 rospy.logerr(f"File upload failed ({file_full_path}). {exception}")
-        return uploadSucceded
+        return upload_succeded
 
 
 def gather_all_files_local(files_base_path, files_folder_path):
@@ -160,14 +161,16 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
     rospy.loginfo(print_msg)
     value = input("Would you like to download these files? (Y/N) ")
     value = value.lower().strip()
+
     if value == "y":
         return True
-    elif value == "n":
+    if value == "n":
         return False
-    else:
-        rospy.logerr("Select a valid option")
-        validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                         file_names, bucket_subfolder)
+
+    rospy.logerr("Select a valid option")
+    validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
+                                     file_names, bucket_subfolder)
+    return True
 
 
 def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
@@ -185,14 +188,16 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
     rospy.loginfo(print_msg)
     value = input("Would you like to upload these files? (Y/N) ")
     value = value.lower().strip()
+
     if value == "y":
         return True
-    elif value == "n":
+    if value == "n":
         return False
-    else:
-        rospy.logerr("Select a valid option")
-        validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
-                                       file_names, bucket_subfolder)
+
+    rospy.logerr("Select a valid option")
+    validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
+                                   file_names, bucket_subfolder)
+    return True
 
 
 def return_function_mode(function_mode):
@@ -203,53 +208,53 @@ def return_function_mode(function_mode):
         err_message += f"You entered: {function_mode}"
         rospy.logerr(err_message)
         rospy.signal_shutdown("")
-        exit(1)
+        sys.exit(1)
     return function_mode
 
 
 if __name__ == "__main__":
     rospy.init_node("aws_manager_node")
 
-    function_mode = rospy.get_param("~function_mode")
-    skip_check = rospy.get_param("~skip_check")
-    bucket_name = rospy.get_param("~bucket_name")
-    bucket_subfolder = rospy.get_param("~bucket_subfolder")
-    files_base_path = rospy.get_param("~files_base_path")
-    files_folder_path = rospy.get_param("~files_folder_path")
-    file_names = rospy.get_param("~file_names")
+    function_mode_param = rospy.get_param("~function_mode")
+    skip_check_param = rospy.get_param("~skip_check")
+    bucket_name_param = rospy.get_param("~bucket_name")
+    bucket_subfolder_param = rospy.get_param("~bucket_subfolder")
+    files_base_path_param = rospy.get_param("~files_base_path")
+    files_folder_path_param = rospy.get_param("~files_folder_path")
+    file_names_param = rospy.get_param("~file_names")
 
-    function_mode = return_function_mode(function_mode)
-    if bucket_subfolder == "":
-        bucket_subfolder = None
-    aws_manager = AWS_Manager()
+    function_mode_param = return_function_mode(function_mode_param)
+    if bucket_subfolder_param == "":
+        bucket_subfolder_param = None
+    aws_manager = AWSManager()
 
-    if function_mode == "upload":
-        if file_names == "":
-            file_names = gather_all_files_local(files_base_path, files_folder_path)
-        if not skip_check:
-            if not validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_path,
-                                                  file_names, bucket_subfolder):
+    if function_mode_param == "upload":
+        if file_names_param == "":
+            file_names_param = gather_all_files_local(files_base_path_param, files_folder_path_param)
+        if not skip_check_param:
+            if not validated_files_to_be_uploaded(bucket_name_param, files_base_path_param, files_folder_path_param,
+                                                  file_names_param, bucket_subfolder_param):
                 rospy.signal_shutdown("")
-                exit(0)
+                sys.exit(0)
         status_msg = "File upload failed"
-        if aws_manager.upload(bucket_name, files_base_path, files_folder_path,
-                              file_names, bucket_subfolder):
+        if aws_manager.upload(bucket_name_param, files_base_path_param, files_folder_path_param,
+                              file_names_param, bucket_subfolder_param):
             status_msg = "Completed file upload."
         rospy.loginfo(status_msg)
 
-    if function_mode == "download":
-        if file_names == "":
-            file_names = aws_manager.gather_all_files_remote(bucket_name, bucket_subfolder)
-        if not skip_check:
-            if not validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                                    file_names, bucket_subfolder):
+    if function_mode_param == "download":
+        if file_names_param == "":
+            file_names_param = aws_manager.gather_all_files_remote(bucket_name_param, bucket_subfolder_param)
+        if not skip_check_param:
+            if not validated_files_to_be_downloaded(bucket_name_param, files_base_path_param, files_folder_path_param,
+                                                    file_names_param, bucket_subfolder_param):
                 rospy.signal_shutdown("")
-                exit(0)
+                sys.exit(0)
         status_msg = "File download failed"
-        if aws_manager.download(bucket_name, files_base_path, files_folder_path,
-                                file_names, bucket_subfolder):
+        if aws_manager.download(bucket_name_param, files_base_path_param, files_folder_path_param,
+                                file_names_param, bucket_subfolder_param):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 
     rospy.signal_shutdown("")
-    exit(0)
+    sys.exit(0)

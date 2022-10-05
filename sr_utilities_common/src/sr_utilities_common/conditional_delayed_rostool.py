@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -15,18 +15,16 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-from builtins import input
-import rospy
 import os
 import re
-import rosservice
 import sys
 import time
-from multiprocessing import Process
+import rosservice
+import rospy
 from sr_utilities_common.wait_for_param import wait_for_param
 
 
-class RosElementsHandler(object):
+class RosElementsHandler:
     def __init__(self, element_type, required_elements_list):
         self._element_type = element_type
         # De-duplicate and make a copy of the required elements list
@@ -48,12 +46,11 @@ class RosElementsHandler(object):
 
             # Return true if there are no more missing elements
             return not self.missing_elements
-        else:
-            return True
+        return True
 
     def _verify_elements(self):
         for element in list(self.missing_elements):
-            if not (element and type(element) == str):
+            if not (element and isinstance(element, str)):
                 raise ValueError("{}: Required element is not a string or an empty string".format(rospy.get_name()))
 
     def _strip_elements_of_leading_slash_if_present(self):
@@ -65,13 +62,13 @@ class RosElementsHandler(object):
         if self._element_type == "topic":
             list_of_topics = [item[0][1:] for item in rospy.get_published_topics()]
             return list_of_topics
-        elif self._element_type == "service":
+        if self._element_type == "service":
             return [item[1:] for item in rosservice.get_service_list()]
-        elif self._element_type == "param":
+        if self._element_type == "param":
             return [item[1:] for item in rospy.get_param_names()]
-        else:
-            rospy.logerr("Requested ros element %s does not exist", self._element_type)
-            return None
+
+        rospy.logerr("Requested ros element %s does not exist", self._element_type)
+        return None
 
 
 def wait_for_conditions(conditions_to_satisfy, timeout):
@@ -86,7 +83,7 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
         time.sleep(0.01)
         if timeout <= 0:
             continue
-        if (rospy.Time.now().to_sec() - start_time.to_sec() >= timeout):
+        if rospy.Time.now().to_sec() - start_time.to_sec() >= timeout:
             rospy.logerr("Timeout of {}s exceeded".format(timeout))
             for condition_type, condition in conditions_to_satisfy.items():
                 if condition.missing_elements:
@@ -99,32 +96,32 @@ def wait_for_conditions(conditions_to_satisfy, timeout):
 if __name__ == "__main__":
     rospy.init_node('conditional_delayed_roslaunch', anonymous=True)
 
-    conditions_to_satisfy = {}
+    conditions_to_satisfy_arg = {}
 
     package_name = rospy.get_param("~package_name")
     executable_name = rospy.get_param("~executable_name")
     arguments_list = rospy.get_param("~launch_args_list", "")
     node_launch_prefix = rospy.get_param("~launch_prefix", "")
-    timeout = rospy.get_param("~timeout", 0)
+    timeout_param = rospy.get_param("~timeout", 0)
 
     if rospy.has_param('~topics_list'):
         topics_list = rospy.get_param("~topics_list")
-        conditions_to_satisfy["topic"] = RosElementsHandler("topic", topics_list)
+        conditions_to_satisfy_arg["topic"] = RosElementsHandler("topic", topics_list)
     if rospy.has_param('~params_list'):
         params_list = rospy.get_param("~params_list")
-        conditions_to_satisfy["param"] = RosElementsHandler("param", params_list)
+        conditions_to_satisfy_arg["param"] = RosElementsHandler("param", params_list)
     if rospy.has_param('~services_list'):
         services_list = rospy.get_param("~services_list")
-        conditions_to_satisfy["service"] = RosElementsHandler("service", services_list)
+        conditions_to_satisfy_arg["service"] = RosElementsHandler("service", services_list)
 
-    all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy, timeout)
+    all_conditions_satisfied = wait_for_conditions(conditions_to_satisfy_arg, timeout_param)
 
     if rospy.has_param('~args_from_param_list'):
         args_from_param_list = rospy.get_param("~args_from_param_list")
         for arg_from_param in args_from_param_list:
             if arg_from_param.startswith("/"):
                 arg_from_param = arg_from_param[1:]
-            all_conditions_satisfied = all_conditions_satisfied and wait_for_param(arg_from_param, timeout)
+            all_conditions_satisfied = all_conditions_satisfied and wait_for_param(arg_from_param, timeout_param)
             if not all_conditions_satisfied:
                 break
             arguments_list += " {}:={}".format(arg_from_param, rospy.get_param(arg_from_param))

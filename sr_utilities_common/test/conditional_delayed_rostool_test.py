@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,13 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
+# pylint: disable=W0212
 
 from __future__ import absolute_import
-import argparse
-import rospy
+import sys
 import unittest
+import rospy
 import rostest
-import os
 from std_msgs.msg import String
 from sr_utilities_common.conditional_delayed_rostool import RosElementsHandler
 from sr_utilities_common.conditional_delayed_rostool import wait_for_conditions
@@ -27,18 +27,18 @@ from sr_utilities_common.conditional_delayed_rostool import wait_for_conditions
 
 class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     @classmethod
-    def setUp(self):
+    def setUp(cls):
         rospy.wait_for_message("test_mocap_topic", String)
 
     @classmethod
-    def tearDown(self):
+    def tearDown(cls):
         pass
 
     def test_topic_element_type_is_valid(self):
         element_type = "topic"
         topics_list = ["test_mocap_topic"]
         ros_topic_handler_class = RosElementsHandler(element_type, topics_list)
-        result = ros_topic_handler_class._retrieve_available_elements()
+        result = ros_topic_handler_class._retrieve_available_elements()  # pylint: disable=W0212
         self.assertIsNotNone(result)
 
     def test_param_element_type_is_valid(self):
@@ -58,8 +58,8 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     def test_invalid_element_type(self):
         element_type = "invalid_element_type"
         services_list = ["test_mocap_topic"]
-        self.ros_topic_handler_class = RosElementsHandler(element_type, services_list)
-        result = self.ros_topic_handler_class._retrieve_available_elements()
+        ros_topic_handler_class = RosElementsHandler(element_type, services_list)
+        result = ros_topic_handler_class._retrieve_available_elements()
         self.assertIsNone(result)
 
     def test_check_if_required_element_is_available_list(self):
@@ -89,12 +89,12 @@ class ConditionalDelayedRosToolTestCase(unittest.TestCase):
     def test_check_if_elements_is_available_empty_string(self):
         required_topics_list = [""]
         with self.assertRaises(ValueError):
-            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
+            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)  # pylint: disable=W0612
 
     def test_check_if_elements_is_available_not_a_string(self):
         required_topics_list = [0]
         with self.assertRaises(ValueError):
-            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)
+            ros_topic_handler_class = RosElementsHandler("topic", required_topics_list)  # pylint: disable=W0612
 
     def test_requested_topic_not_available(self):
         conditions_to_satisfy = {}
@@ -152,4 +152,4 @@ if __name__ == '__main__':
 
     rostest.rosrun(PKGNAME, NODENAME, ConditionalDelayedRosToolTestCase)
 
-    os._exit(0)
+    sys.exit(0)

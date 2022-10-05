@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2021 Shadow Robot Company Ltd.
+# Copyright 2021-2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -16,24 +16,58 @@
 
 from __future__ import absolute_import
 
-import rospy
-import rospkg
 import time
-import speech_recognition as sr
 from difflib import get_close_matches
+from threading import Thread
+import subprocess
+import wave
+import speech_recognition as sr
 from std_msgs.msg import String
 import yaml
-from builtins import input
-
 from gtts import gTTS
-from io import BytesIO
 import pyaudio
-import subprocess
-from threading import Thread
-import wave
+import rospy
+import rospkg
 
 
-class SpeechControl(object):
+def write_mp3(tts, proc):
+    tts.write_to_fp(proc.stdin)
+    proc.stdin.close()
+
+
+def text_to_speech(text, device_name):
+    pyaud = pyaudio.PyAudio()
+    device_index = None
+    sample_rate = None
+    for index in range(0, pyaud.get_device_count()):
+        device_info = pyaud.get_device_info_by_index(index)
+        if device_name == device_info['name']:
+            device_index = index
+            sample_rate = device_info['defaultSampleRate']
+            break
+    tts = gTTS(text=text, lang='en', slow=False)
+    # Use ffmpeg top convert mp3 to wav
+    with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:', '-ar', str(sample_rate), '-ac',
+                           '1', '-f', 'wav', 'pipe:'], stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
+        # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
+        # buffers are relatively small and process will block before any output is received
+        thread = Thread(target=write_mp3, args=(tts, proc, ))
+        thread.start()
+        # Read wav from ffmpeg standard output
+        waveform = wave.open(proc.stdout, 'rb')
+        stream = pyaud.open(format=pyaud.get_format_from_width(waveform.getsampwidth()),
+                            channels=waveform.getnchannels(),
+                            rate=waveform.getframerate(),
+                            output_device_index=device_index,
+                            output=True)
+        stream.write(waveform.readframes(waveform.getnframes()))
+        stream.stop_stream()
+        stream.close()
+        pyaud.terminate()
+        thread.join()
+
+
+class SpeechControl:
     def __init__(self, trigger_word, command_words, command_topic='/sr_speech_control/speech_to_text',
                  similar_words_dict_path=None, non_speaking_duration=0.2, pause_threshold=0.2):
 
@@ -82,46 +116,10 @@ class SpeechControl(object):
 
     def text_to_speech_callback(self, message):
         if self.speaker != '':
-            self.text_to_speech(message.data, self.speaker)
-
-    def write_mp3(self, tts, proc):
-        tts.write_to_fp(proc.stdin)
-        proc.stdin.close()
-
-    def text_to_speech(self, text, device_name):
-        p = pyaudio.PyAudio()
-        device_index = None
-        sample_rate = None
-        for index in range(0, p.get_device_count()):
-            device_info = p.get_device_info_by_index(index)
-            if device_name == device_info['name']:
-                device_index = index
-                sample_rate = device_info['defaultSampleRate']
-                break
-        tts = gTTS(text=text, lang='en', slow=False)
-        # Use ffmpeg top convert mp3 to wav
-        with subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', 'pipe:',
-                               '-ar', str(sample_rate), '-ac', '1', '-f', 'wav', 'pipe:'],
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
-            # Piping mp3 to ffmepg standard input must be in a separate thread because pipe
-            # buffers are relatively small and process will block before any output is received
-            thread = Thread(target=self.write_mp3, args=(tts, proc, ))
-            thread.start()
-            # Read wav from ffmpeg standard output
-            wf = wave.open(proc.stdout, 'rb')
-            stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                            channels=wf.getnchannels(),
-                            rate=wf.getframerate(),
-                            output_device_index=device_index,
-                            output=True)
-            stream.write(wf.readframes(wf.getnframes()))
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
-            thread.join()
+            text_to_speech(message.data, self.speaker)
 
     def parse_similar_words_dict(self, path_name):
-        with open(path_name, 'r') as stream:
+        with open(path_name, 'r', encoding='UTF-8') as stream:
             self.similar_words_dict = yaml.safe_load(stream)
 
     def _init_recognizer(self, non_speaking_duration, pause_threshold):
@@ -133,11 +131,11 @@ class SpeechControl(object):
             result = recognizer.recognize_google(audio)
         except sr.UnknownValueError:
             return
-        except sr.RequestError as e:
-            rospy.logwarn("Could not request results from Google Speech Recognition service: {}".format(e))
+        except sr.RequestError as exception:
+            rospy.logwarn(f"Could not request results from Google Speech Recognition service: {exception}")
             return
 
-        result = [str(x).lower() for x in result.split(' ')]
+        result = [str(result_part).lower() for result_part in result.split(' ')]
         rospy.loginfo("Received: {}".format(result))
 
         if self._filter_word(result[0], self.trigger_word) == self.trigger_word:
@@ -171,11 +169,12 @@ if __name__ == "__main__":
 
     rospy.init_node('example_speech_control', anonymous=True)
 
-    trigger_word = "shadow"
-    command_words_and_feedback = {"grasp": "grasped", "release": "released", "disable": "disabled",
-                                  "enable": "enabled", "engage": "engaged", "disengage": "disengaged",
-                                  "open": "opened"}
-    similar_words_dict_path = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
+    trigger_word_arg = "shadow"
+    command_words_and_feedback_arg = {"grasp": "grasped", "release": "released", "disable": "disabled",
+                                      "enable": "enabled", "engage": "engaged", "disengage": "disengaged",
+                                      "open": "opened"}
+    similar_words_dict_path_arg = rospkg.RosPack().get_path('sr_speech_control') + '/config/similar_words_dict.yaml'
 
-    sc = SpeechControl(trigger_word, command_words_and_feedback, similar_words_dict_path=similar_words_dict_path)
+    sc = SpeechControl(trigger_word_arg, command_words_and_feedback_arg,
+                       similar_words_dict_path=similar_words_dict_path_arg)
     sc.run()

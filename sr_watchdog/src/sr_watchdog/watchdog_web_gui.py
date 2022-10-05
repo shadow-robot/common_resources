@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -20,28 +20,25 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import threading
 import rospy
-import json
-import urllib.parse
 import rospkg
-
-import cgi
-import os
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
-    pass
+    pass  # pylint: disable=W0107
 
 
 class SgsRequestHandler(BaseHTTPRequestHandler):
+
+    SUCCESS_CODE = 200
+    FAIL_CODE = 503
+    BAD_REQUEST_CODE = 400
+    NOT_FOUND_CODE = 404
+
     def __init__(self, *args):
-        self.SUCCESS_CODE = 200
-        self.FAIL_CODE = 503
-        self.BAD_REQUEST_CODE = 400
-        self.NOT_FOUND_CODE = 404
         BaseHTTPRequestHandler.__init__(self, *args)
 
-    def do_GET(self):
+    def do_GET(self):  # pylint: disable=C0103
         self.send_response(self.SUCCESS_CODE)
         page_path = rospkg.RosPack().get_path('sr_watchdog') + self.path
         if self.path == "/":
@@ -75,8 +72,8 @@ class SgsRequestHandler(BaseHTTPRequestHandler):
         elif self.path[-3:] == "png":
             self.send_header('Content-Type', 'image/png')
             self.end_headers()
-        with open(page_path, 'rb') as f:
-            self.wfile.write(f.read().decode(errors='ignore').encode('utf-8'))
+        with open(page_path, 'rb') as file:
+            self.wfile.write(file.read().decode(errors='ignore').encode('utf-8'))
 
 
 if __name__ == "__main__":
