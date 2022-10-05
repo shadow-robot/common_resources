@@ -26,7 +26,7 @@ import json
 import requests
 import rospy
 import rostest
-from sr_utilities_common.AWSManager import AWSManager
+from sr_utilities_common.aws_manager import AWSManager
 
 BUCKET_NAME = "shadowtestbucket"
 API_URL = "https://ddo2pew5xd.execute-api.eu-west-2.amazonaws.com/prod"
