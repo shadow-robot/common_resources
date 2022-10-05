@@ -45,9 +45,9 @@ using topic_tools;
 
 ros::NodeHandle *g_node = NULL;
 bool g_advertised = false;
-string g_input_topic;
-string g_output_topic;
-string g_monitor_topic;
+string g_input_topic;  // NOLINT
+string g_output_topic;  // NOLINT
+string g_monitor_topic;  // NOLINT
 ros::Publisher g_pub;
 ros::Subscriber* g_sub;
 bool g_lazy;
