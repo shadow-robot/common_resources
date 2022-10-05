@@ -41,7 +41,7 @@
 
 using std::string;
 using std::vector;
-using topic_tools;
+using namespace topic_tools;  // NOLINT
 
 ros::NodeHandle *g_node = NULL;
 bool g_advertised = false;
