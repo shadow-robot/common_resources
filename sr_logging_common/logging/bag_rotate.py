@@ -50,7 +50,7 @@ class SrBagRotate:
 
     def get_suffixed_bags(self, suffix):
         all_files = listdir(self._path)
-        all_bags = [file for file in all_files if file.endswith(suffix)]
+        all_bags = [s_file for s_file in all_files if s_file.endswith(suffix)]
         suffixed_bags = []
         for bag in all_bags:
             actual_prefix_parts = set([t for t in bag.split("_") if t.isalpha()])

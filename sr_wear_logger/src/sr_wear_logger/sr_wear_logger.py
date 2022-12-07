@@ -56,9 +56,9 @@ class SrWearLogger():
     def _clear_from_files(self):
         pattern = r"\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
         if os.path.exists(self._log_file_path):
-            for file in os.listdir(self._log_file_path):
-                if bool(re.match(pattern, file)):
-                    os.remove(self._log_file_path + "/" + file)
+            for log_file in os.listdir(self._log_file_path):
+                if bool(re.match(pattern, log_file)):
+                    os.remove(self._log_file_path + "/" + log_file)
 
     def check_parameters(self):
         check_serial = self._hand_serial is not None and self._hand_serial != ""

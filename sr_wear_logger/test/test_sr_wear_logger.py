@@ -34,10 +34,10 @@ class TestSrWearLogger(TestCase):
     @classmethod
     def tearDownClass(cls):
         rospy.loginfo("Cleaning up")
-        for file in os.listdir(cls.path_to_test_folder):
+        for test_file in os.listdir(cls.path_to_test_folder):
             pattern = r"\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
-            if bool(re.match(pattern, file)):
-                os.remove(cls.path_to_test_folder + "/" + file)
+            if bool(re.match(pattern, test_file)):
+                os.remove(cls.path_to_test_folder + "/" + test_file)
         if os.path.exists(cls.path_to_test_folder+"/wear_data.yaml"):
             os.remove(cls.path_to_test_folder + "/wear_data.yaml")
 
