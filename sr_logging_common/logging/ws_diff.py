@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import os
 import datetime
 import subprocess
@@ -55,5 +54,5 @@ out = package_path + "\n"
 
 for directory in package_dirs:
     out = out + recursive_diff(directory)
-with gzip.open(output_path, 'w') as file:
-    file.write(str.encode(out))
+with gzip.open(output_path, 'w') as ws_diff_file:
+    ws_diff_file.write(str.encode(out))

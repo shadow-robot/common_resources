@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 from builtins import round
 import os
 import re
@@ -22,9 +21,9 @@ import shutil
 import datetime
 import yaml
 from sensor_msgs.msg import JointState
-from sr_utilities_common.aws_manager import AWSManager
 import rospy
 import rospkg
+from sr_utilities_common.aws_manager import AWSManager
 
 THRESHOLD = 0.0175
 BENCHMARK_NAME = "shadowrobot.wear"
@@ -172,8 +171,8 @@ class SrWearLogger():
             self._complete_data['total_time_[s]'] += rospy.get_rostime().secs - self._time_counter
             self._time_counter = rospy.get_rostime().secs
             try:
-                with open(self._log_file_path+self._log_file_name, 'w', encoding="utf-8") as file:
-                    yaml.safe_dump(self._complete_data, file)
+                with open(self._log_file_path+self._log_file_name, 'w', encoding="utf-8") as log_file_file:
+                    yaml.safe_dump(self._complete_data, log_file_file)
                 success = True
             except Exception as exception:
                 rospy.logwarn(f"{rospy.get_name()} Failed to sava data. {exception}")

@@ -16,7 +16,6 @@
 
 # example use: ./overrun_experiments.py -ht hand_e -t 60 -id lh
 
-from __future__ import absolute_import, division
 import os
 import argparse
 import rospy

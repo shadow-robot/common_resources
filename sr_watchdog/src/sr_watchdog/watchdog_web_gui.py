@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 import threading
@@ -72,8 +70,8 @@ class SgsRequestHandler(BaseHTTPRequestHandler):
         elif self.path[-3:] == "png":
             self.send_header('Content-Type', 'image/png')
             self.end_headers()
-        with open(page_path, 'rb') as file:
-            self.wfile.write(file.read().decode(errors='ignore').encode('utf-8'))
+        with open(page_path, 'rb') as page_path_file:
+            self.wfile.write(page_path_file.read().decode(errors='ignore').encode('utf-8'))
 
 
 if __name__ == "__main__":
