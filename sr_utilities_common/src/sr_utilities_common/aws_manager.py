@@ -150,12 +150,12 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
                                      file_names, bucket_subfolder):
     print_msg = f"\nFrom bucket {bucket_name} downloading the files:"
     print_msg_2 = ""
-    for file in file_names:
-        print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{file}"
+    for filename in file_names:
+        print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{filename}"
         if bucket_subfolder:
-            print_msg += f"\n    {bucket_subfolder}/{file}"
+            print_msg += f"\n    {bucket_subfolder}/{filename}"
         else:
-            print_msg += f"\n    {file}"
+            print_msg += f"\n    {filename}"
     print_msg += f"\n\nThese files will be downloaded too {files_base_path}/{files_folder_path}:"
     print_msg += print_msg_2
     rospy.loginfo(print_msg)
