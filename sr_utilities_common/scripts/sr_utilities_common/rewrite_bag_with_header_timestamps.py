@@ -8,7 +8,6 @@
 # Copied from http://wiki.ros.org/rosbag/Cookbook
 # pylint: disable=E1101
 
-from __future__ import absolute_import, division
 from builtins import round
 import sys
 import time

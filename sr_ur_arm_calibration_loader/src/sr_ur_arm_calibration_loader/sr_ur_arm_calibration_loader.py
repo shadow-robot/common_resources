@@ -42,8 +42,8 @@ class DifferentArmTypes(SrUrLoadCalibrationExceptions):
 
 
 def get_yaml(filename):
-    with open(filename, encoding='UTF-8') as file:
-        return yaml.safe_load(file)
+    with open(filename, encoding='UTF-8') as yaml_file:
+        return yaml.safe_load(yaml_file)
 
 
 class SrUrLoadCalibration:

@@ -15,7 +15,6 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 # pylint: disable=W0613
 
-from __future__ import absolute_import
 import rospy
 from std_msgs.msg import String
 from std_srvs.srv import Empty

@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import datetime
 import rospy
 
@@ -28,5 +27,6 @@ name_string = "run_params_%04d-%02d-%02d-%02d-%02d-%02d" % (
 rospy.sleep(10)
 
 param_tree = rospy.get_param("/")
-with open(rospy.get_param("~log_directory", ".") + "/" + name_string, 'w', encoding='UTF-8') as file:
-    file.write(str(param_tree))
+log_dir = rospy.get_param("~log_directory", ".")
+with open(f"{log_dir}/{name_string}", 'w', encoding='UTF-8') as log_file:
+    log_file.write(str(param_tree))

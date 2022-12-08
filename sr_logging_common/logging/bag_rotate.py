@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 from os import listdir, remove, rename
 from os.path import exists
 import subprocess
@@ -51,7 +50,7 @@ class SrBagRotate:
 
     def get_suffixed_bags(self, suffix):
         all_files = listdir(self._path)
-        all_bags = [file for file in all_files if file.endswith(suffix)]
+        all_bags = [s_file for s_file in all_files if s_file.endswith(suffix)]
         suffixed_bags = []
         for bag in all_bags:
             actual_prefix_parts = set([t for t in bag.split("_") if t.isalpha()])

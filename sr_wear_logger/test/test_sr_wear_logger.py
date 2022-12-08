@@ -14,15 +14,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import os
 import re
 from unittest import TestCase
 import rospy
 import rospkg
+import yaml
 import rostest
 from sr_wear_logger.sr_wear_logger import SrWearLogger
-import yaml
 
 
 class TestSrWearLogger(TestCase):
@@ -35,10 +34,10 @@ class TestSrWearLogger(TestCase):
     @classmethod
     def tearDownClass(cls):
         rospy.loginfo("Cleaning up")
-        for file in os.listdir(cls.path_to_test_folder):
+        for test_file in os.listdir(cls.path_to_test_folder):
             pattern = r"\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.yaml"
-            if bool(re.match(pattern, file)):
-                os.remove(cls.path_to_test_folder + "/" + file)
+            if bool(re.match(pattern, test_file)):
+                os.remove(cls.path_to_test_folder + "/" + test_file)
         if os.path.exists(cls.path_to_test_folder+"/wear_data.yaml"):
             os.remove(cls.path_to_test_folder + "/wear_data.yaml")
 
@@ -74,8 +73,8 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                with open(self.path_to_test_file, 'r', encoding='UTF-8') as file:
-                    data = yaml.load(file, Loader=yaml.SafeLoader)
+                with open(self.path_to_test_file, 'r', encoding='UTF-8') as test_file:
+                    data = yaml.load(test_file, Loader=yaml.SafeLoader)
                     success = all(key in list(data.keys()) for key in self.log_file_key_list)
                 rospy.sleep(1)
             except Exception:
@@ -86,8 +85,8 @@ class TestSrWearLogger(TestCase):
         success = False
         if os.path.exists(self.path_to_test_file):
             try:
-                with open(self.path_to_test_file, 'r', encoding='UTF-8') as file:
-                    data = yaml.load(file, Loader=yaml.SafeLoader)
+                with open(self.path_to_test_file, 'r', encoding='UTF-8') as test_file:
+                    data = yaml.load(test_file, Loader=yaml.SafeLoader)
                     success = self.check_are_values_numeric(data)
                 rospy.sleep(1)
             except Exception:

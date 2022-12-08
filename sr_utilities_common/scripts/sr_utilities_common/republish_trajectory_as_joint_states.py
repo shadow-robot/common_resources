@@ -25,7 +25,6 @@
 # Run your publisher and remap topic names if necessary.
 #
 
-from __future__ import absolute_import
 import rospy
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory
