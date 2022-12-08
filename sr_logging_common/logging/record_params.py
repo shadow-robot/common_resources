@@ -27,5 +27,6 @@ name_string = "run_params_%04d-%02d-%02d-%02d-%02d-%02d" % (
 rospy.sleep(10)
 
 param_tree = rospy.get_param("/")
-with open(f"{rospy.get_param("~log_directory", ".")}/{name_string}", 'w', encoding='UTF-8') as log_file:
+log_dir = rospy.get_param("~log_directory", ".")
+with open(f"{log_dir}/{name_string}", 'w', encoding='UTF-8') as log_file:
     log_file.write(str(param_tree))
