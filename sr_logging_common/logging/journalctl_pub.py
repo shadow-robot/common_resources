@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019, 2022 Shadow Robot Company Ltd.
+# Copyright 2019, 2022-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -33,11 +33,11 @@ if __name__ == "__main__":
         polling_object = select.poll()
         polling_object.register(process.stdout)
 
-    while not rospy.is_shutdown():
-        if polling_object.poll(100):
-            journal_log_line = process.stdout.readline()
-            if journal_log_line:
-                journal_msg = journal_log()
-                journal_msg.data = journal_log_line.strip()
-                journal_msg.timestamp = rospy.get_rostime()
-                pub.publish(journal_msg)
+        while not rospy.is_shutdown():
+            if polling_object.poll(100):
+                journal_log_line = process.stdout.readline()
+                if journal_log_line:
+                    journal_msg = journal_log()
+                    journal_msg.data = journal_log_line.strip()
+                    journal_msg.timestamp = rospy.get_rostime()
+                    pub.publish(journal_msg)
