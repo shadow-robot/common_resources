@@ -33,11 +33,11 @@ if __name__ == "__main__":
         polling_object = select.poll()
         polling_object.register(process.stdout)
 
-    while not rospy.is_shutdown():
-        if polling_object.poll(100):
-            journal_log_line = process.stdout.readline()
-            if journal_log_line:
-                journal_msg = journal_log()
-                journal_msg.data = journal_log_line.strip()
-                journal_msg.timestamp = rospy.get_rostime()
-                pub.publish(journal_msg)
+        while not rospy.is_shutdown():
+            if polling_object.poll(100):
+                journal_log_line = process.stdout.readline()
+                if journal_log_line:
+                    journal_msg = journal_log()
+                    journal_msg.data = journal_log_line.strip()
+                    journal_msg.timestamp = rospy.get_rostime()
+                    pub.publish(journal_msg)
