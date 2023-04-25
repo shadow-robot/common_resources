@@ -26,12 +26,6 @@
       <name>bimanual_stand</name>
       <pose>0 0.75 0.41 0 0 0</pose>
     </include>
-    <!--include>
-      <uri>model://square_stand</uri>
-      <static>true</static>
-      <name>square_stand_1</name>
-      <pose>0 1.5 0.41 0 0 0</pose>
-    </include-->
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
       <ode>
