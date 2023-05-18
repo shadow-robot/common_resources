@@ -20,13 +20,22 @@ import rospy
 import tf2_ros
 from tf2_msgs.msg import TFMessage
 
-
 class RealTimeTfRepublisher:
-    def __init__(self, bag_tf_topic_name, tf_name_regexes=None, tcp_nodelay=True):
+    def __init__(self, bag_tf_topic_name, tf_name_regexes=None, tcp_nodelay=True, static_tfs=False, bag_static_tf_topic_name=None, static_tf_name_regexes=None):
         rospy.loginfo("TF republisher will republish TFs that match these regexes: {}".format(tf_name_regexes))
         if not tf_name_regexes:
             tf_name_regexes = []
         self._tf_name_regexes = [re.compile(tf_regex) for tf_regex in tf_name_regexes]
+        self._static_tfs = static_tfs
+        if self._static_tfs:
+            if not static_tf_name_regexes:
+                static_tf_name_regexes = tf_name_regexes
+            self._static_tf_name_regexes = [re.compile(static_tf_regex) for static_tf_regex in static_tf_name_regexes]
+            self._static_tf_republisher = tf2_ros.StaticTransformBroadcaster()
+            self._bag_static_tf_sub = rospy.Subscriber(bag_static_tf_topic_name, TFMessage,
+                                                       self._bag_static_tf_cb, tcp_nodelay=tcp_nodelay, queue_size=1)
+            self._published_static_tfs = []
+            self._matched_static_regexes = []
         self._tf_republisher = tf2_ros.TransformBroadcaster()
         self._published_tfs = []
         self._matched_regexes = []
@@ -61,7 +70,38 @@ class RealTimeTfRepublisher:
         if len(list_of_tfs_to_publish) > 0:
             self._tf_republisher.sendTransform(list_of_tfs_to_publish)
 
+    def _bag_static_tf_cb(self, data):
+        list_of_static_tfs_to_publish = []
+        current_time = rospy.Time.now()
+        for transform in data.transforms:
+            if transform.child_frame_id in [tf_to_publish.child_frame_id for tf_to_publish in list_of_static_tfs_to_publish]:
+                # This TF is already going to be republished, either more than one regex matches it, or originally
+                # bagged TF tree is invalid (TFs can't have multiple parents)
+                continue
+            for regex in self._static_tf_name_regexes:
+                if regex.match(transform.child_frame_id) is not None:
+                    tf_to_be_republished = transform
+                    tf_to_be_republished.header.stamp = current_time
+                    list_of_static_tfs_to_publish.append(tf_to_be_republished)
+                    if transform.child_frame_id not in self._published_static_tfs:
+                        rospy.loginfo(f"Republishing matching static TF: {transform.child_frame_id}")
+                        self._published_static_tfs.append(transform.child_frame_id)
+                    if regex not in self._matched_static_regexes:
+                        self._matched_static_regexes.append(regex)
+        if len(list_of_static_tfs_to_publish) > 0:
+            self._static_tf_republisher.sendTransform(list_of_static_tfs_to_publish)
+
     def _check_matched_regexes(self, timeout):
+        unmatched_regexes = []
+        for regex in self._tf_name_regexes:
+            if regex not in self._matched_regexes:
+                unmatched_regexes.append(regex)
+        if unmatched_regexes:
+            rospy.logwarn(f"The following TFs were not found in the first {timeout}s \
+                            of the supplied ROSBag: \
+                            {[unmatched_regex.pattern for unmatched_regex in unmatched_regexes]}")
+
+    def _check_static_matched_regexes(self, timeout):
         unmatched_regexes = []
         for regex in self._tf_name_regexes:
             if regex not in self._matched_regexes:
@@ -77,5 +117,6 @@ if __name__ == "__main__":
     bag_tf_topic_name_param = rospy.get_param('~bag_tf_topic_name', 'tf_bag')
     tf_name_regexes_param = rospy.get_param('~tf_name_regexes', [])
     tcp_nodelay_param = rospy.get_param('~tcp_nodelay', True)
+    static_tfs_param = rospy.get_param('~static_tfs', True)
     real_time_tf_republisher = RealTimeTfRepublisher(bag_tf_topic_name_param, tf_name_regexes_param, tcp_nodelay_param)
     rospy.spin()
