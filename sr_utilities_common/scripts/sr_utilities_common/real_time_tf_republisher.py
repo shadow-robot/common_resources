@@ -28,20 +28,22 @@ class RealTimeTfRepublisher:
         self._tf_name_regexes = [re.compile(tf_regex) for tf_regex in tf_name_regexes]
         self._static_tfs = static_tfs
         if self._static_tfs:
+            rospy.loginfo("TF republisher will republish static TFs that match these regexes: {}".format(static_tf_name_regexes))
             if not static_tf_name_regexes:
                 static_tf_name_regexes = tf_name_regexes
             self._static_tf_name_regexes = [re.compile(static_tf_regex) for static_tf_regex in static_tf_name_regexes]
             self._static_tf_republisher = tf2_ros.StaticTransformBroadcaster()
             self._bag_static_tf_sub = rospy.Subscriber(bag_static_tf_topic_name, TFMessage,
-                                                       self._bag_static_tf_cb, tcp_nodelay=tcp_nodelay, queue_size=1)
+                                                       self._bag_static_tf_cb, tcp_nodelay=tcp_nodelay, queue_size=100)
             self._published_static_tfs = []
             self._matched_static_regexes = []
+            threading.Timer(10, self._check_static_matched_regexes, [10]).start()
         self._tf_republisher = tf2_ros.TransformBroadcaster()
         self._published_tfs = []
         self._matched_regexes = []
         self._last_published_times = {}
         self._bag_tf_sub = rospy.Subscriber(bag_tf_topic_name, TFMessage,
-                                            self._bag_tf_cb, tcp_nodelay=tcp_nodelay, queue_size=1)
+                                            self._bag_tf_cb, tcp_nodelay=tcp_nodelay, queue_size=100)
         threading.Timer(10, self._check_matched_regexes, [10]).start()
 
     def _bag_tf_cb(self, data):
@@ -70,7 +72,7 @@ class RealTimeTfRepublisher:
         if len(list_of_tfs_to_publish) > 0:
             self._tf_republisher.sendTransform(list_of_tfs_to_publish)
 
-    def _bag_static_tf_cb(self, data):
+    def _bag_static_tf_cb(self, data: TFMessage):
         list_of_static_tfs_to_publish = []
         current_time = rospy.Time.now()
         for transform in data.transforms:
@@ -81,7 +83,6 @@ class RealTimeTfRepublisher:
             for regex in self._static_tf_name_regexes:
                 if regex.match(transform.child_frame_id) is not None:
                     tf_to_be_republished = transform
-                    tf_to_be_republished.header.stamp = current_time
                     list_of_static_tfs_to_publish.append(tf_to_be_republished)
                     if transform.child_frame_id not in self._published_static_tfs:
                         rospy.loginfo(f"Republishing matching static TF: {transform.child_frame_id}")
@@ -89,7 +90,9 @@ class RealTimeTfRepublisher:
                     if regex not in self._matched_static_regexes:
                         self._matched_static_regexes.append(regex)
         if len(list_of_static_tfs_to_publish) > 0:
-            self._static_tf_republisher.sendTransform(list_of_static_tfs_to_publish)
+            rospy.loginfo(f"Republishing {len(list_of_static_tfs_to_publish)} static TFs")
+            for transform in list_of_static_tfs_to_publish:
+                self._static_tf_republisher.sendTransform([transform])
 
     def _check_matched_regexes(self, timeout):
         unmatched_regexes = []
@@ -103,11 +106,11 @@ class RealTimeTfRepublisher:
 
     def _check_static_matched_regexes(self, timeout):
         unmatched_regexes = []
-        for regex in self._tf_name_regexes:
-            if regex not in self._matched_regexes:
+        for regex in self._static_tf_name_regexes:
+            if regex not in self._matched_static_regexes:
                 unmatched_regexes.append(regex)
         if unmatched_regexes:
-            rospy.logwarn(f"The following TFs were not found in the first {timeout}s \
+            rospy.logwarn(f"The following static TFs were not found in the first {timeout}s \
                             of the supplied ROSBag: \
                             {[unmatched_regex.pattern for unmatched_regex in unmatched_regexes]}")
 
@@ -115,8 +118,10 @@ class RealTimeTfRepublisher:
 if __name__ == "__main__":
     rospy.init_node("real_time_tf_republisher")
     bag_tf_topic_name_param = rospy.get_param('~bag_tf_topic_name', 'tf_bag')
+    bag_tf_static_topic_name_param = rospy.get_param('~bag_tf_static_topic_name', 'tf_static_bag')
     tf_name_regexes_param = rospy.get_param('~tf_name_regexes', [])
+    tf_static_name_regexes_param = rospy.get_param('~tf_static_name_regexes', [])
     tcp_nodelay_param = rospy.get_param('~tcp_nodelay', True)
     static_tfs_param = rospy.get_param('~static_tfs', True)
-    real_time_tf_republisher = RealTimeTfRepublisher(bag_tf_topic_name_param, tf_name_regexes_param, tcp_nodelay_param)
+    real_time_tf_republisher = RealTimeTfRepublisher(bag_tf_topic_name_param, tf_name_regexes_param, tcp_nodelay_param, static_tfs_param, bag_tf_static_topic_name_param, tf_static_name_regexes_param)
     rospy.spin()
