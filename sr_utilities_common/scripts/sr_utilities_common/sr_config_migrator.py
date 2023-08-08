@@ -443,7 +443,7 @@ class SrConfigMigrator:
 
 
 if __name__ == "__main__":
-    '''
+    
     parser = argparse.ArgumentParser(description='Migrate sr-config to sr_hand_config')
     parser.add_argument('--side',
                         type=str,
@@ -479,12 +479,12 @@ if __name__ == "__main__":
     tactile_type = args.tactile_type
     hand_serial = args.hand_serial
     sr_config_branch = args.sr_config_branch
-    '''
-    side = 'left'
-    hand_version = 'E3M5'
-    tactile_type = 'bt_sp'
-    hand_serial = '41061'
-    sr_config_branch = 'demohand_E'
+    
+    # side = 'left'
+    # hand_version = 'E3M5'
+    # tactile_type = 'bt_sp'
+    # hand_serial = '41061'
+    # sr_config_branch = 'demohand_E'
 
 
     sr_config_migrator = SrConfigMigrator(side, hand_version, tactile_type, hand_serial, sr_config_branch)
