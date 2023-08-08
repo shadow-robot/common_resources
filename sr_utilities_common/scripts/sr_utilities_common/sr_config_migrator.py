@@ -17,7 +17,7 @@ class SrConfigMigratorCloneRepos:
         self._sr_hand_config_name = 'sr_hand_config'
         self._temp_folder = tempfile.mkdtemp() # '/tmp/tmpm1ttqpap'  #
         self._clone_repos()
-        # self._checkout_repos(sr_config_branch)
+        self._checkout_repos(sr_config_branch)
 
     
     def _check_branch_exists(self, sr_config_path, branch_name):
