@@ -15,7 +15,7 @@ class SrConfigMigratorCloneRepos:
         self._git_repo_locations = [self._SR_CONFIG_LOCATION, self._SR_HAND_CONFIG_LOCATION]
         self._sr_config_name = 'sr-config'
         self._sr_hand_config_name = 'sr_hand_config'
-        self._temp_folder = '/tmp/tmpm1ttqpap'  # tempfile.mkdtemp()
+        self._temp_folder = tempfile.mkdtemp() # '/tmp/tmpm1ttqpap'  #
         self._clone_repos()
         # self._checkout_repos(sr_config_branch)
 
@@ -42,9 +42,9 @@ class SrConfigMigratorCloneRepos:
         subprocess.run(["bash", "-c", f"cd {sr_config_path} && {checkout_command}"])
 
     def _clone_repos(self):
-        # self._clone_repo(self._sr_config_name)
-        import shutil
-        shutil.rmtree(os.path.join(self._temp_folder, self._sr_hand_config_name))
+        self._clone_repo(self._sr_config_name)
+        # import shutil
+        # shutil.rmtree(os.path.join(self._temp_folder, self._sr_hand_config_name))
         self._clone_repo(self._sr_hand_config_name)
 
     def _get_temp_folder_repo_path(self, repo_name):
