@@ -61,11 +61,11 @@ class SrConfigMigratorCloneRepos:
         subprocess.run(['git', 'clone', github_repo_url, local_repo_location])
 
     def commit_new_sr_hand_config(self, hand_serial, sr_config_branch):
-        os.path.join(self._temp_folder, self._sr_hand_config_name)
-        commit_command = f'git add sr_hand_config && '\
+        sr_hand_config_path = os.path.join(self._temp_folder, self._sr_hand_config_name)
+        commit_command = f'cd {sr_hand_config_path} && '\
+                         f'git add sr_hand_config && '\
                          f'git commit -m "adding new config from {sr_config_branch} to sr_hand_config/{hand_serial}"'
         subprocess.run(["bash", "-c", f"{commit_command}"])
-
     
     def get_path_dict(self):
         path_dict = {}
@@ -108,9 +108,9 @@ class SrConfigMigrator:
         self._update_calibrations_folder()
         self._update_controls_folder()
         self._update_rates_folder()
-        print(f"\n\nAll done. Please run the following to push the newly created branch to github:\n")
         print(f"\n\ncat {self._temp_path_dict['sr_hand_config']}/sr_hand_config/{self._hand_serial}/general_info.yaml\n")
         repo_cloner.commit_new_sr_hand_config(self._hand_serial, self._sr_config_branch)
+        print(f"\n\nAll done. Please run the following to push the newly created branch to github:\n")
         print(f"cd {self._temp_path_dict['sr_hand_config']} && git push origin/adding_{self._sr_config_branch}\n\n")
         '''
         general_info_out = subprocess.run(["bash", "-c", f"cat {self._temp_path_dict['sr_hand_config']}/sr_hand_config/{self._hand_serial}/general_info.yaml"],
@@ -456,7 +456,7 @@ class SrConfigMigrator:
             exit(0)
 
 
-# Example usage: python3.8 <(curl -Ls https://raw.githubusercontent.com/shadow-robot/common_resources/F_sr_config_migrator/sr_utilities_common/scripts/sr_utilities_common/sr_config_migrator.py) --side left --tactile_type pst --hand_serial 4106 --sr_config_branch demohand_E
+# Example usage: python3.8 <(curl -Ls https://raw.githubusercontent.com/shadow-robot/common_resources/F_sr_config_migrator/sr_utilities_common/scripts/sr_utilities_common/sr_config_migrator.py) --side left --tactile_type pst --hand_serial 4106 --sr_config_branch demohand_E --hand_version E3M5
 if __name__ == "__main__":
     try:
         import ruamel.yaml
@@ -472,7 +472,8 @@ if __name__ == "__main__":
                                     "--side left "\
                                     "--tactile_type pst "\
                                     "--hand_serial 4106 "\
-                                    "--sr_config_branch demohand_E")
+                                    "--sr_config_branch demohand_E"\
+                                    "--hand_version E3M5")
 
     parser = ArgumentParser(description="Migrates an sr-config branch to sr_hand_config", epilog=extended_help, formatter_class=RawTextHelpFormatter)
 
