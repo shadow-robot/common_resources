@@ -4,7 +4,6 @@ import os
 import subprocess
 import tempfile
 import argparse
-import ruamel.yaml
 
 
 class SrConfigMigratorCloneRepos:
@@ -458,7 +457,8 @@ class SrConfigMigrator:
 if __name__ == "__main__":
 
     subprocess.check_call([sys.executable, "-m", "pip", "install", "ruamel.yaml"])
-    
+    import ruamel.yaml
+
     parser = argparse.ArgumentParser(description='Migrate sr-config to sr_hand_config')
     parser.add_argument('--side',
                         type=str,
