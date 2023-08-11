@@ -4,6 +4,8 @@ import os
 import subprocess
 import tempfile
 import argparse
+from argparse import RawTextHelpFormatter, ArgumentParser
+import textwrap
 
 
 class SrConfigMigratorCloneRepos:
@@ -456,10 +458,24 @@ class SrConfigMigrator:
 
 if __name__ == "__main__":
 
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "ruamel.yaml"])
-    import ruamel.yaml
+    try:
+        import ruamel.yaml
+    except ModuleNotFoundError:
+        print("Module 'ruamel.yaml' is not installed, installing...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "ruamel.yaml"])
+    
+    extended_help = textwrap.dedent(
+                                    "example:\n"\
+                                    "    python3.8 <(curl -Ls https://raw.githubusercontent.com/shadow-robot"\
+                                    "/common_resources/F_sr_config_migrator/sr_utilities_common/scripts"\
+                                    "/sr_utilities_common/sr_config_migrator.py) "\
+                                    "--side left "\
+                                    "--tactile_type pst "\
+                                    "--hand_serial 4106 "\
+                                    "--sr_config_branch demohand_E")
 
-    parser = argparse.ArgumentParser(description='Migrate sr-config to sr_hand_config')
+    parser = ArgumentParser(description="Migrates an sr-config branch to sr_hand_config", epilog=extended_help, formatter_class=RawTextHelpFormatter)
+
     parser.add_argument('--side',
                         type=str,
                         help='side of the hand (left or right)',
@@ -488,7 +504,7 @@ if __name__ == "__main__":
                         help='sr-config branch to migrate from',
                         required=True)
     parser.add_argument('--testing_mode', action='store_true',
-                        help="Testing mode - uses a fixed temp directory and doesn't "\
+                        help="Testing mode - uses a fixed temp directory and doesn't\n"\
                         "re-clone sr-config (so you can see how changes propagate through this script)")
     
     args = parser.parse_args()
@@ -498,12 +514,5 @@ if __name__ == "__main__":
     hand_serial = args.hand_serial
     sr_config_branch = args.sr_config_branch
     testing_mode = args.testing_mode
-    
-    # side = 'left'
-    # hand_version = 'E3M5'
-    # tactile_type = 'bt_sp'
-    # hand_serial = '41061'
-    # sr_config_branch = 'demohand_E'
-
 
     sr_config_migrator = SrConfigMigrator(side, hand_version, tactile_type, hand_serial, sr_config_branch, testing_mode)
