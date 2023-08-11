@@ -11,14 +11,16 @@ class SrConfigMigratorCloneRepos:
     _SR_CONFIG_LOCATION = '/tmp/sr-config'
     _SR_HAND_CONFIG_LOCATION = '/tmp/sr_hand_config'
 
-    def __init__(self, sr_config_branch) -> None:
+    def __init__(self, sr_config_branch, testing_mode=False) -> None:
         self._git_repo_locations = [self._SR_CONFIG_LOCATION, self._SR_HAND_CONFIG_LOCATION]
         self._sr_config_name = 'sr-config'
         self._sr_hand_config_name = 'sr_hand_config'
-        self._temp_folder = tempfile.mkdtemp() # '/tmp/tmpm1ttqpap'  #
+        self._testing_mode = testing_mode
+        self._temp_folder = '/tmp/tmpm1ttqpap'
+        if not self._testing_mode:
+            self._temp_folder = tempfile.mkdtemp()
         self._clone_repos()
         self._checkout_repos(sr_config_branch)
-
     
     def _check_branch_exists(self, sr_config_path, branch_name):
         does_branch_exist = int(subprocess.run(["bash", "-c", f"cd {sr_config_path} && git branch -a | grep {branch_name} | wc -l"],
@@ -42,9 +44,11 @@ class SrConfigMigratorCloneRepos:
         subprocess.run(["bash", "-c", f"cd {sr_config_path} && {checkout_command}"])
 
     def _clone_repos(self):
-        self._clone_repo(self._sr_config_name)
-        # import shutil
-        # shutil.rmtree(os.path.join(self._temp_folder, self._sr_hand_config_name))
+        if not self._testing_mode:
+            self._clone_repo(self._sr_config_name)
+        else:
+            import shutil
+            shutil.rmtree(os.path.join(self._temp_folder, self._sr_hand_config_name))
         self._clone_repo(self._sr_hand_config_name)
 
     def _get_temp_folder_repo_path(self, repo_name):
@@ -54,6 +58,13 @@ class SrConfigMigratorCloneRepos:
         github_repo_url = f'http://github.com/shadow-robot/{repo_name}'
         local_repo_location = self._get_temp_folder_repo_path(repo_name)
         subprocess.run(['git', 'clone', github_repo_url, local_repo_location])
+
+    def commit_new_sr_hand_config(self, hand_serial, sr_config_branch):
+        os.path.join(self._temp_folder, self._sr_hand_config_name)
+        commit_command = f'git add sr_hand_config && '\
+                         f'git commit -m "adding new config from {sr_config_branch} to sr_hand_config/{hand_serial}"'
+        subprocess.run(["bash", "-c", f"{commit_command}"])
+
     
     def get_path_dict(self):
         path_dict = {}
@@ -67,7 +78,7 @@ class SrConfigMigrator:
     _ALLOWED_SIDES = ['left', 'right']
     _ALLOWED_TACTILES = ['bt_sp', 'bt_2p', 'pst', 'mst']
     _ALLOWED_VERSIONS = ['E3M5', 'G1M5', 'E4']
-    def __init__(self, side, hand_version, tactile_type, hand_serial, sr_config_branch):
+    def __init__(self, side, hand_version, tactile_type, hand_serial, sr_config_branch, testing_mode):
         self._validate_inputs(side, hand_version, tactile_type)
         self._prefix = f"{side[0]}h"
         self._hand_version = hand_version
@@ -75,6 +86,7 @@ class SrConfigMigrator:
         self._side = side
         self._hand_serial = str(hand_serial)
         self._sr_config_branch = sr_config_branch
+        self._testing_mode = testing_mode
         self._new_mapping_path = None
         self._temp_folder = None
         self._ind = None
@@ -82,7 +94,7 @@ class SrConfigMigrator:
         self.run()
     
     def run(self):
-        repo_cloner = SrConfigMigratorCloneRepos(self._sr_config_branch)
+        repo_cloner = SrConfigMigratorCloneRepos(self._sr_config_branch, self._testing_mode)
         self._temp_path_dict = repo_cloner.get_path_dict()
         self._temp_folder = self._temp_path_dict['temp_folder']
         print(f"\n\nCreated temp folder to work in: {self._temp_path_dict['temp_folder']}\n\n")
@@ -96,8 +108,9 @@ class SrConfigMigrator:
         self._update_controls_folder()
         self._update_rates_folder()
         print(f"\n\nAll done. Please run the following to push the newly created branch to github:\n")
-        print(f"cd {self._temp_path_dict['sr_hand_config']} ")#&& git push origin/adding_{self._sr_config_branch}\n\n")
         print(f"\n\ncat {self._temp_path_dict['sr_hand_config']}/sr_hand_config/{self._hand_serial}/general_info.yaml\n")
+        repo_cloner.commit_new_sr_hand_config(self._hand_serial, self._sr_config_branch)
+        print(f"cd {self._temp_path_dict['sr_hand_config']} && git push origin/adding_{self._sr_config_branch}\n\n")
         '''
         general_info_out = subprocess.run(["bash", "-c", f"cat {self._temp_path_dict['sr_hand_config']}/sr_hand_config/{self._hand_serial}/general_info.yaml"],
                                       capture_output = True,
@@ -472,6 +485,9 @@ if __name__ == "__main__":
                         type=str,
                         help='sr-config branch to migrate from',
                         required=True)
+    parser.add_argument('--testing_mode', action='store_true',
+                        help="Testing mode - uses a fixed temp directory and doesn't "\
+                        "re-clone sr-config (so you can see how changes propagate through this script)")
     
     args = parser.parse_args()
     side = args.side
@@ -479,6 +495,7 @@ if __name__ == "__main__":
     tactile_type = args.tactile_type
     hand_serial = args.hand_serial
     sr_config_branch = args.sr_config_branch
+    testing_mode = args.testing_mode
     
     # side = 'left'
     # hand_version = 'E3M5'
@@ -487,4 +504,4 @@ if __name__ == "__main__":
     # sr_config_branch = 'demohand_E'
 
 
-    sr_config_migrator = SrConfigMigrator(side, hand_version, tactile_type, hand_serial, sr_config_branch)
+    sr_config_migrator = SrConfigMigrator(side, hand_version, tactile_type, hand_serial, sr_config_branch, testing_mode)
