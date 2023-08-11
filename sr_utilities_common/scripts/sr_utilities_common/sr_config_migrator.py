@@ -456,8 +456,8 @@ class SrConfigMigrator:
             exit(0)
 
 
+# Example usage: python3.8 <(curl -Ls https://raw.githubusercontent.com/shadow-robot/common_resources/F_sr_config_migrator/sr_utilities_common/scripts/sr_utilities_common/sr_config_migrator.py) --side left --tactile_type pst --hand_serial 4106 --sr_config_branch demohand_E
 if __name__ == "__main__":
-
     try:
         import ruamel.yaml
     except ModuleNotFoundError:
