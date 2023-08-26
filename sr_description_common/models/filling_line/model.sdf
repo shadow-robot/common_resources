@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+
+<!--
+ Copyright 2023 Shadow Robot Company Ltd.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation version 2 of the License.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ You should have received a copy of the GNU General Public License along
+ with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<sdf version="1.4">
+  <model name="filling_line">
+    <static>true</static>
+    <link name="link">
+      <inertial>
+        <mass>20</mass>
+      </inertial>
+      <collision name="collision">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://filling_line/meshes/filling_line.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <pose>0.0 0.0 0.0 0 0.0 0.0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://filling_line/meshes/filling_line.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

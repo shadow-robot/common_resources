@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,21 +14,19 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-import rospy
 import datetime
+import rospy
+
 
 rospy.init_node("param_dump", anonymous=True)
 
 run_time = datetime.datetime.fromtimestamp(rospy.get_rostime().secs)
-
 name_string = "run_params_%04d-%02d-%02d-%02d-%02d-%02d" % (
     run_time.year, run_time.month, run_time.day, run_time.hour, run_time.minute, run_time.second)
 
 rospy.sleep(10)
 
 param_tree = rospy.get_param("/")
-
-output = open(rospy.get_param("~log_directory", ".") + "/" + name_string, 'w')
-
-output.write(str(param_tree))
+log_dir = rospy.get_param("~log_directory", ".")
+with open(f"{log_dir}/{name_string}", 'w', encoding='UTF-8') as log_file:
+    log_file.write(str(param_tree))

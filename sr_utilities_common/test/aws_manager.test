@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="aws_manager_test" pkg="sr_utilities_common" type="aws_manager_test.py" time-limit="60.0"/>
+</launch>

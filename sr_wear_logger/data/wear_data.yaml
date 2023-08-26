@@ -1,3 +1,17 @@
+# Copyright 2022 Shadow Robot Company Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <http://www.gnu.org/licenses/>.
+
 total_angles: {rh_FFJ1: 201.53553000000028, rh_FFJ2: 16.29440000000002, rh_FFJ3: 4.4365299999999985,
   rh_FFJ4: 0.040249999999999994, rh_LFJ1: 195.13935999999978, rh_LFJ2: 20.97686, rh_LFJ3: 4.910710000000001,
   rh_LFJ4: 0.06187999999999999, rh_LFJ5: 0, rh_MFJ1: 207.3460599999995, rh_MFJ2: 16.55804999999998,

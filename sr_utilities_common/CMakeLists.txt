@@ -9,9 +9,10 @@ add_compile_options(-std=c++17)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
     roscpp
-    roslint    
+    roslint
     std_msgs
     topic_tools
+    tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,6 +109,9 @@ catkin_package(
   LIBRARIES wait_for_param ros_heartbeat
   CATKIN_DEPENDS
     roscpp
+    std_msgs
+    tf2_ros
+    topic_tools
 #  DEPENDS system_lib
 )
 
@@ -121,6 +125,9 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+
+## http://wiki.ros.org/roslint
+roslint_cpp(src/${PROJECT_NAME}/ros_heartbeat.cpp src/${PROJECT_NAME}/wait_for_param.cpp)
 
 ## Declare a C++ library
 add_library(ros_heartbeat src/${PROJECT_NAME}/ros_heartbeat.cpp)
@@ -137,6 +144,7 @@ add_dependencies(wait_for_param ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXP
 # The recommended prefix ensures that target names across packages don't collide
 add_executable(ros_heartbeat_server_example scripts/${PROJECT_NAME}/ros_heartbeat_server_example.cpp)
 add_executable(relay src/${PROJECT_NAME}/relay.cpp)
+add_executable(republish_tf_new_place scripts/${PROJECT_NAME}/republish_tf_new_place.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +165,7 @@ target_link_libraries(ros_heartbeat_server_example
   ${catkin_LIBRARIES}
 )
 target_link_libraries(relay ${catkin_LIBRARIES})
+target_link_libraries(republish_tf_new_place ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -201,6 +210,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   add_rostest(test/test_conditional_delayed_rostool.test)
+  add_rostest(test/aws_manager.test)
 endif()
 
 ## Add gtest based cpp test target and link libraries

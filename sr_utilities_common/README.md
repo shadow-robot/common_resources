@@ -108,25 +108,30 @@ An example launch file using this script could look like the one below:
 
 ```xml
 <launch>
-  <arg name="download" default="true"/>
-  <arg name="upload" default="false"/>
+  <arg name="function_mode" default="upload"/>
+  <arg name="skip_check" default="false"/>
   <arg name="bucket_name" default="shadowrobot.example-bucket"/>
+  <arg name="bucket_subfolder" default='""'/>
 
   <arg name="files_base_path" default="$(find example_package)"/>
   <arg name="files_folder_path" default="/example_folder_within_package"/>
-  <arg name="file_names" default="[example_file_0, example_file_1]"/>
+  <arg name="file_names" default='""'/>
 
   <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
-    <rosparam param="download" subst_value="True">$(arg download)</rosparam>
-    <rosparam param="upload" subst_value="True">$(arg upload)</rosparam>
+    <rosparam param="function_mode" subst_value="True">$(arg function_mode)</rosparam>
+    <rosparam param="skip_check" subst_value="True">$(arg skip_check)</rosparam>
     <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
     <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
     <rosparam param="bucket_name" subst_value="True">$(arg bucket_name)</rosparam>
+    <rosparam param="bucket_subfolder" subst_value="True">$(arg bucket_subfolder)</rosparam>
     <rosparam param="file_names" subst_value="True">$(arg file_names)</rosparam>
   </node>
+  </launch>
 ```
 
-Launching the above file would upload files `example_file_0` and `example_file_1` located in package `example_package` within folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
+Launching the above file would upload all files located in package `example_package` within the folder `example_folder_within_package` to the `shadowrobot.example-bucket` bucket on AWS.
+
+You can also specify specific files by changing the file_names argument to something like `file_names:="[file1, file2]"`. You can also upload and download from specific subfolders within the bucket by adding `bucket_subfolder:="test_folder"` which would have the path `s3:shadowrobot.example-bucket/test_folder`.
 
 ## Conditional Delayed Ros Tool
 
@@ -185,4 +190,18 @@ A very simple script allowing to run any non-ros executable from within a launch
     <node pkg="sr_utilities_common" type="ros_executable_wrapper.sh" name="ros_executable_wrapper_example" output="screen"
         args="non-ros-executable-script.sh exemple_arg_1 exemple_arg_2/>
 
+```
+
+## Republishing tfs from a new place
+
+A ros node allowing to take existing values of a tf and republish it from a difference parent frame with desired child frame name. Usage:
+
+```sh
+rosrun sr_utilities_common republish_tf_new_place <original_parent_tf> <original_child_tf> <new_parent_tf> <new_child_tf>
+```
+
+If you want the tf to be published with specific frequency (default is 100 Hz) you can add another argument to the end of the command:
+
+```sh
+rosrun sr_utilities_common republish_tf_new_place <original_parent_tf> <original_child_tf> <new_parent_tf> <new_child_tf> <publishing_frequency>
 ```

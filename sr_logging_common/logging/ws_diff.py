@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,12 +14,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import os
-import rospy
 import datetime
 import subprocess
 import gzip
+import rospy
 
 
 def recursive_diff(path):
@@ -30,10 +29,9 @@ def recursive_diff(path):
     output = ""
     if os.path.isdir("./.git"):
         output = "\n\n------------------" + path + "------------------\n\n"
-        output += subprocess.check_output(['git', 'show']).decode("utf-8")
-        output += subprocess.check_output(['git', 'status']).decode("utf-8")
-        output += subprocess.check_output(['git', 'diff']).decode("utf-8")
-
+        output += subprocess.check_output(['git', 'show'], encoding='utf-8', errors='replace')
+        output += subprocess.check_output(['git', 'status'], encoding='utf-8', errors='replace')
+        output += subprocess.check_output(['git', 'diff'], encoding='utf-8', errors='replace')
     for subdir in filter(os.path.isdir, os.listdir(".")):
         output += recursive_diff(subdir)
 
@@ -44,19 +42,17 @@ def recursive_diff(path):
 rospy.init_node("ws_diff")
 
 package_path = os.environ['ROS_PACKAGE_PATH']
-package_dirs = [x for x in package_path.split(":") if ("/opt/ros" not in x)]
+package_dirs = [x for x in package_path.split(":") if "/opt/ros" not in x]
 
 run_time = datetime.datetime.fromtimestamp(rospy.get_rostime().secs)
 name_string = "ws_diff_%04d-%02d-%02d-%02d-%02d-%02d" % (
     run_time.year, run_time.month, run_time.day, run_time.hour, run_time.minute, run_time.second)
 
 output_dir = rospy.get_param("~log_directory", ".")
-
 output_path = "%s/wsdiff_%s.gz" % (output_dir, name_string)
-
-output = package_path + "\n"
+out = package_path + "\n"
 
 for directory in package_dirs:
-    output = output + recursive_diff(directory)
-with gzip.open(output_path, 'w') as f:
-    f.write(str.encode(output))
+    out = out + recursive_diff(directory)
+with gzip.open(output_path, 'w') as ws_diff_file:
+    ws_diff_file.write(str.encode(out))

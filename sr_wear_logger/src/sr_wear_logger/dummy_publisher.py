@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2021 Shadow Robot Company Ltd.
+# Copyright 2021, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,14 +14,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-import rospy
-import actionlib
 import random
+import rospy
 from sensor_msgs.msg import JointState
 
 
-class DummyPublisher(object):
+class DummyPublisher:
     def __init__(self):
         pub = rospy.Publisher('/joint_states', JointState, queue_size=1)
         msg = JointState()
@@ -32,12 +30,12 @@ class DummyPublisher(object):
                     'rh_RFJ2', 'rh_RFJ3', 'rh_RFJ4', 'rh_THJ1', 'rh_THJ2', 'rh_THJ3', 'rh_THJ4', 'rh_THJ5', 'rh_WRJ1',
                     'rh_WRJ2']
 
-        r = rospy.Rate(10)
+        rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             msg.header.stamp = rospy.Time.now()
             msg.position = len(msg.name) * [random.uniform(0, 0.04)]
             pub.publish(msg)
-            r.sleep()
+            rate.sleep()
 
 
 if __name__ == '__main__':

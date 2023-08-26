@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,20 +14,19 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-import rospy
 import signal
+import rospy
 
 
-class ShutdownHandler(object):
-    def __init__(self, handled_object, handled_method, unattended=False):
+class ShutdownHandler:
+    def __init__(self, handled_object, handled_method):
         rospy.logwarn('Overriding default node shutdown handler!')
         signal.signal(signal.SIGINT, self.handler)
         self.handled_method = handled_method
         self.handled_object = handled_object
         self.command_on_shutdown = 'self.handled_object.{}'.format(self.handled_method)
 
-    def handler(self, signum, frame):
+    def handler(self, signum, frame):  # pylint: disable=W0613
         rospy.logwarn('Custom shutdown handler called.')
-        exec(self.command_on_shutdown)
+        exec(self.command_on_shutdown)  # pylint: disable=W0122
         rospy.signal_shutdown("SIGINT called")

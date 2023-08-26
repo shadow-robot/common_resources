@@ -1,23 +1,42 @@
-(noname)+
+(noname)++
 * xprize_base__link
+0 0 0
+0 0 0 1
 1
 box
 0.8 0.8 0.75
 0 0 0.375
 0 0 0 1
 0 0 0 0
+0
 * xprize_ceiling__link
+0 0 0
+0 0 0 1
 1
 box
 4 4 1
 0 0 2.6
 0 0 0 1
 0 0 0 0
+0
 * xprize_table__link
+0 0 0
+0 0 0 1
 1
 box
 4 4 0.74
 0 0 0.37
 0 0 0 1
 0 0 0 0
+0
+* xprize_camera_stand__link
+0 0 0
+0 0 0 1
+1
+box
+1.44 0.72 2
+0 0.72 1
+0 0 0 1
+0 0 0 0
+0
 .

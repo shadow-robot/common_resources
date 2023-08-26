@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,13 +14,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 from builtins import input
-import rospy
 import argparse
+import rospy
 
 
-class ManualTestSuite(object):
+class ManualTestSuite:
     def __init__(self, test_case_class, ordered_test_method_list, unattended=False):
         self.test_case_class = test_case_class
         self.ordered_test_method_list = ordered_test_method_list
@@ -63,24 +62,23 @@ class ManualTestSuite(object):
                       ' * TESTS: {}\n'.format(self.test_results['total']) +
                       ' * FAILURES: {}'.format(self.test_results['failed']))
 
-        if 'FAILURE' == result:
+        if result == 'FAILURE':
             return False
         return True
 
 
-class DummyClass(object):
+class DummyClass:
     def __init__(self):
         self.dummy_variable = 1
 
     def dummy_method_1(self):
-        if 1 == self.dummy_variable:
-            return True
+        return self.dummy_variable == 1
 
     def dummy_method_2(self):
         return 2 * self.dummy_variable
 
 
-class DummyClassClient(object):
+class DummyClassClient:
     def __init__(self):
         self.dummy_class_instance = DummyClass()
 
@@ -88,9 +86,7 @@ class DummyClassClient(object):
         return self.dummy_class_instance.dummy_method_1()
 
     def test_dummy_method_2(self):
-        if 2 == self.dummy_class_instance.dummy_method_2():
-            return True
-        return False
+        return self.dummy_class_instance.dummy_method_2() == 2
 
 
 if __name__ == '__main__':
@@ -98,6 +94,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--unattended", help="Run unattended (no user input).", action='store_true')
     args, unknown_args = parser.parse_known_args()
-    dummy_class_client = DummyClassClient()
-    ordered_test_method_list = ['test_dummy_method_2', 'test_dummy_method_1']
-    test_suite = ManualTestSuite(dummy_class_client, ordered_test_method_list, unattended=args.unattended)
+    dummy_class_client_arg = DummyClassClient()
+    ordered_test_method_list_arg = ['test_dummy_method_2', 'test_dummy_method_1']
+    test_suite = ManualTestSuite(dummy_class_client_arg, ordered_test_method_list_arg, unattended=args.unattended)

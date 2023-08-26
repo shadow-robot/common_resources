@@ -1,0 +1,33 @@
+<!--
+ Copyright 2022 Shadow Robot Company Ltd.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation version 2 of the License.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ You should have received a copy of the GNU General Public License along
+ with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+  <arg name="function_mode" default="upload"/>
+  <arg name="skip_check" default="false"/>
+  <arg name="bucket_name"/>
+  <arg name="bucket_subfolder" default='""'/>
+
+  <arg name="files_base_path"/>
+  <arg name="files_folder_path"/>
+  <arg name="file_names" default='""'/>
+
+  <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
+    <rosparam param="function_mode" subst_value="True">$(arg function_mode)</rosparam>
+    <rosparam param="skip_check" subst_value="True">$(arg skip_check)</rosparam>
+    <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
+    <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
+    <rosparam param="bucket_name" subst_value="True">$(arg bucket_name)</rosparam>
+    <rosparam param="bucket_subfolder" subst_value="True">$(arg bucket_subfolder)</rosparam>
+    <rosparam param="file_names" subst_value="True">$(arg file_names)</rosparam>
+  </node>
+</launch>

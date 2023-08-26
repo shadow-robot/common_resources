@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 Shadow Robot Company Ltd.
+# Copyright 2020, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,16 +14,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 from builtins import input
-import rospy
-import rospkg
 import argparse
-from std_msgs.msg import Bool
 from threading import Thread, Lock
+import rospy
+from std_msgs.msg import Bool
 
 
-class HeartbeatPublisher(object):
+class HeartbeatPublisher:
     def __init__(self, topic_name='heartbeat', publishing_rate=20):
         self._publishing_thread_running = False
         self._heartbeat_status = False

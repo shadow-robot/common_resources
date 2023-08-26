@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import rospy
 from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
 
@@ -30,9 +29,8 @@ class MockChecksClass(SrWatchdogChecks):
         if self.tmp[0] != 1:
             self.tmp[0] = 1
             return False
-        else:
-            self.tmp[0] = 0
-            return True
+        self.tmp[0] = 0
+        return True
 
     @SrWatchdogChecks.watchdog_error_check
     def mock_check_if_arm_running(self):
@@ -40,9 +38,8 @@ class MockChecksClass(SrWatchdogChecks):
         if self.tmp[1] != 0:
             self.tmp[1] = 0
             return False
-        else:
-            self.tmp[1] = 1
-            return True
+        self.tmp[1] = 1
+        return True
 
     @SrWatchdogChecks.watchdog_error_check
     def mock_check_if_hand_running(self):
@@ -50,11 +47,10 @@ class MockChecksClass(SrWatchdogChecks):
         self.tmp[2] += 1
         if self.tmp[2] > 5 and self.tmp[2] < 10:
             return (False, "Hand not running!")
-        elif 36 == self.tmp[2]:
+        if self.tmp[2] == 36:
             self.tmp[2] = 0
             return True
-        else:
-            return True
+        return True
 
 
 if __name__ == '__main__':

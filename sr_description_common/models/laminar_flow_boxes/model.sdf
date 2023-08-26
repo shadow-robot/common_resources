@@ -1,0 +1,78 @@
+<?xml version='1.0'?>
+
+<!--
+ Copyright 2023 Shadow Robot Company Ltd.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation version 2 of the License.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ You should have received a copy of the GNU General Public License along
+ with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<sdf version="1.4">
+<model name="laminar_flow_boxes">
+    <static>true</static>
+
+    <link name="laminar_flow_box">
+      <collision name="laminar_flow_box_col">
+      <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.8 3.0 0.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="laminar_flow_box_vis">
+      <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.8 3.0 0.9</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="laminar_flow_box_1">
+      <collision name="laminar_flow_box_1_col">
+      <pose>-0.4 2.3 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.6 1.6 0.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="laminar_flow_box_1_vis">
+      <pose>-0.4 2.3 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.6 1.6 0.9</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="laminar_flow_box_2">
+      <collision name="laminar_flow_box_2_col">
+      <pose>-0.9 -1.8 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.6 0.6 0.9</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="laminar_flow_box_2_vis">
+      <pose>-0.9 -1.8 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.6 0.6 0.9</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+</model>
+</sdf>

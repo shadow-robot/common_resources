@@ -1,12 +1,17 @@
-(noname)+
+(noname)++
 * ground__link
+0 0 0
+0 0 0 1
 1
 box
 5 5 0.01
 -0.2 0.6 0
 0 0 0 1
 0 0 0 0
+0
 * shadow_table_2017_full_simplified__link
+0 0 0
+0 0 0 1
 1
 mesh
 36 12
@@ -75,4 +80,5 @@ box
 -0.98 -0.46315 1
 0 0 0.707108 0.707105
 0 0 0 0
+0
 .

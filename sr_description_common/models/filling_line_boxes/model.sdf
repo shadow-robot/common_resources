@@ -1,0 +1,115 @@
+<?xml version='1.0'?>
+
+<!--
+ Copyright 2023 Shadow Robot Company Ltd.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation version 2 of the License.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ You should have received a copy of the GNU General Public License along
+ with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<sdf version="1.4">
+<model name="filling_line_boxes">
+    <static>true</static>
+
+    <link name="ground">
+      <collision name="ground_col">
+      <pose>-1 -0.7 -0.005 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>5.0 10.0 0.01</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>5.0 10.0 0.01</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="filling_line_box">
+      <collision name="filling_line_box_col">
+        <pose>0.0 0.0 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>1.3 2.6 0.75</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="filling_line_box_vis">
+        <pose>0.0 0.0 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>1.3 2.6 0.75</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="filling_line_box_1">
+      <collision name="filling_line_box_1_col">
+        <pose>-0.5 2.35 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>2.3 2.1 0.75</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="filling_line_box_1_vis">
+        <pose>-0.5 2.35 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>2.3 2.1 0.75</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="filling_line_box_2">
+      <collision name="filling_line_box_2_col">
+        <pose>-0.85 -1.8 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>3.0 1.0 0.75</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="filling_line_box_2_vis">
+        <pose>-0.85 -1.8 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>3.0 1.0 0.75</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+<link name="filling_line_box_3">
+      <collision name="filling_line_box_3_col">
+        <pose>-0.5 -3.0 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>2.3 1.4 0.75</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="filling_line_box_3_vis">
+        <pose>-0.5 -3.0 0.375 0 0 0 </pose>
+        <geometry>
+          <box>
+            <size>2.3 1.4 0.75</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+
+</model>
+</sdf>

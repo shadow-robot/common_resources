@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Shadow Robot Company Ltd.
+# Copyright 2019, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -14,10 +14,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import rospy
-from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
 from std_msgs.msg import Bool
+from sr_watchdog.watchdog import SrWatchdog, SrWatchdogChecks
 
 
 class TestChecksClass(SrWatchdogChecks):
@@ -44,16 +43,14 @@ class TestChecksClass(SrWatchdogChecks):
         rospy.sleep(2)
         if not self.error_check_pass_flag:
             return (False, "Test message!")
-        else:
-            return True
+        return True
 
     @SrWatchdogChecks.watchdog_error_check
-    def test_check_wrong_return_format(self):
+    def test_check_wrong_return_format(self):  # pylint: disable=R0201
         rospy.sleep(2)
-        return None
 
     @SrWatchdogChecks.watchdog_error_check
-    def test_check_throwing_exception(self):
+    def test_check_throwing_exception(self):  # pylint: disable=R0201
         rospy.sleep(2)
         raise ValueError
 

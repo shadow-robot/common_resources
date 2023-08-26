@@ -1,5 +1,18 @@
+<!--
+ Copyright 2022 Shadow Robot Company Ltd.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation version 2 of the License.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ You should have received a copy of the GNU General Public License along
+ with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
 <launch>
-  <arg name="split_logs_by_duration" default="True"/>
+  <arg name="split_logs_by_duration" default="true"/>
   <arg name="log_split_duration" default="10m"/>
   <arg name="node_name" default="record"/>
   <arg name="split_logs_by_size" default="false"/>
@@ -37,6 +50,7 @@
   <node if="$(arg clear_old_sessions)" pkg="sr_logging_common" type="bag_rotate.py" name="$(anon bag_rotate)">
     <param name="bag_files_num" value="$(arg log_max_splits)"/>
     <param name="bag_files_path" value="$(arg log_directory)"/>
+    <param name="bag_files_prefix" value="$(arg log_bag_prefix)"/>
   </node>
 
   <node if="$(arg save_params)" pkg="sr_logging_common" type="record_params.py" name="$(anon param_dump)">
