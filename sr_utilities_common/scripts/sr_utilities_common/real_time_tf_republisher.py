@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019-2022 Shadow Robot Company Ltd.
+# Copyright 2019-2023 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -20,15 +20,18 @@ import rospy
 import tf2_ros
 from tf2_msgs.msg import TFMessage
 
+
 class RealTimeTfRepublisher:
-    def __init__(self, bag_tf_topic_name, tf_name_regexes=None, tcp_nodelay=True, static_tfs=False, bag_static_tf_topic_name=None, static_tf_name_regexes=None):
+    def __init__(self, bag_tf_topic_name, tf_name_regexes=None, tcp_nodelay=True, static_tfs=False,
+                 bag_static_tf_topic_name=None, static_tf_name_regexes=None):
         rospy.loginfo("TF republisher will republish TFs that match these regexes: {}".format(tf_name_regexes))
         if not tf_name_regexes:
             tf_name_regexes = []
         self._tf_name_regexes = [re.compile(tf_regex) for tf_regex in tf_name_regexes]
         self._static_tfs = static_tfs
         if self._static_tfs:
-            rospy.loginfo("TF republisher will republish static TFs that match these regexes: {}".format(static_tf_name_regexes))
+            rospy.loginfo("TF republisher will republish static TFs that match these regexes: {}".format(
+                static_tf_name_regexes))
             if not static_tf_name_regexes:
                 static_tf_name_regexes = tf_name_regexes
             self._static_tf_name_regexes = [re.compile(static_tf_regex) for static_tf_regex in static_tf_name_regexes]
@@ -74,9 +77,9 @@ class RealTimeTfRepublisher:
 
     def _bag_static_tf_cb(self, data: TFMessage):
         list_of_static_tfs_to_publish = []
-        current_time = rospy.Time.now()
         for transform in data.transforms:
-            if transform.child_frame_id in [tf_to_publish.child_frame_id for tf_to_publish in list_of_static_tfs_to_publish]:
+            if transform.child_frame_id in [tf_to_publish.child_frame_id for tf_to_publish in
+                                            list_of_static_tfs_to_publish]:
                 # This TF is already going to be republished, either more than one regex matches it, or originally
                 # bagged TF tree is invalid (TFs can't have multiple parents)
                 continue
@@ -123,5 +126,7 @@ if __name__ == "__main__":
     tf_static_name_regexes_param = rospy.get_param('~tf_static_name_regexes', [])
     tcp_nodelay_param = rospy.get_param('~tcp_nodelay', True)
     static_tfs_param = rospy.get_param('~static_tfs', True)
-    real_time_tf_republisher = RealTimeTfRepublisher(bag_tf_topic_name_param, tf_name_regexes_param, tcp_nodelay_param, static_tfs_param, bag_tf_static_topic_name_param, tf_static_name_regexes_param)
+    real_time_tf_republisher = RealTimeTfRepublisher(
+        bag_tf_topic_name_param, tf_name_regexes_param, tcp_nodelay_param, static_tfs_param,
+        bag_tf_static_topic_name_param, tf_static_name_regexes_param)
     rospy.spin()
