@@ -14,7 +14,7 @@
 -->
 
 <sdf version="1.4">
-  <model name="mobile_base">
+  <model name="mobile_base_rob@work4">
     <static>true</static>
     <link name="link">
       <pose>0 0 0 0 0 0</pose>
