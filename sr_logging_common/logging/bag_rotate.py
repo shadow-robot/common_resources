@@ -36,11 +36,7 @@ class SrBagRotate:
 
     def get_file_names(self, key):
         all_files = listdir(self._path)
-        all_bags = [s_file for s_file in all_files if s_file.find(key)]
-        matching_files = []
-        for bag in all_bags:
-            if key in bag:
-                matching_files.append(f"{self._path}/{bag}")
+        matching_files = [s_file for s_file in all_files if s_file.find(key)]
         return matching_files
 
     def run(self):
