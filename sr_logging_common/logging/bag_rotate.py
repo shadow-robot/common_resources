@@ -41,6 +41,7 @@ class SrBagRotate:
 
     def remove_old_bags(self):
         bags_to_remove = self.get_suffixed_bags(".bag")
+        bags_to_remove.extend(self.get_suffixed_bags(".bag.active"))
         bags_to_remove.extend(self.get_suffixed_bags(".bag.orig.active"))
         bags_to_remove.sort()
 
@@ -60,9 +61,6 @@ class SrBagRotate:
 
     def run(self):
         while not rospy.is_shutdown():
-            active_bags = self.get_suffixed_bags(".bag.active")
-            for bag in active_bags:
-                reindex_bag(bag)
             self.remove_old_bags()
             rospy.sleep(1)
 
