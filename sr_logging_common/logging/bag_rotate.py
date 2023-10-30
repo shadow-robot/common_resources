@@ -20,17 +20,6 @@ import subprocess
 import rospy
 
 
-def reindex_bag(active_bag):
-    reindexing = subprocess.run(["rosbag", "reindex", active_bag], capture_output=True, text=True, check=False)
-    fixed_bag = f"{active_bag[:-len('.active')]}"
-
-    if reindexing.returncode == 0:
-        backup_file = f"{fixed_bag}.orig.active"
-        if exists(backup_file):
-            remove(backup_file)
-        rename(active_bag, fixed_bag)
-
-
 class SrBagRotate:
     def __init__(self, path, desired_bag_number, prefix):
         self._path = path
@@ -40,24 +29,21 @@ class SrBagRotate:
         self.run()
 
     def remove_old_bags(self):
-        bags_to_remove = self.get_suffixed_bags(".bag")
-        bags_to_remove.extend(self.get_suffixed_bags(".bag.active"))
-        bags_to_remove.extend(self.get_suffixed_bags(".bag.orig.active"))
+        bags_to_remove = self.get_file_names(".bag")
         bags_to_remove.sort()
 
         for i, bag in enumerate(bags_to_remove):
             if i < len(bags_to_remove)-self._desired_bag_number - 1:
                 remove(bag)
 
-    def get_suffixed_bags(self, suffix):
+    def get_file_names(self, key):
         all_files = listdir(self._path)
-        all_bags = [s_file for s_file in all_files if s_file.endswith(suffix)]
-        suffixed_bags = []
+        all_bags = [s_file for s_file in all_files if s_file.find(key)]
+        matching_files = []
         for bag in all_bags:
-            actual_prefix_parts = set([t for t in bag.split("_") if t.isalpha()])
-            if self._desired_prefix_parts == actual_prefix_parts:
-                suffixed_bags.append(f"{self._path}/{bag}")
-        return suffixed_bags
+            if key in bag:
+                matching_files.append(f"{self._path}/{bag}")
+        return matching_files
 
     def run(self):
         while not rospy.is_shutdown():
