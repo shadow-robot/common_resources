@@ -27,16 +27,16 @@ class SrBagRotate:
         self.run()
 
     def remove_old_bags(self):
-        bags_to_remove = self.get_file_names(".bag")
+        bags_to_remove = self.get_file_paths_by_key(".bag")
         bags_to_remove.sort()
 
         for i, bag in enumerate(bags_to_remove):
             if i < len(bags_to_remove)-self._desired_bag_number - 1:
                 remove(bag)
 
-    def get_file_names(self, key):
+    def get_file_paths_by_key(self, key):
         all_files = listdir(self._path)
-        matching_files = [s_file for s_file in all_files if s_file.find(key)]
+        matching_files = [f"{self._path}/{s_file}" for s_file in all_files if key in s_file]
         return matching_files
 
     def run(self):
