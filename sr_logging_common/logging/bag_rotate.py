@@ -15,6 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from os import listdir, remove
+from os.path import join
 import rospy
 
 
@@ -36,7 +37,7 @@ class SrBagRotate:
 
     def get_file_paths_by_key(self, key):
         all_files = listdir(self._path)
-        matching_files = [f"{self._path}/{s_file}" for s_file in all_files if key in s_file]
+        matching_files = [join(self._path, file_name) for file_name in all_files if key in file_name]
         return matching_files
 
     def run(self):
