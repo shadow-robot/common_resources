@@ -28,11 +28,11 @@ class SrBagRotate:
         self.run()
 
     def remove_old_bags(self):
-        bags_to_remove = self.get_file_paths_by_key(".bag")
-        bags_to_remove.sort()
+        existing_bags = self.get_file_paths_by_key(".bag")
+        existing_bags.sort()
 
-        for i, bag in enumerate(bags_to_remove):
-            if i < len(bags_to_remove)-self._desired_bag_number - 1:
+        for i, bag in enumerate(existing_bags):
+            if i < len(existing_bags)-self._desired_bag_number - 1:
                 remove(bag)
 
     def get_file_paths_by_key(self, key):
