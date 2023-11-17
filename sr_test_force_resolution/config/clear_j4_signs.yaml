@@ -1,0 +1,21 @@
+---
+FF: 
+  MF: 'max'
+  RF: 'min'
+  LF: 'min'
+
+MF: 
+  FF: 'min'
+  RF: 'min'
+  LF: 'min'
+
+RF: 
+  FF: 'min'
+  MF: 'min'
+  LF: 'min'
+
+LF: 
+  FF: 'min'
+  MF: 'min'
+  RF: 'max'
+
