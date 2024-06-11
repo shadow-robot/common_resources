@@ -15,7 +15,6 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import argparse
 import yaml
 import rospy
 import tf2_ros
@@ -69,11 +68,7 @@ class SrLiveTfRepublisher:
 
 
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--config_file', help='Path to the yaml config file', required=True)
-    # args = parser.parse_args()
-    # input_config_file = args.config_file
-    rospy.init_node('tf_live_filter')
+    rospy.init_node('tf_live_filter', anonymous=True)
     input_config_file = rospy.get_param('~config_file')
     republisher = SrLiveTfRepublisher(input_config_file)
     rospy.spin()
