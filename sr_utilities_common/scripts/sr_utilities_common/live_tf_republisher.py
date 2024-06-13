@@ -24,9 +24,11 @@ import tf2_msgs
 class SrLiveTfRepublisher:
     def __init__(self, config_file):
         loaded_config = self._load_and_validate_config(config_file)
-        self._parent_child_frames_dict = {}
-        for parent, child in loaded_config['parent_to_child_frames'].items():
-            self._parent_child_frames_dict[parent] = child
+        self._parent_child_frames = []
+        for parent_child_pair in loaded_config['parent_to_child_frames']:
+            for parent, child in parent_child_pair.items():
+                self._parent_child_frames.append((parent, child))
+
         output_topic = loaded_config['output_topic']
         frequency = loaded_config['frequency']
         self._tf_buffer = tf2_ros.Buffer()
@@ -58,8 +60,8 @@ class SrLiveTfRepublisher:
 
     def _timer_callback(self, _):
         try:
-            transforms = [self._tf_buffer.lookup_transform(parent, child, rospy.Time())
-                     for parent, child in self._parent_child_frames_dict.items()]
+            transforms = [self._tf_buffer.lookup_transform(parent_child_pair[0], parent_child_pair[1], rospy.Time())
+                     for parent_child_pair in self._parent_child_frames]
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             pass
         else:
@@ -69,6 +71,7 @@ class SrLiveTfRepublisher:
 
 if __name__ == '__main__':
     rospy.init_node('tf_live_filter', anonymous=True)
-    input_config_file = rospy.get_param('~config_file')
+    # input_config_file = rospy.get_param('~config_file')
+    input_config_file = '/home/user/projects/shadow_robot/base/src/common_resources/sr_utilities_common/config/frames_to_remap.yaml'
     republisher = SrLiveTfRepublisher(input_config_file)
     rospy.spin()

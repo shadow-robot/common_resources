@@ -17,8 +17,8 @@ sr_tf_live_republisher:
   output_topic: '/tf_filtered_record'
   frequency: 100
   parent_to_child_frames:
-    rh_palm: rh_fftip
-    rh_palm: rh_mftip
-    rh_palm: rh_rftip
-    rh_palm: rh_lftip
-    rh_palm: rh_thtip
+    - rh_palm: rh_fftip
+    - rh_palm: rh_mftip
+    - rh_palm: rh_rftip
+    - rh_palm: rh_lftip
+    - rh_palm: rh_thtip
