@@ -61,7 +61,7 @@ class SrLiveTfRepublisher:
     def _timer_callback(self, _):
         try:
             transforms = [self._tf_buffer.lookup_transform(parent_child_pair[0], parent_child_pair[1], rospy.Time())
-                     for parent_child_pair in self._parent_child_frames]
+                          for parent_child_pair in self._parent_child_frames]
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             pass
         else:
@@ -71,7 +71,6 @@ class SrLiveTfRepublisher:
 
 if __name__ == '__main__':
     rospy.init_node('tf_live_filter', anonymous=True)
-    # input_config_file = rospy.get_param('~config_file')
-    input_config_file = '/home/user/projects/shadow_robot/base/src/common_resources/sr_utilities_common/config/frames_to_remap.yaml'
+    input_config_file = rospy.get_param('~config_file')
     republisher = SrLiveTfRepublisher(input_config_file)
     rospy.spin()
