@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020-2022 Shadow Robot Company Ltd.
+# Copyright 2020-2022, 2024 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -80,14 +80,14 @@ class AWSManager:
             bucket_data = self._client.list_objects(Bucket=aws_bucket, Prefix=aws_subfolder)
         else:
             bucket_data = self._client.list_objects(Bucket=aws_bucket)
-
         filenames = []
         for content in bucket_data['Contents']:
+            if content['Key'][-1] == "/":
+                continue
             if aws_subfolder:
                 filenames.append(content['Key'][len(aws_subfolder):])
             else:
                 filenames.append(content['Key'])
-
         return filenames
 
     def _prepare_structure_upload(self, files_base_path, files_folder_path, file_names, bucket_subfolder):
@@ -110,13 +110,20 @@ class AWSManager:
             else:
                 self.aws_paths.append(f"{file_name}")
 
-    def download(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
+    def download(self, bucket_name, files_base_path, files_folder_path,
+                 file_names, bucket_subfolder, preserve_downloaded_folder_structure=False):
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
         download_succeded = False
         directory = os.path.join(files_base_path, files_folder_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
+            if preserve_downloaded_folder_structure:
+                if not os.path.exists(os.path.join(directory, aws_path)):
+                    os.makedirs(os.path.join(directory, aws_path))
+                file_full_path = os.path.join(files_base_path, files_folder_path, aws_path)
+                if os.path.isdir(file_full_path):
+                    os.rmdir(file_full_path)
             try:
                 self._client.download_file(bucket_name, aws_path, file_full_path)
                 download_succeded = True
@@ -147,16 +154,19 @@ def gather_all_files_local(files_base_path, files_folder_path):
 
 
 def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                     file_names, bucket_subfolder):
+                                     file_names, bucket_subfolder, preserve_downloaded_folder_structure_param=False):
     print_msg = f"\nFrom bucket {bucket_name} downloading the files:"
     print_msg_2 = ""
     for filename in file_names:
-        print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{filename}"
+        if preserve_downloaded_folder_structure_param and bucket_subfolder:
+            print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{bucket_subfolder}/{filename}"
+        else:
+            print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{filename}"
         if bucket_subfolder:
             print_msg += f"\n    {bucket_subfolder}/{filename}"
         else:
             print_msg += f"\n    {filename}"
-    print_msg += f"\n\nThese files will be downloaded too {files_base_path}/{files_folder_path}:"
+    print_msg += f"\n\nThese files will be downloaded to {files_base_path}/{files_folder_path}:"
     print_msg += print_msg_2
     rospy.loginfo(print_msg)
     value = input("Would you like to download these files? (Y/N) ")
@@ -169,7 +179,7 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
 
     rospy.logerr("Select a valid option")
     validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                     file_names, bucket_subfolder)
+                                     file_names, bucket_subfolder, preserve_downloaded_folder_structure_param)
     return True
 
 
@@ -216,6 +226,7 @@ if __name__ == "__main__":
     rospy.init_node("aws_manager_node")
 
     function_mode_param = rospy.get_param("~function_mode")
+    preserve_downloaded_folder_structure_param = rospy.get_param("~preserve_downloaded_folder_structure")
     skip_check_param = rospy.get_param("~skip_check")
     bucket_name_param = rospy.get_param("~bucket_name")
     bucket_subfolder_param = rospy.get_param("~bucket_subfolder")
@@ -229,6 +240,8 @@ if __name__ == "__main__":
     aws_manager = AWSManager()
 
     if function_mode_param == "upload":
+        if preserve_downloaded_folder_structure_param:
+            rospy.logwarn("preserve_downloaded_folder_structure is not supported for upload")
         if file_names_param == "":
             file_names_param = gather_all_files_local(files_base_path_param, files_folder_path_param)
         if not skip_check_param:
@@ -247,12 +260,13 @@ if __name__ == "__main__":
             file_names_param = aws_manager.gather_all_files_remote(bucket_name_param, bucket_subfolder_param)
         if not skip_check_param:
             if not validated_files_to_be_downloaded(bucket_name_param, files_base_path_param, files_folder_path_param,
-                                                    file_names_param, bucket_subfolder_param):
+                                                    file_names_param, bucket_subfolder_param,
+                                                    preserve_downloaded_folder_structure_param):
                 rospy.signal_shutdown("")
                 sys.exit(0)
         status_msg = "File download failed"
         if aws_manager.download(bucket_name_param, files_base_path_param, files_folder_path_param,
-                                file_names_param, bucket_subfolder_param):
+                                file_names_param, bucket_subfolder_param, preserve_downloaded_folder_structure_param):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 
