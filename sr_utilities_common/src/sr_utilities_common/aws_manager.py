@@ -154,11 +154,11 @@ def gather_all_files_local(files_base_path, files_folder_path):
 
 
 def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                     file_names, bucket_subfolder, preserve_downloaded_folder_structure_param=False):
+                                     file_names, bucket_subfolder, preserve_downloaded_folder_structure=False):
     print_msg = f"\nFrom bucket {bucket_name} downloading the files:"
     print_msg_2 = ""
     for filename in file_names:
-        if preserve_downloaded_folder_structure_param and bucket_subfolder:
+        if preserve_downloaded_folder_structure and bucket_subfolder:
             print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{bucket_subfolder}/{filename}"
         else:
             print_msg_2 += f"\n    {files_base_path}/{files_folder_path}/{filename}"
@@ -179,7 +179,7 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
 
     rospy.logerr("Select a valid option")
     validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_path,
-                                     file_names, bucket_subfolder, preserve_downloaded_folder_structure_param)
+                                     file_names, bucket_subfolder, preserve_downloaded_folder_structure)
     return True
 
 
