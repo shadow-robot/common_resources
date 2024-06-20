@@ -62,10 +62,11 @@ class SrLiveTfRepublisher:
         for parent_child_pair in self._parent_child_frames:
             try:
                 transform = self._tf_buffer.lookup_transform(parent_child_pair[0], parent_child_pair[1], rospy.Time())
-            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
-                rospy.logwarn_throttle(1.0, f'{e}')
+            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as error:
+                rospy.logwarn_throttle(1.0, f'{error}')
             else:
                 self._broadcaster.sendTransform(transform)
+
 
 if __name__ == '__main__':
     rospy.init_node('tf_live_filter', anonymous=True)
