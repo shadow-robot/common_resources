@@ -115,7 +115,7 @@
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
-        <pose>0.334733 -0.507348 0.48524 0 -0 0</pose>
+        <pose>0 0 0 0 -0 0</pose>
         <gravity>1</gravity>
         <visual name="visual">
           <geometry>
@@ -205,7 +205,7 @@
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
-        <pose>0 0 0.038682 0 -0 0</pose>
+        <pose>0 0 0 0 -0 0</pose>
         <gravity>1</gravity>
         <inertial>
           <mass>1</mass>
@@ -300,7 +300,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>0.595086 -0.565229 0.369 0 -0 0</pose>
+      <pose>0.595086 -0.565229 0.34 0 -0 0</pose>
     </model>
   </world>
 </sdf>
