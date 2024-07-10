@@ -36,7 +36,7 @@
       <uri>model://human</uri>
       <static>true</static>
       <name>human</name>
-      <pose>-0.72 0.75 0.89 3.1414900000000014 1.5707899999999997 3.1415899999999986</pose>
+      <pose>-0.72 0.75 0.89 3.1414900000000046 1.5707899999999997 3.1415900000000008</pose>
     </include>
     <include>
       <uri>model://wall</uri>
@@ -60,13 +60,13 @@
       <uri>model://table_future_labs</uri>
       <static>true</static>
       <name>table_future_labs</name>
-      <pose>0.882285 0.75 0.369 0.0 -0.0 0.0</pose>
+      <pose>0.830684 0.75 0.415988 0.0 -0.0 0.0</pose>
     </include>
     <include>
       <uri>model://wall</uri>
       <static>true</static>
       <name>wall_4</name>
-      <pose>1.43674 0.737282 1.34 0.0 -0.0 1.5708</pose>
+      <pose>1.34388 0.740876 1.34 0.0 -0.0 1.5708</pose>
     </include>
     <physics type="ode">
       <gravity>0.000000 0.000000 -9.810000</gravity>
