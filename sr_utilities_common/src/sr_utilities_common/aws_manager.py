@@ -136,7 +136,7 @@ class AWSManager:
                         Bucket=bucket_name,
                         Key=aws_path,
                         Filename=file_full_path,
-                        Callback=lambda bytes_transferred: pbar.update(bytes_transferred),  # pylint: disable=W0640,W0108
+                        Callback=lambda bytes_tx: pbar.update(bytes_tx),  # pylint: disable=W0640,W0108
                     )
                 download_succeded = True
             except self._client.exceptions.ClientError as exception:
