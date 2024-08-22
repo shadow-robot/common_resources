@@ -138,6 +138,7 @@ class AWSManager:
                     os.rmdir(file_full_path)
             if file_extentions_to_exclude is not None:
                 if any(file_full_path.endswith(ext) for ext in file_extentions_to_exclude):
+                    ext = file_full_path.split('.')[-1]
                     rospy.loginfo(f"Skipping file download ({aws_path}) due to {ext} being " +
                                   "in file_extentions_to_exclude")
                     continue
