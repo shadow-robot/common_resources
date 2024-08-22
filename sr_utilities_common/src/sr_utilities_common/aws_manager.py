@@ -118,7 +118,8 @@ class AWSManager:
         directory = os.path.join(files_base_path, files_folder_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        for file_full_path, aws_path in tqdm(zip(self.file_full_paths, self.aws_paths), total=len(self.file_full_paths)):
+        for file_full_path, aws_path in tqdm(zip(self.file_full_paths, self.aws_paths),
+                                             total=len(self.file_full_paths)):
             if preserve_downloaded_folder_structure:
                 if not os.path.exists(os.path.join(directory, aws_path)):
                     os.makedirs(os.path.join(directory, aws_path))
@@ -127,13 +128,15 @@ class AWSManager:
                     os.rmdir(file_full_path)
             try:
                 object_size = self._client.head_object(Bucket=bucket_name, Key=aws_path)['ContentLength']
-                with tqdm(total=object_size, unit="B", unit_scale=True,
-                               desc=file_full_path.replace(directory, ''), leave=False) as pbar:
+                with tqdm(total=object_size,
+                          unit="B", unit_scale=True,
+                          desc=file_full_path.replace(directory, ''),
+                          leave=False) as pbar:
                     self._client.download_file(
                         Bucket=bucket_name,
                         Key=aws_path,
                         Filename=file_full_path,
-                        Callback=lambda bytes_transferred: pbar.update(bytes_transferred),
+                        Callback=lambda bytes_transferred: pbar.update(bytes_transferred),  # pylint: disable=W0640,W0108
                     )
                 download_succeded = True
             except self._client.exceptions.ClientError as exception:
