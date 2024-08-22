@@ -112,7 +112,17 @@ class AWSManager:
                 self.aws_paths.append(f"{file_name}")
 
     def download(self, bucket_name, files_base_path, files_folder_path,
-                 file_names, bucket_subfolder, preserve_downloaded_folder_structure=False):
+                 file_names, bucket_subfolder, preserve_downloaded_folder_structure=False,
+                 file_extentions_to_exclude=None):
+        if file_extentions_to_exclude is not None:
+            examples = "(e.g. ['.txt', '.jpg'])"
+            if not isinstance(file_extentions_to_exclude, list):
+                raise ValueError(f"file_extentions_to_exclude must be a list of extensions {examples}")
+            for file_extention in file_extentions_to_exclude:
+                if not file_extention.startswith('.'):
+                    raise ValueError(f"each file_extentions_to_exclude item must start with a '.' {examples}")
+                if not isinstance(file_extention, str):
+                    raise ValueError("file_extentions_to_exclude must be a list of strings")
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
         download_succeded = False
         directory = os.path.join(files_base_path, files_folder_path)
@@ -126,6 +136,11 @@ class AWSManager:
                 file_full_path = os.path.join(files_base_path, files_folder_path, aws_path)
                 if os.path.isdir(file_full_path):
                     os.rmdir(file_full_path)
+            if file_extentions_to_exclude is not None:
+                if any(file_full_path.endswith(ext) for ext in file_extentions_to_exclude):
+                    rospy.loginfo(f"Skipping file download ({aws_path}) due to {ext} being " +
+                                  "in file_extentions_to_exclude")
+                    continue
             try:
                 object_size = self._client.head_object(Bucket=bucket_name, Key=aws_path)['ContentLength']
                 with tqdm(total=object_size,
