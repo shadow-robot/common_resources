@@ -260,6 +260,9 @@ if __name__ == "__main__":
     files_base_path_param = rospy.get_param("~files_base_path")
     files_folder_path_param = rospy.get_param("~files_folder_path")
     file_names_param = rospy.get_param("~file_names")
+    file_extentions_to_exclude_param = rospy.get_param("~file_extentions_to_exclude", None)
+    if file_extentions_to_exclude_param is not None:
+        file_extentions_to_exclude_param = list(file_extentions_to_exclude_param)
 
     function_mode_param = return_function_mode(function_mode_param)
     if bucket_subfolder_param == "":
@@ -293,7 +296,8 @@ if __name__ == "__main__":
                 sys.exit(0)
         status_msg = "File download failed"
         if aws_manager.download(bucket_name_param, files_base_path_param, files_folder_path_param,
-                                file_names_param, bucket_subfolder_param, preserve_downloaded_folder_structure_param):
+                                file_names_param, bucket_subfolder_param, preserve_downloaded_folder_structure_param,
+                                file_extentions_to_exclude_param):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 
