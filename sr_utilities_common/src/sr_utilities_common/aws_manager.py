@@ -181,7 +181,7 @@ def validated_files_to_be_downloaded(bucket_name, files_base_path, files_folder_
     print_msg += f"\n\nThese files will be downloaded to {files_base_path}/{files_folder_path}:"
     print_msg += print_msg_2
     rospy.loginfo(print_msg)
-    value = input("Would you like to download these files? (Y/N) ")
+    value = input("Would you like to download these files? (y/n) ")
     value = value.lower().strip()
 
     if value == "y":
@@ -208,7 +208,7 @@ def validated_files_to_be_uploaded(bucket_name, files_base_path, files_folder_pa
     print_msg += f"\n\nThese files will be uploaded to the bucket {bucket_name}:"
     print_msg += print_msg_2
     rospy.loginfo(print_msg)
-    value = input("Would you like to upload these files? (Y/N) ")
+    value = input("Would you like to upload these files? (y/n) ")
     value = value.lower().strip()
 
     if value == "y":
