@@ -159,7 +159,8 @@ class AWSManager:
                 rospy.logerr(f"File download failed ({aws_path}). {exception}")
         return download_succeded
 
-    def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder, strip_root_dir=False):
+    def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder,
+               strip_root_dir=False):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
         if strip_root_dir:
             for remote_path_index in range(len(self.aws_paths)):
