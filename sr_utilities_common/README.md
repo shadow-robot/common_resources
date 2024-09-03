@@ -117,8 +117,11 @@ An example launch file using this script could look like the one below:
   <arg name="files_folder_path" default="/example_folder_within_package"/>
   <arg name="file_names" default='""'/>
 
+  <arg name="preserve_downloaded_folder_structure" default="false"/>
+
   <node name="aws_manager_node" pkg="sr_utilities_common" type="aws_manager.py" output="screen">
     <rosparam param="function_mode" subst_value="True">$(arg function_mode)</rosparam>
+    <rosparam param="preserve_downloaded_folder_structure" subst_value="True">$(arg preserve_downloaded_folder_structure)</rosparam>
     <rosparam param="skip_check" subst_value="True">$(arg skip_check)</rosparam>
     <rosparam param="files_base_path" subst_value="True">$(arg files_base_path)</rosparam>
     <rosparam param="files_folder_path" subst_value="True">$(arg files_folder_path)</rosparam>
