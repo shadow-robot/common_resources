@@ -59,7 +59,7 @@ class AWSManager:
                 if response.status_code == 200:
                     break
                 rospy.logwarn(f"Response returned status code {response.status_code}, retrying... " +
-                                f"(attempt {_ + 1}/{self.NUM_RETRIES})")
+                              f"(attempt {_ + 1}/{self.NUM_RETRIES})")
                 time.sleep(0.2)
             if response.status_code != 200:
                 rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
