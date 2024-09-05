@@ -33,6 +33,7 @@ class AWSManager:
         aws_access_key_id = access_key
         aws_secret_access_key = secret_key
         aws_session_token = session_token
+        retries = 5
         headers = None
         if not access_key and not secret_key and not session_token:
             try:
@@ -42,7 +43,19 @@ class AWSManager:
             except IOError:
                 rospy.logerr("Could not find customer key, ask software team for help!")
             try:
-                response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
+                for _ in range(retries):
+                    response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod',
+                                            headers=headers)
+                    if response.status_code == 200:
+                        break
+                    else:
+                        rospy.logwarn(f"Response returned status code {response.status_code}, retrying... " +
+                                    f"(attempt {_ + 1}/{self._auth_retries})")
+                if response.status_code != 200:
+                    rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
+                    if response.status_code == 502:
+                        rospy.logerr(f"502 is a load balancer error and normally doesn't last long. Please try again")
+                    raise Exception()
                 result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
                 aws_access_key_id = result.group(1)
                 result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
