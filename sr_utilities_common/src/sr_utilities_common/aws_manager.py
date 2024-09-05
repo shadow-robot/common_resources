@@ -112,7 +112,17 @@ class AWSManager:
                 self.aws_paths.append(f"{file_name}")
 
     def download(self, bucket_name, files_base_path, files_folder_path,
-                 file_names, bucket_subfolder, preserve_downloaded_folder_structure=False):
+                 file_names, bucket_subfolder, preserve_downloaded_folder_structure=False,
+                 file_extentions_to_include=None):
+        if file_extentions_to_include is not None:
+            examples = "(e.g. ['.txt', '.jpg'])"
+            if not isinstance(file_extentions_to_include, list):
+                raise ValueError(f"file_extentions_to_include must be a list of extensions {examples}")
+            for file_extention in file_extentions_to_include:
+                if not file_extention.startswith('.'):
+                    raise ValueError(f"each file_extentions_to_include item must start with a '.' {examples}")
+                if not isinstance(file_extention, str):
+                    raise ValueError("file_extentions_to_include must be a list of strings")
         self._prepare_structure_download(files_base_path, files_folder_path, file_names, bucket_subfolder)
         download_succeded = False
         directory = os.path.join(files_base_path, files_folder_path)
@@ -126,6 +136,12 @@ class AWSManager:
                 file_full_path = os.path.join(files_base_path, files_folder_path, aws_path)
                 if os.path.isdir(file_full_path):
                     os.rmdir(file_full_path)
+            if file_extentions_to_include is not None:
+                if not any(file_full_path.endswith(ext) for ext in file_extentions_to_include):
+                    ext = file_full_path.split('.')[-1]
+                    rospy.loginfo(f"Skipping file download ({aws_path}) due to {ext} not being " +
+                                  "in file_extentions_to_include")
+                    continue
             try:
                 object_size = self._client.head_object(Bucket=bucket_name, Key=aws_path)['ContentLength']
                 with tqdm(total=object_size,
@@ -136,15 +152,19 @@ class AWSManager:
                         Bucket=bucket_name,
                         Key=aws_path,
                         Filename=file_full_path,
-                        Callback=lambda bytes_tx: pbar.update(bytes_tx),  # pylint: disable=W0640,W0108
+                        Callback=pbar.update,  # pylint: disable=W0640,W0108
                     )
                 download_succeded = True
             except self._client.exceptions.ClientError as exception:
                 rospy.logerr(f"File download failed ({aws_path}). {exception}")
         return download_succeded
 
-    def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder):
+    def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder,
+               strip_root_dir=False):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
+        if strip_root_dir:
+            for remote_path_index in range(len(self.aws_paths)):
+                self.aws_paths[remote_path_index] = self.aws_paths[remote_path_index].split("/", 1)[1]
         upload_succeded = False
         for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
             try:
@@ -245,6 +265,9 @@ if __name__ == "__main__":
     files_base_path_param = rospy.get_param("~files_base_path")
     files_folder_path_param = rospy.get_param("~files_folder_path")
     file_names_param = rospy.get_param("~file_names")
+    file_extentions_to_include_param = rospy.get_param("~file_extentions_to_include", None)
+    if file_extentions_to_include_param is not None:
+        file_extentions_to_include_param = list(file_extentions_to_include_param)
 
     function_mode_param = return_function_mode(function_mode_param)
     if bucket_subfolder_param == "":
@@ -278,7 +301,8 @@ if __name__ == "__main__":
                 sys.exit(0)
         status_msg = "File download failed"
         if aws_manager.download(bucket_name_param, files_base_path_param, files_folder_path_param,
-                                file_names_param, bucket_subfolder_param, preserve_downloaded_folder_structure_param):
+                                file_names_param, bucket_subfolder_param, preserve_downloaded_folder_structure_param,
+                                file_extentions_to_include_param):
             status_msg = "Completed file download."
         rospy.loginfo(status_msg)
 
