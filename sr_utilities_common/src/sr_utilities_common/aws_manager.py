@@ -38,11 +38,15 @@ class AWSManager:
         aws_session_token = session_token
         if not access_key or not secret_key or not session_token:
             self._aws_access_key_id, self._aws_secret_access_key, self._aws_session_token = self._get_auth_keys()
+        else:
+            self._aws_access_key_id = aws_access_key_id
+            self._aws_secret_access_key = aws_secret_access_key
+            self._aws_session_token = aws_session_token
         self._client = boto3.client(
             's3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            aws_session_token=aws_session_token
+            aws_access_key_id=self._aws_access_key_id,
+            aws_secret_access_key=self._aws_secret_access_key,
+            aws_session_token=self._aws_session_token
         )
 
     def _get_auth_keys(self):
