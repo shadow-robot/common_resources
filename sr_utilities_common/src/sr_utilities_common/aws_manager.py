@@ -19,6 +19,7 @@
 import re
 import os
 import sys
+import time
 import rospy
 import boto3
 from six.moves import input
@@ -27,41 +28,68 @@ import requests
 
 
 class AWSManager:
+    NUM_RETRIES = 5
+
     def __init__(self, access_key=None, secret_key=None, session_token=None):
         self.file_full_paths = []
         self.aws_paths = []
         aws_access_key_id = access_key
         aws_secret_access_key = secret_key
         aws_session_token = session_token
-        headers = None
-        if not access_key and not secret_key and not session_token:
-            try:
-                with open('/usr/local/bin/customer.key', 'r', encoding="utf-8") as customer_key_file:
-                    customer_key = customer_key_file.read()
-                    headers = {'x-api-key': f'{customer_key[:-1]}'}
-            except IOError:
-                rospy.logerr("Could not find customer key, ask software team for help!")
-            try:
-                response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod', headers=headers)
-                result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
-                aws_access_key_id = result.group(1)
-                result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
-                aws_secret_access_key = result.group(1)
-                result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
-                aws_session_token = result.group(1)
-                if response.status_code != 200:  # Code for success
-                    rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
-                    raise Exception()
-            except requests.exceptions.RequestException as exception:
-                err = "Could not request secret AWS access key, ask software team for help!"
-                err = err + f"\nError message: {exception}"
-                rospy.logerr(err)
+        if not access_key or not secret_key or not session_token:
+            self._aws_access_key_id, self._aws_secret_access_key, self._aws_session_token = self._get_auth_keys()
+        else:
+            self._aws_access_key_id = aws_access_key_id
+            self._aws_secret_access_key = aws_secret_access_key
+            self._aws_session_token = aws_session_token
         self._client = boto3.client(
             's3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            aws_session_token=aws_session_token
+            aws_access_key_id=self._aws_access_key_id,
+            aws_secret_access_key=self._aws_secret_access_key,
+            aws_session_token=self._aws_session_token
         )
+
+    def _get_auth_keys(self):
+        try:
+            with open('/usr/local/bin/customer.key', 'r', encoding="utf-8") as customer_key_file:
+                customer_key = customer_key_file.read()
+                headers = {'x-api-key': f'{customer_key[:-1]}'}
+        except IOError:
+            rospy.logerr("Could not find customer key, ask software team for help!")
+        try:
+            for _ in range(self.NUM_RETRIES):
+                response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod',
+                                        headers=headers)
+                if response.status_code == 200:
+                    break
+                rospy.logwarn(f"Response returned status code {response.status_code}, retrying... " +
+                              f"(attempt {_ + 1}/{self.NUM_RETRIES})")
+                time.sleep(0.2)
+            if response.status_code != 200:
+                rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
+                if response.status_code == 502:
+                    rospy.logerr("502 is a load balancer error and normally doesn't last long. Please try again")
+                response.raise_for_status()
+            result = re.search('ACCESS_KEY_ID=(.*)\nSECRET_ACCESS', response.text)
+            aws_access_key_id = result.group(1)
+            result = re.search('SECRET_ACCESS_KEY=(.*)\nSESSION_TOKEN', response.text)
+            aws_secret_access_key = result.group(1)
+            result = re.search('SESSION_TOKEN=(.*)\nEXPIRATION', response.text)
+            aws_session_token = result.group(1)
+        except requests.exceptions.RequestException as exception:
+            err = "Could not request secret AWS access key, ask software team for help!"
+            err = err + f"\nError message: {exception}"
+            rospy.logerr(err)
+        return aws_access_key_id, aws_secret_access_key, aws_session_token
+
+    @property
+    def aws_credentials(self):
+        creds = {
+            "aws_access_key_id": self._aws_access_key_id,
+            "aws_secret_access_key": self._aws_secret_access_key,
+            "aws_session_token": self._aws_session_token
+        }
+        return creds
 
     def get_bucket_structure_with_prefix(self, bucket_name, prefix=""):
         try:
