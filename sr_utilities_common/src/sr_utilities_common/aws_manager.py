@@ -57,13 +57,13 @@ class AWSManager:
         except IOError:
             rospy.logerr("Could not find customer key, ask software team for help!")
         try:
-            for _ in range(self.NUM_RETRIES):
+            for attempt_number in range(self.NUM_RETRIES):
                 response = requests.get('https://5vv2z6j3a7.execute-api.eu-west-2.amazonaws.com/prod',
                                         headers=headers)
                 if response.status_code == 200:
                     break
-                rospy.logwarn(f"Response returned status code {response.status_code}, retrying... " +
-                              f"(attempt {_ + 1}/{self.NUM_RETRIES})")
+                rospy.logwarn(f"AWS S3 authentication returned response status code {response.status_code}, " +
+                              f"retrying... (attempt {attempt_number + 1}/{self.NUM_RETRIES})")
                 time.sleep(0.2)
             if response.status_code != 200:
                 rospy.logerr(f"Could not connect to AWS API server. Returned status code {response.status_code}")
