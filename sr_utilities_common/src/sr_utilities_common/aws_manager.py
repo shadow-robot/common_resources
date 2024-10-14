@@ -192,7 +192,7 @@ class AWSManager:
                 rospy.logerr(f"File download failed ({aws_path}). {exception}")
         return download_succeded
 
-    def fast_upload(self, bucketname, s3dir, filelist, progress_func):
+    def parallel_upload(self, bucketname, s3dir, filelist, progress_func):
         transfer_config = s3transfer.TransferConfig(
             use_threads=True,
             max_concurrency=self.NUM_WORKERS,
@@ -222,7 +222,10 @@ class AWSManager:
         if fast_upload:
             total_size = sum(os.path.getsize(file_full_path) for file_full_path in self.file_full_paths)
             with tqdm(total=total_size, desc="Uploading files to S3", unit='B', unit_scale=1) as pbar:
-                upload_succeded = self.fast_upload(bucket_name, self.aws_paths, self.file_full_paths, pbar.update)
+                upload_succeded = self.parallel_upload(bucket_name,
+                                                       self.aws_paths,
+                                                       self.file_full_paths,
+                                                       pbar.update)
         else:
             upload_succeded = False
             for file_full_path, aws_path in tqdm(zip(self.file_full_paths, self.aws_paths),
