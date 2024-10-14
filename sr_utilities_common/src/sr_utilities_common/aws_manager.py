@@ -21,7 +21,9 @@ import os
 import sys
 import time
 import rospy
+import botocore
 import boto3
+import boto3.s3.transfer as s3transfer
 from six.moves import input
 from tqdm import tqdm
 import requests
@@ -29,6 +31,7 @@ import requests
 
 class AWSManager:
     NUM_RETRIES = 5
+    NUM_WORKERS = 20
 
     def __init__(self, access_key=None, secret_key=None, session_token=None):
         self.file_full_paths = []
@@ -42,11 +45,13 @@ class AWSManager:
             self._aws_access_key_id = aws_access_key_id
             self._aws_secret_access_key = aws_secret_access_key
             self._aws_session_token = aws_session_token
+        botocore_config = botocore.config.Config(max_pool_connections=self.NUM_WORKERS)
         self._client = boto3.client(
             's3',
             aws_access_key_id=self._aws_access_key_id,
             aws_secret_access_key=self._aws_secret_access_key,
-            aws_session_token=self._aws_session_token
+            aws_session_token=self._aws_session_token,
+            config=botocore_config
         )
 
     def _get_auth_keys(self):
@@ -187,19 +192,47 @@ class AWSManager:
                 rospy.logerr(f"File download failed ({aws_path}). {exception}")
         return download_succeded
 
+    def fast_upload(self, bucketname, s3dir, filelist, progress_func):
+        transfer_config = s3transfer.TransferConfig(
+            use_threads=True,
+            max_concurrency=self.NUM_WORKERS,
+        )
+        s3t = s3transfer.create_transfer_manager(self._client, transfer_config)
+        futures = []
+        success = True
+        for src, dst in zip(filelist, s3dir):
+            futures.append(s3t.upload(src, bucketname, dst,
+                                      subscribers=[s3transfer.ProgressCallbackInvoker(progress_func)]))
+        s3t.shutdown()  # wait for all the upload tasks to finish
+        success = True
+        try:
+            for future in futures:
+                future.result()
+        except Exception as err:
+            rospy.logerr(f"Error uploading file to S3: {err}")
+            success = False
+        return success
+
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder,
-               strip_root_dir=False):
+               strip_root_dir=False, fast_upload=False):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
         if strip_root_dir:
             for remote_path_index in range(len(self.aws_paths)):
                 self.aws_paths[remote_path_index] = self.aws_paths[remote_path_index].split("/", 1)[1]
-        upload_succeded = False
-        for file_full_path, aws_path in zip(self.file_full_paths, self.aws_paths):
-            try:
-                self._client.upload_file(file_full_path, bucket_name, aws_path)
-                upload_succeded = True
-            except self._client.exceptions.S3UploadFailedError as exception:
-                rospy.logerr(f"File upload failed ({file_full_path}). {exception}")
+        if fast_upload:
+            total_size = sum(os.path.getsize(file_full_path) for file_full_path in self.file_full_paths)
+            with tqdm(total=total_size, desc="Uploading files to S3", unit='B', unit_scale=1) as pbar:
+                upload_succeded = self.fast_upload(bucket_name, self.aws_paths, self.file_full_paths, pbar.update)
+        else:
+            upload_succeded = False
+            for file_full_path, aws_path in tqdm(zip(self.file_full_paths, self.aws_paths),
+                                                 total=len(self.file_full_paths),
+                                                 desc="Uploading files to S3"):
+                try:
+                    self._client.upload_file(file_full_path, bucket_name, aws_path)
+                    upload_succeded = True
+                except self._client.exceptions.S3UploadFailedError as exception:
+                    rospy.logerr(f"File upload failed ({file_full_path}). {exception}")
         return upload_succeded
 
 
