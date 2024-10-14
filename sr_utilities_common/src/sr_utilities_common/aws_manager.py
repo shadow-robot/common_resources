@@ -214,7 +214,7 @@ class AWSManager:
         return success
 
     def upload(self, bucket_name, files_base_path, files_folder_path, file_names, bucket_subfolder,
-               strip_root_dir=False, fast_upload=False):
+               strip_root_dir=False, fast_upload=True):
         self._prepare_structure_upload(files_base_path, files_folder_path, file_names, bucket_subfolder)
         if strip_root_dir:
             for remote_path_index in range(len(self.aws_paths)):
