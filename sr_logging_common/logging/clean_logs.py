@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+
+# Copyright 2024 Shadow Robot Company Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <http://www.gnu.org/licenses/>.
+
+import os
+import shutil
+import argparse
+from logging_utils import get_directory_size, get_oldest_item_in_directory
+from check_log_size import GIGABYTE, LOG_PATH
+
+PROTECTED_ITEMS = ['latest', 'core_dumps']
+CORE_DUMPS_PATH = os.path.join(LOG_PATH, 'core_dumps')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=("Remove logs until the size of the logs is less than" +
+                                                  "a specified size."))
+    parser.add_argument('-m', '--min_size_of_logs', type=int, default=GIGABYTE,
+                        help="The minimum size of the logs in bytes. Default is 1GB.")
+    args = parser.parse_args()
+
+    min_size_of_logs = args.min_size_of_logs
+
+    print(f"Removing logs until the size of the logs is less than {min_size_of_logs} bytes.")
+
+    current_log_size = get_directory_size(LOG_PATH)
+
+    while current_log_size > min_size_of_logs:
+        oldest_in_log, ctime_of_oldest_in_log = get_oldest_item_in_directory(LOG_PATH, search_blacklist=PROTECTED_ITEMS)
+        oldest_in_core_dumps, ctime_of_oldest_in_core_dumps = get_oldest_item_in_directory(CORE_DUMPS_PATH)
+
+        if oldest_in_log is None and oldest_in_core_dumps is None:
+            print("No more logs to remove.")
+            break
+
+        if ctime_of_oldest_in_log <= ctime_of_oldest_in_core_dumps:
+            oldest_abs_path = os.path.join(LOG_PATH, oldest_in_log)
+        else:
+            oldest_abs_path = os.path.join(CORE_DUMPS_PATH, oldest_in_core_dumps)
+
+        print(f"\t- {oldest_abs_path}")
+
+        if os.path.isdir(oldest_abs_path):
+            current_log_size -= get_directory_size(oldest_abs_path)
+
+            # shutil.rmtree will fail if a directory contains read-only files. ignore_errors=True will prevent this.
+            shutil.rmtree(oldest_abs_path, ignore_errors=True)
+        else:
+            current_log_size -= os.path.getsize(oldest_abs_path)
+            os.remove(oldest_abs_path)
