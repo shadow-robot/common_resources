@@ -35,9 +35,9 @@ if __name__ == '__main__':
 
     if free_disk_space < required_disk_space_for_logs:
         rospy.logfatal("Not enough free disk space to safely store roslogs:\n" +
-                     f"\tFree Disk Space: {free_disk_space} of {total_disk_space} bytes free\n" +
-                     f"\tRequired Disk Space for roslogs: {required_disk_space_for_logs } bytes\n" +
-                     f"\troslog Size: {logs_size} bytes")
+                       f"\tFree Disk Space: {free_disk_space} of {total_disk_space} bytes free\n" +
+                       f"\tRequired Disk Space for roslogs: {required_disk_space_for_logs } bytes\n" +
+                       f"\troslog Size: {logs_size} bytes")
 
         if logs_size > min_size_of_logs:
             rospy.logwarn("Consider running log_cleaner.py to cut the size of the logs down to" +
