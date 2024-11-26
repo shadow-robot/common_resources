@@ -21,7 +21,7 @@ def get_directory_size(directory: str) -> int:
         Get the size of a directory in bytes. This function is recursive and will calculate the size of the direcotry
         and all its subdirectories.
 
-        :param directory: The directory to calculate the size of.
+        :param directory: The absolute path of the directory to calculate the size of.
         :return: The size of the directory in bytes.
     """
 
@@ -38,3 +38,13 @@ def get_directory_size(directory: str) -> int:
             total_size += os.path.getsize(os.path.join(root, file))
 
     return total_size
+
+def get_oldest_item_in_directory(directory: str) -> str:
+    """
+        Get the oldest file/subdirectory in a directory based on the creation time.
+
+        :param directory: The absolute path of the directory to search for the oldest file/subdirectory in.
+        :return: The absolute path of the oldest file/subdirectory in the directory.
+    """
+    oldest_item = min(os.listdir(directory), key=lambda f: os.path.getctime(os.path.join(directory, f)))
+    return os.path.join(directory, oldest_item)
