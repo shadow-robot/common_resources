@@ -40,11 +40,11 @@ if __name__ == '__main__':
                        f"\troslog Size: {logs_size} bytes")
 
         if logs_size > min_size_of_logs:
-            rospy.logwarn("Consider running log_cleaner.py to cut the size of the logs down to" +
+            rospy.logwarn("Consider running clean_logs.py to cut the size of the logs down to" +
                           f" {min_size_of_logs} bytes.")
         else:
             rospy.logwarn(f"Up to {min_size_of_logs} bytes of logs should be kept at all times. Consider" +
-                          " clearning up some space elsewhere on the disk.")
+                          " clearing up some space elsewhere on the disk.")
 
         rospy.signal_shutdown("Shutting down all nodes to prevent further log generation.")
 
