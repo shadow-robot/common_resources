@@ -15,6 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from typing import Tuple
 
 def get_directory_size(directory: str) -> int:
     """
@@ -35,16 +36,34 @@ def get_directory_size(directory: str) -> int:
 
     for root, _, files in os.walk(directory):
         for file in files:
+            if os.path.islink(os.path.join(root, file)):  # Ignore symbolic links
+                continue
             total_size += os.path.getsize(os.path.join(root, file))
 
     return total_size
 
-def get_oldest_item_in_directory(directory: str) -> str:
+def get_oldest_item_in_directory(directory: str, search_blacklist: list = None) -> Tuple[str, float]:
     """
         Get the oldest file/subdirectory in a directory based on the creation time.
 
         :param directory: The absolute path of the directory to search for the oldest file/subdirectory in.
-        :return: The absolute path of the oldest file/subdirectory in the directory.
+        :param search_blacklist: A list of file/subdirectory names to ignore when searching for the oldest
+            file/subdirectory. Optional.
+        :return: A tuple containing the name of the oldest file/subdirectory and the creation time of the oldest
+            file/subdirectory. If the directory is empty, returns None, float('inf').
     """
-    oldest_item = min(os.listdir(directory), key=lambda f: os.path.getctime(os.path.join(directory, f)))
-    return os.path.join(directory, oldest_item)
+
+    if search_blacklist is None:
+        search_blacklist = []
+
+    if any(not isinstance(blacklist_item, str) for blacklist_item in search_blacklist):
+        raise TypeError("All items in the search_blacklist must be strings.")
+
+    dir_items_blacklisted = [item for item in os.listdir(directory) if item not in search_blacklist]
+
+    if not dir_items_blacklisted:
+        return None, float('inf')
+
+    oldest_item = min(dir_items_blacklisted, key=lambda item: os.path.getctime(os.path.join(directory, item)))
+
+    return oldest_item, os.path.getctime(os.path.join(directory, oldest_item))

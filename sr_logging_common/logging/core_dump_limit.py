@@ -26,7 +26,7 @@ if __name__ == '__main__':
     path = rospy.get_param('~core_dump_path', '/home/user/.ros/log/core_dumps')
     while not rospy.is_shutdown():
         if get_directory_size(path) > desired_size:
-            oldest = get_oldest_item_in_directory(path)
+            oldest, _ = get_oldest_item_in_directory(path)
             rospy.loginfo("Core dump size greater than limit. Removing oldest file: " + oldest)
-            os.remove(oldest)
+            os.remove(os.path.join(path, oldest))
         time.sleep(5)
