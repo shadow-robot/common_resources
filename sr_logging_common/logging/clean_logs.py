@@ -33,20 +33,21 @@ if __name__ == '__main__':
     print(f"Removing logs until the size of the logs is less than {min_size_of_logs} bytes.")
 
     current_log_size = utils.get_directory_size(utils.LOG_PATH)
+    core_dumps_exists = os.path.exists(utils.CORE_DUMPS_PATH)
 
     while current_log_size > min_size_of_logs:
-        oldest_in_log, ctime_of_oldest_in_log = utils.get_oldest_item_in_directory(utils.LOG_PATH,
-                                                                                   search_blacklist=PROTECTED_ITEMS)
-        oldest_in_core_dumps, ctime_of_oldest_in_core_dumps = utils.get_oldest_item_in_directory(utils.CORE_DUMPS_PATH)
+        oldest_in_log, oldest_in_log_ctime = utils.get_oldest_item_in_directory(utils.LOG_PATH,
+                                                                                search_blacklist=PROTECTED_ITEMS)
 
-        if oldest_in_log is None and oldest_in_core_dumps is None:
-            print("No more logs to remove.")
-            break
+        if core_dumps_exists:
+            oldest_in_core_dumps, oldest_in_core_dumps_ctime = utils.get_oldest_item_in_directory(utils.CORE_DUMPS_PATH)
 
-        if ctime_of_oldest_in_log <= ctime_of_oldest_in_core_dumps:
-            oldest_abs_path = os.path.join(utils.LOG_PATH, oldest_in_log)
+            if oldest_in_log_ctime <= oldest_in_core_dumps_ctime:
+                oldest_abs_path = os.path.join(utils.LOG_PATH, oldest_in_log)
+            else:
+                oldest_abs_path = os.path.join(utils.CORE_DUMPS_PATH, oldest_in_core_dumps)
         else:
-            oldest_abs_path = os.path.join(utils.CORE_DUMPS_PATH, oldest_in_core_dumps)
+            oldest_abs_path = os.path.join(utils.LOG_PATH, oldest_in_log)
 
         print(f"\t- {oldest_abs_path}")
 
