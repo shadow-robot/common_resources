@@ -17,6 +17,11 @@
 import os
 from typing import Tuple
 
+# CONSTANTS
+GIGABYTE = 1024**3
+LOG_PATH = os.path.join(os.path.expanduser('~'), '.ros', 'log')
+CORE_DUMPS_PATH = os.path.join(LOG_PATH, 'core_dumps')
+
 def get_directory_size(directory: str) -> int:
     """
         Get the size of a directory in bytes. This function is recursive and will calculate the size of the direcotry

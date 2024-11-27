@@ -14,24 +14,20 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import shutil
 import rospy
-from logging_utils import get_directory_size
+import logging_utils as utils
 
-GIGABYTE = 1024**3
-
-LOG_PATH = os.path.join(os.path.expanduser('~'), '.ros', 'log')
 
 if __name__ == '__main__':
     rospy.init_node('check_log_size')
 
-    required_disk_space_for_logs = rospy.get_param('~required_disk_space_for_logs', 5 * GIGABYTE)
-    min_size_of_logs = rospy.get_param('~min_size_of_logs', 1 * GIGABYTE)
+    required_disk_space_for_logs = rospy.get_param('~required_disk_space_for_logs', 5 * utils.GIGABYTE)
+    min_size_of_logs = rospy.get_param('~min_size_of_logs', 1 * utils.GIGABYTE)
 
-    total_disk_space, _, free_disk_space = shutil.disk_usage(LOG_PATH)
+    total_disk_space, _, free_disk_space = shutil.disk_usage(utils.LOG_PATH)
 
-    logs_size = get_directory_size(LOG_PATH)
+    logs_size = utils.get_directory_size(utils.LOG_PATH)
 
     if free_disk_space < required_disk_space_for_logs:
         rospy.logfatal("Not enough free disk space to safely store roslogs:\n" +
