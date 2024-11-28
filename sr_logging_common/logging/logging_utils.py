@@ -22,6 +22,7 @@ GIGABYTE = 1024**3
 LOG_PATH = os.path.join(os.path.expanduser('~'), '.ros', 'log')
 CORE_DUMPS_PATH = os.path.join(LOG_PATH, 'core_dumps')
 
+
 def get_directory_size(directory: str) -> int:
     """
         Get the size of a directory in bytes. This function is recursive and will calculate the size of the direcotry
@@ -33,19 +34,20 @@ def get_directory_size(directory: str) -> int:
 
     if not os.path.exists(directory):
         raise FileNotFoundError(f"Directory '{directory}' does not exist.")
-    
+
     if not os.path.isdir(directory):
         raise NotADirectoryError(f"Path '{directory}' is not a directory.")
 
     total_size = 0
 
     for root, _, files in os.walk(directory):
-        for file in files:
-            if os.path.islink(os.path.join(root, file)):  # Ignore symbolic links
+        for _file in files:
+            if os.path.islink(os.path.join(root, _file)):  # Ignore symbolic links
                 continue
-            total_size += os.path.getsize(os.path.join(root, file))
+            total_size += os.path.getsize(os.path.join(root, _file))
 
     return total_size
+
 
 def get_oldest_item_in_directory(directory: str, search_blacklist: list = None) -> Tuple[str, float]:
     """
