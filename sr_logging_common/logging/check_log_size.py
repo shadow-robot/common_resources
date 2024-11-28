@@ -39,8 +39,9 @@ if __name__ == '__main__':
             rospy.logwarn("Consider running clean_logs.py to cut the size of the logs down to" +
                           f" {min_size_of_logs} bytes.")
         else:
-            rospy.logwarn(f"Up to {min_size_of_logs} bytes of logs should be kept at all times. Consider" +
-                          " clearing up some space elsewhere on the disk.")
+            rospy.logwarn(f"Current size of logs is {logs_size} bytes. Up to {min_size_of_logs} bytes of logs should" +
+                          " be kept at all times.")
+            rospy.logwarn("Consider clearing up some space elsewhere on the disk.")
 
         rospy.signal_shutdown("Shutting down all nodes to prevent further log generation.")
 

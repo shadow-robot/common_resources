@@ -49,7 +49,7 @@ if __name__ == '__main__':
         else:
             oldest_abs_path = os.path.join(utils.LOG_PATH, oldest_in_log)
 
-        print(f"\t- {oldest_abs_path}")
+        print(f"  - {oldest_abs_path}")
 
         if os.path.isdir(oldest_abs_path):
             current_log_size -= utils.get_directory_size(oldest_abs_path)
@@ -60,3 +60,5 @@ if __name__ == '__main__':
         else:
             current_log_size -= os.path.getsize(oldest_abs_path)
             os.remove(oldest_abs_path)
+
+    print(f"New size of logs: {current_log_size} bytes.")
