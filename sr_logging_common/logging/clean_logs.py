@@ -30,14 +30,15 @@ if __name__ == '__main__':
 
     min_size_of_logs = args.min_size_of_logs
 
-    user_input = input(f"Logs will be removed until {min_size_of_logs} GB of logs remain. Oldest logs will be" +
-                       " deleted first. Proceed? (y/N)")
+    print(f"Current size of logs: {utils.get_directory_size(utils.LOG_PATH) / utils.GIGABYTE:.3f} GB.")
+    user_input = input(f"Logs will be removed until {min_size_of_logs / utils.GIGABYTE:.3f} GB of logs remain." +
+                       " Oldest logs will be deleted first. Proceed? (y/N) ")
     
     if user_input.lower() not in ['y', 'yes']:
         print("Exiting.")
         exit(0)
 
-    print(f"Removing logs until the size of the logs is less than {min_size_of_logs} bytes.")
+    print(f"Removing logs until the size of the logs is less than {min_size_of_logs / utils.GIGABYTE:.3f} GB.")
 
     current_log_size = utils.get_directory_size(utils.LOG_PATH)
     core_dumps_exists = os.path.exists(utils.CORE_DUMPS_PATH)
@@ -68,4 +69,4 @@ if __name__ == '__main__':
             current_log_size -= os.path.getsize(oldest_abs_path)
             os.remove(oldest_abs_path)
 
-    print(f"New size of logs: {current_log_size} bytes.")
+    print(f"New size of logs: {current_log_size / utils.GIGABYTE:.3f} GB.")
