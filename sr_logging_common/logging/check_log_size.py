@@ -41,7 +41,8 @@ if __name__ == '__main__':
                        f"\t\tCurrent Log Size: {logs_size / utils.GIGABYTE:.3f} GB")
 
         if logs_size > allocated_log_space:
-            rospy.logwarn("Current size of logs exceeds allocated log space. Consider running clean_logs.py.")
+            rospy.logwarn("Current size of logs exceeds allocated log space. Consider running clean_logs.py in" +
+                          " sr_logging_common to free up some space.")
         else:
             rospy.logwarn(f"Current size of logs is {logs_size / utils.GIGABYTE:.3f} GB."
                           f" {allocated_log_space  / utils.GIGABYTE:.3f} GB are allocated for logs plus an additional" +
