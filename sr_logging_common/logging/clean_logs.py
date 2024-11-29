@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import os
 import shutil
 import argparse
@@ -33,10 +34,10 @@ if __name__ == '__main__':
     print(f"Current size of logs: {utils.get_directory_size(utils.LOG_PATH) / utils.GIGABYTE:.3f} GB.")
     user_input = input(f"Logs will be removed until {min_size_of_logs / utils.GIGABYTE:.3f} GB of logs remain." +
                        " Oldest logs will be deleted first. Proceed? (y/N) ")
-    
+
     if user_input.lower() not in ['y', 'yes']:
         print("Exiting.")
-        exit(0)
+        sys.exit(0)
 
     print(f"Removing logs until the size of the logs is less than {min_size_of_logs / utils.GIGABYTE:.3f} GB.")
 
