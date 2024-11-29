@@ -22,9 +22,9 @@ import logging_utils as utils
 if __name__ == '__main__':
     rospy.init_node('check_log_size')
 
-    additional_required_disk_space = rospy.get_param('~additional_required_disk_space', 10 * utils.GIGABYTE)
-    allocated_log_space = rospy.get_param('~allocated_log_space', 10 * utils.GIGABYTE)
-    log_growth_headroom = rospy.get_param('~log_growth_headroom', 5 * utils.GIGABYTE)
+    additional_required_disk_space = rospy.get_param('~additional_required_disk_space', 10) * utils.GIGABYTE
+    allocated_log_space = rospy.get_param('~allocated_log_space', 10) * utils.GIGABYTE
+    log_growth_headroom = rospy.get_param('~log_growth_headroom', 5) * utils.GIGABYTE
 
     total_disk_space, _, free_disk_space = shutil.disk_usage(utils.LOG_PATH)
     logs_size = utils.get_directory_size(utils.LOG_PATH)

@@ -25,11 +25,11 @@ PROTECTED_ITEMS = ['latest', 'core_dumps']
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=("Remove logs until the size of the logs is less than" +
                                                   "a specified size."))
-    parser.add_argument('-m', '--min_size_of_logs', type=int, default=5*utils.GIGABYTE,
-                        help="The minimum size of the logs in bytes. Default is 10GB.")
+    parser.add_argument('-m', '--min_size_of_logs', type=int, default=5,
+                        help="The minimum size of the logs in GB that will remain after cleaning. Default is 5GB.")
     args = parser.parse_args()
 
-    min_size_of_logs = args.min_size_of_logs
+    min_size_of_logs = args.min_size_of_logs * utils.GIGABYTE
 
     print(f"Current size of logs: {utils.get_directory_size(utils.LOG_PATH) / utils.GIGABYTE:.3f} GB.")
     user_input = input(f"Logs will be removed until {min_size_of_logs / utils.GIGABYTE:.3f} GB of logs remain." +
