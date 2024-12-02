@@ -35,19 +35,21 @@ if __name__ == '__main__':
     log_growth_headroom = rospy.get_param('~log_growth_headroom', 5) * utils.GIGABYTE
 
     total_disk_space, _, free_disk_space = shutil.disk_usage(utils.LOG_PATH)
+    free_disk_space = 0
     logs_size = utils.get_directory_size(utils.LOG_PATH)
 
     if free_disk_space < log_growth_headroom + max(logs_size, allocated_log_space) + non_log_headroom:
         required_disk_space = log_growth_headroom + max(logs_size, allocated_log_space) + non_log_headroom
-        print(f"\033[91m {'='*150}\033[00m")  # Print red line of = characters
+        print(f"\033[91m{'='*150}\033[00m")  # Print red line of = characters
         rospy.logfatal("NOT ENOUGH FREE DISK SPACE TO SAFELY STORE ROSLOGS:\n" +
                        f"\tFree Disk Space: {free_disk_space / utils.GIGABYTE:.3f} of"
                        f" {total_disk_space / utils.GIGABYTE:.3f} GB free\n" +
-                       f"\tRequired Free Disk Space: {required_disk_space / utils.GIGABYTE:.3f} GB\n" +
-                       f"\t\tNon-log Headroom: {non_log_headroom / utils.GIGABYTE:.3f} GB\n" +
-                       f"\t\tAllocated Log Space: {allocated_log_space  / utils.GIGABYTE:.3f} GB\n" +
-                       f"\t\tLog Growth Headroom: {log_growth_headroom  / utils.GIGABYTE:.3f} GB\n" +
-                       f"\t\tCurrent Log Size: {logs_size / utils.GIGABYTE:.3f} GB")
+                       f"\tRequired Free Disk Space:\t{required_disk_space / utils.GIGABYTE:.3f} GB\n" +
+                       "\t------------------------------------------\n" +
+                       f"\t\tNon-log Headroom:\t{non_log_headroom / utils.GIGABYTE:.3f} GB\n" +
+                       f"\t\tAllocated Log Space:\t{allocated_log_space  / utils.GIGABYTE:.3f} GB\n" +
+                       f"\t\tLog Growth Headroom:\t{log_growth_headroom  / utils.GIGABYTE:.3f} GB\n" +
+                       f"\t\tCurrent Log Size:\t{logs_size / utils.GIGABYTE:.3f} GB")
 
         if logs_size > allocated_log_space:
             rospy.logerr("Current size of logs exceeds allocated log space. Consider running clean_logs.py in" +
@@ -57,7 +59,7 @@ if __name__ == '__main__':
                          f" {allocated_log_space  / utils.GIGABYTE:.3f} GB are allocated for logs plus an additional" +
                          f" {log_growth_headroom  / utils.GIGABYTE:.3f} GB for log growth during a run.")
             rospy.logerr("Consider clearing up some space elsewhere on the disk.")
-        print(f"\033[91m {'='*150}\033[00m")  # Print red line of = characters
+        print(f"\033[91m{'='*150}\033[00m")  # Print red line of = characters
 
         rospy.signal_shutdown("Shutting down all nodes to prevent further log generation.")
 
