@@ -23,10 +23,11 @@ if __name__ == '__main__':
     rospy.init_node('check_log_size')
 
     # -----------------------------------------Definition of parameters-------------------------------------------------
-    # non_log_headroom: Additional disk space allocated for non log file growth during a driver run.
-    # allocated_log_space: Minimum disk space allocated for roslogs. Logs are allowed to grow beyond this size.
-    # log_growth_headroom: Additional disk space allocated for log growth during a run. This is added to the current
-    #                      log size or allocated_log_space whichever is greater.
+    # non_log_headroom:     Additional disk space allocated for non-log file growth during a driver run.
+    # allocated_log_space:  Minimum disk space allocated for roslogs. Logs are allowed to grow beyond this size.
+    # log_growth_headroom:  Additional disk space allocated for log growth during a run. This is added to the current
+    #                       log size or allocated_log_space whichever is greater.
+    # log_size:             Current size of logs.
     # ------------------------------------------------------------------------------------------------------------------
 
     non_log_headroom = rospy.get_param('~additional_required_disk_space', 10) * utils.GIGABYTE
