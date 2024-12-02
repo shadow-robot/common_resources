@@ -66,11 +66,11 @@ def get_oldest_item_in_directory(directory: str, search_blacklist: list = None) 
     if any(not isinstance(blacklist_item, str) for blacklist_item in search_blacklist):
         raise TypeError("All items in the search_blacklist must be strings.")
 
-    dir_items_blacklisted = [item for item in os.listdir(directory) if item not in search_blacklist]
+    dir_items_not_blacklisted = [item for item in os.listdir(directory) if item not in search_blacklist]
 
-    if not dir_items_blacklisted:
+    if not dir_items_not_blacklisted:
         return None, float('inf')
 
-    oldest_item = min(dir_items_blacklisted, key=lambda item: os.path.getctime(os.path.join(directory, item)))
+    oldest_item = min(dir_items_not_blacklisted, key=lambda item: os.path.getctime(os.path.join(directory, item)))
 
     return oldest_item, os.path.getctime(os.path.join(directory, oldest_item))
