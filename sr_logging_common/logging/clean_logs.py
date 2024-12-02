@@ -18,7 +18,7 @@ import sys
 import os
 import shutil
 import argparse
-import logging_utils as utils
+import sr_logging_common.logging_utils as utils
 
 PROTECTED_ITEMS = ['latest', 'core_dumps']
 

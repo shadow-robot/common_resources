@@ -7,6 +7,8 @@ project(sr_logging_common)
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS)
 
+catkin_python_setup()
+
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
 catkin_package()
 

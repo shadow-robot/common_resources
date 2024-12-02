@@ -17,7 +17,7 @@
 import os
 import time
 import rospy
-import logging_utils as utils
+import sr_logging_common.logging_utils as utils
 
 
 if __name__ == '__main__':
