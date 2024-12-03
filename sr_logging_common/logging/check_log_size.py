@@ -35,7 +35,6 @@ if __name__ == '__main__':
     log_growth_headroom = rospy.get_param('~log_growth_headroom', 5) * utils.GIGABYTE
 
     total_disk_space, _, free_disk_space = shutil.disk_usage(utils.LOG_PATH)
-    free_disk_space = 0
     logs_size = utils.get_directory_size(utils.LOG_PATH)
 
     if free_disk_space < log_growth_headroom + max(logs_size, allocated_log_space) + non_log_headroom:
