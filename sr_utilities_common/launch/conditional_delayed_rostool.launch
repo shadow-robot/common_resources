@@ -1,5 +1,5 @@
 <!--
- Copyright 2022 Shadow Robot Company Ltd.
+ Copyright 2022, 2025 Shadow Robot Company Ltd.
  This program is free software: you can redistribute it and/or modify it
  under the terms of the GNU General Public License as published by the Free
  Software Foundation version 2 of the License.
@@ -18,7 +18,8 @@
     <arg name="params_list" default="[/robot_description]" />
     <arg name="services_list" default="[]" />
     <arg name="scene_file" default=""/>
-    <arg name="launch_args_list" default=""/>
+    <arg name="launch_args_list" default="scene_file:=$(arg scene_file)"/>
+    <arg name="launch_prefix" default=""/>
     <arg name="timeout" default="3.0"/>
 
     <node name="conditional_delayed_rostool" pkg="sr_utilities_common" type="conditional_delayed_rostool.py" output="screen">
@@ -27,7 +28,8 @@
         <rosparam param="topics_list" subst_value="True">$(arg topics_list)</rosparam>
         <rosparam param="params_list" subst_value="True">$(arg params_list)</rosparam>
         <rosparam param="services_list" subst_value="True">$(arg services_list)</rosparam>
-        <param name="launch_args_list" value="scene_file:=$(arg scene_file)" />
+        <param name="launch_args_list" value="$(arg launch_args_list)" />
+        <param name="launch_prefix" value="$(arg launch_prefix)" />
         <param name="timeout" value="$(arg timeout)" />
     </node>
 </launch>
