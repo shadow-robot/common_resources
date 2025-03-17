@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020, 2022 Shadow Robot Company Ltd.
+# Copyright 2020, 2022, 2025 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -101,6 +101,7 @@ if __name__ == "__main__":
     executable_name = rospy.get_param("~executable_name")
     arguments_list = rospy.get_param("~launch_args_list", "")
     node_launch_prefix = rospy.get_param("~launch_prefix", "")
+    node_launch_prefix_arg_str = f"--prefix {node_launch_prefix}" if node_launch_prefix else ""
     timeout_param = rospy.get_param("~timeout", 0)
 
     if rospy.has_param('~topics_list'):
@@ -129,7 +130,7 @@ if __name__ == "__main__":
         if executable_name.endswith('.launch'):
             os.system("roslaunch {} {} {}".format(package_name, executable_name, arguments_list))
         else:
-            os.system("{} rosrun {} {} {}".format(node_launch_prefix, package_name, executable_name, arguments_list))
+            os.system(f"rosrun {node_launch_prefix_arg_str} {package_name} {executable_name} {arguments_list}")
     else:
         rospy.logfatal("{}: Could not launch {} {}, make sure all required conditions are met".format(rospy.get_name(),
                                                                                                       package_name,
