@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2019, 2022, 2024 Shadow Robot Company Ltd.
+# Copyright 2019, 2022, 2024-2025 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -25,7 +25,11 @@ if __name__ == '__main__':
     desired_size = rospy.get_param('~desired_folder_size', utils.GIGABYTE)
     path = rospy.get_param('~core_dump_path', utils.CORE_DUMPS_PATH)
     while not rospy.is_shutdown():
-        if utils.get_directory_size(path) > desired_size:
+        try:
+            directory_size = utils.get_directory_size(path)
+        except (FileNotFoundError, NotADirectoryError):
+            directory_size = 0
+        if directory_size > desired_size:
             oldest, _ = utils.get_oldest_item_in_directory(path)
             rospy.loginfo("Core dump size greater than limit. Removing oldest file: " + oldest)
             os.remove(os.path.join(path, oldest))
