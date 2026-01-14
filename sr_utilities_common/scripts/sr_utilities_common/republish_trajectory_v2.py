@@ -16,7 +16,7 @@
 
 '''
 WHEN TO USE:
-Use this script when you have a rosbag and wand to play the trajectory data to a hand or hand and arm system.
+Use this script when you have a rosbag and want to play the trajectory data on a hand or hand and arm system.
 This tool is intended to work on all hand and arm variations (unimanual, bimanual, hand only, etc).
 
 HOW TO USE:
