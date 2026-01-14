@@ -14,19 +14,22 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# WHEN TO USE:
-# Use this script when you have a rosbag and wand to play the trajectory data to a hand
-# or when you are using a right glove (i.e. cyberglove) and you are using a left shadow hand.
-#
-# HOW TO USE:
-# To use the trajectory republisher, select if you are using a left hand.
-# Then, select which joints you want to move (don't change the prefix).
-# Run your publisher and then start your rosbag by remapping your topic for instance
-# by adding the following line in the end of your rosbag command
-#
-# /rh_trajectory_controller/command:=/rh_trajectory_controller/command_remapped
-#
-# Your hand should be start moving.
+'''
+WHEN TO USE:
+Use this script when you have a rosbag and wand to play the trajectory data to a hand or hand and arm system.
+This tool is intended to work on all hand and arm variations (unimanual, bimanual, hand only, etc).
+
+HOW TO USE:
+1. Start the hardware control loop of the system
+2. Start the republisher node
+3. Play the rosbag you want to replay the trajectory from. Ensure you define all topics you want to play and remap
+   them. An example command would be:
+    ```
+        rosbag play my_trajectory.bag --topics /rh_trajectory_controller/command /ra_trajectory_controller/command
+        /rh_trajectory_controller/command:=/rh_trajectory_controller/command_remapped
+        /ra_trajectory_controller/command:=/ra_trajectory_controller/command_remapped
+    ```
+'''
 
 from typing import List
 from threading import Lock
