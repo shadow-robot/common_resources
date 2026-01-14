@@ -39,6 +39,11 @@ from trajectory_msgs.msg import JointTrajectory
 
 
 class RePubTrajectory:
+
+    # Amount by which republished msgs are shifted to the future to ensure they arrive at the
+    # controller before their timestamp
+    FUTURE_SHIFT = 10 / 1000
+
     def __init__(self, topics_to_republish: List[str], subscribed_subtopic: str, published_subtopic: str):
         self._mutex = Lock()
         self._topics_first_msg_timestamp = None  # Timestamp of first msg received amongst all topics to republish
@@ -62,7 +67,7 @@ class RePubTrajectory:
 
         new_traj.header = data.header
         new_traj.header.stamp = data.header.stamp - self._topics_first_msg_timestamp + self._first_msg_current_time
-        new_traj.header.stamp += rospy.Duration.from_sec(10 / 1000)  # Shift timestamp to 10ms in the future
+        new_traj.header.stamp += rospy.Duration.from_sec(self.FUTURE_SHIFT)  # Shift timestamp to the future
 
         new_traj.points = data.points
         new_traj.joint_names = data.joint_names
