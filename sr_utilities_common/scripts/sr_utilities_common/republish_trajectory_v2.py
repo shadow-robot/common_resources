@@ -49,13 +49,17 @@ class RePubTrajectory:
         self._topics_first_msg_timestamp = None  # Timestamp of first msg received amongst all topics to republish
         self._current_time_of_first_msg = None  # Current time when first msg was received
 
+        self._traj_pubs = []
+        self._bag_tf_subs = []
+
         for topic in topics:
-            self._traj_pub = rospy.Publisher(topic + published_subtopic,
-                                             JointTrajectory,
-                                             queue_size=10)
-            self._bag_tf_sub = rospy.Subscriber(topic + subscribed_subtopic,
-                                                JointTrajectory,
-                                                partial(self._bag_traj_cb, self._traj_pub))
+            traj_pub = rospy.Publisher(topic + published_subtopic, JointTrajectory, queue_size=10)
+            bag_tf_sub = rospy.Subscriber(topic + subscribed_subtopic, JointTrajectory,
+                                          partial(self._bag_traj_cb, traj_pub))
+            # Using a partial here to reuse the same callback method with multiple publishers
+
+            self._traj_pubs.append(traj_pub)
+            self._bag_tf_subs.append(bag_tf_sub)
 
     def _bag_traj_cb(self, republisher: rospy.Publisher, data: JointTrajectory):
         if self._topics_first_msg_timestamp is None:
@@ -63,16 +67,11 @@ class RePubTrajectory:
                 self._topics_first_msg_timestamp = data.header.stamp
                 self._current_time_of_first_msg = rospy.Time.now()
 
-        new_traj = JointTrajectory()
+        data.header.stamp -= self._topics_first_msg_timestamp
+        data.header.stamp += self._current_time_of_first_msg
+        data.header.stamp += rospy.Duration.from_sec(self.FUTURE_SHIFT)  # Shift timestamp to the future
 
-        new_traj.header = data.header
-        new_traj.header.stamp = data.header.stamp - self._topics_first_msg_timestamp + self._current_time_of_first_msg
-        new_traj.header.stamp += rospy.Duration.from_sec(self.FUTURE_SHIFT)  # Shift timestamp to the future
-
-        new_traj.points = data.points
-        new_traj.joint_names = data.joint_names
-
-        republisher.publish(new_traj)
+        republisher.publish(data)
 
 
 if __name__ == "__main__":
