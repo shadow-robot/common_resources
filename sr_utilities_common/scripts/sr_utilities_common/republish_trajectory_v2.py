@@ -28,14 +28,15 @@
 #
 # Your hand should be start moving.
 
+from typing import List
 from threading import Lock
 from functools import partial
 import rospy
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from trajectory_msgs.msg import JointTrajectory
 
 
 class RePubTrajectory:
-    def __init__(self, topics_to_republish, subscribed_subtopic, published_subtopic):
+    def __init__(self, topics_to_republish: List[str], subscribed_subtopic: str, published_subtopic: str):
         self._mutex = Lock()
         self._topics_first_msg_timestamp = None  # Timestamp of first msg received amongst all topics to republish
         self._current_time_of_first_msg = None  # Current time when first msg was received
@@ -48,7 +49,7 @@ class RePubTrajectory:
                                                 JointTrajectory,
                                                 partial(self._bag_traj_cb, self._traj_pub))
 
-    def _bag_traj_cb(self, republisher, data):
+    def _bag_traj_cb(self, republisher: rospy.Publisher, data: JointTrajectory):
         if self._topics_first_msg_timestamp is None:
             with self._mutex:
                 self._topics_first_msg_timestamp = data.header.stamp
@@ -58,7 +59,7 @@ class RePubTrajectory:
 
         new_traj.header = data.header
         new_traj.header.stamp = data.header.stamp - self._topics_first_msg_timestamp + self._first_msg_current_time
-        new_traj.header.stamp += rospy.Time.from_sec(50 / 1000)  # Shift timestamp to 50ms in the future
+        new_traj.header.stamp += rospy.Duration.from_sec(10 / 1000)  # Shift timestamp to 10ms in the future
 
         new_traj.points = data.points
         new_traj.joint_names = data.joint_names
