@@ -44,12 +44,12 @@ class RePubTrajectory:
     # controller before their timestamp
     FUTURE_SHIFT = 10 / 1000
 
-    def __init__(self, topics_to_republish: List[str], subscribed_subtopic: str, published_subtopic: str):
+    def __init__(self, topics: List[str], subscribed_subtopic: str, published_subtopic: str):
         self._mutex = Lock()
         self._topics_first_msg_timestamp = None  # Timestamp of first msg received amongst all topics to republish
         self._current_time_of_first_msg = None  # Current time when first msg was received
 
-        for topic in topics_to_republish:
+        for topic in topics:
             self._traj_pub = rospy.Publisher(topic + published_subtopic,
                                              JointTrajectory,
                                              queue_size=10)
@@ -61,12 +61,12 @@ class RePubTrajectory:
         if self._topics_first_msg_timestamp is None:
             with self._mutex:
                 self._topics_first_msg_timestamp = data.header.stamp
-                self._first_msg_current_time = rospy.Time.now()
+                self._current_time_of_first_msg = rospy.Time.now()
 
         new_traj = JointTrajectory()
 
         new_traj.header = data.header
-        new_traj.header.stamp = data.header.stamp - self._topics_first_msg_timestamp + self._first_msg_current_time
+        new_traj.header.stamp = data.header.stamp - self._topics_first_msg_timestamp + self._current_time_of_first_msg
         new_traj.header.stamp += rospy.Duration.from_sec(self.FUTURE_SHIFT)  # Shift timestamp to the future
 
         new_traj.points = data.points
