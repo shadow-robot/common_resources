@@ -44,10 +44,15 @@ class RePubTrajectory:
     # controller before their timestamp
     FUTURE_SHIFT = 10 / 1000
 
+    # Time in seconds after which the node will reset if not topics are received. Node reset means the
+    # "topics_first_msg_timestamp" variable will be reset to None
+    NODE_RESET_TIME = 3
+
     def __init__(self, topics: List[str], subscribed_subtopic: str, published_subtopic: str):
         self._mutex = Lock()
         self._topics_first_msg_timestamp = None  # Timestamp of first msg received amongst all topics to republish
         self._current_time_of_first_msg = None  # Current time when first msg was received
+        self._watchdog_current_time = rospy.get_time()
 
         self._traj_pubs = []
         self._bag_tf_subs = []
@@ -62,8 +67,10 @@ class RePubTrajectory:
             self._bag_tf_subs.append(bag_tf_sub)
 
     def _bag_traj_cb(self, republisher: rospy.Publisher, data: JointTrajectory):
-        if self._topics_first_msg_timestamp is None:
-            with self._mutex:
+        with self._mutex:
+            self._watchdog_current_time = rospy.get_time()
+
+            if self._topics_first_msg_timestamp is None:
                 self._topics_first_msg_timestamp = data.header.stamp
                 self._current_time_of_first_msg = rospy.Time.now()
 
@@ -72,6 +79,17 @@ class RePubTrajectory:
         data.header.stamp += rospy.Duration.from_sec(self.FUTURE_SHIFT)  # Shift timestamp to the future
 
         republisher.publish(data)
+
+    def spin(self):
+        while not rospy.is_shutdown():
+            if self._topics_first_msg_timestamp is None:
+                continue
+
+            if rospy.get_time() - self._watchdog_current_time > self.NODE_RESET_TIME:
+                rospy.logwarn(f"Resetting node. No bag topics received in the last {self.NODE_RESET_TIME} seconds")
+
+                with self._mutex:
+                    self._topics_first_msg_timestamp = None
 
 
 if __name__ == "__main__":
@@ -86,4 +104,4 @@ if __name__ == "__main__":
 
     republishers = RePubTrajectory(topics_to_republish, "/command_remapped", "/command")
 
-    rospy.spin()
+    republishers.spin()
