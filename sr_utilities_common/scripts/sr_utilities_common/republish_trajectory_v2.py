@@ -91,6 +91,8 @@ class RePubTrajectory:
                 with self._mutex:
                     self._topics_first_msg_timestamp = None
 
+            rospy.sleep(1.0)
+
 
 if __name__ == "__main__":
     rospy.init_node("republish_trajectory")
