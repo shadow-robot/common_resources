@@ -83,6 +83,7 @@ class RePubTrajectory:
     def spin(self):
         while not rospy.is_shutdown():
             if self._topics_first_msg_timestamp is None:
+                rospy.sleep(1.0)
                 continue
 
             if rospy.get_time() - self._watchdog_current_time > self.NODE_RESET_TIME:
