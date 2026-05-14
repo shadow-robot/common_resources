@@ -1,0 +1,79 @@
+---
+  TH:
+    '5':
+      min: -60
+      max: 60
+    '4':
+      min: 0
+      max: 70
+    '3':
+      min: -12
+      max: 12
+    '2':
+      min: -40
+      max: 40
+    '1':
+      min: -15
+      max: 90
+  FF:
+    '4':
+      min: -20
+      max: 20
+    '3':
+      min: -15
+      max: 90
+    '2':
+      min: 0
+      max: 90
+    '1':
+      min: 0
+      max: 90
+  MF:
+    '4':
+      min: -20
+      max: 20
+    '3':
+      min: -15
+      max: 90
+    '2':
+      min: 0
+      max: 90
+    '1':
+      min: 0
+      max: 90
+  RF:
+    '4':
+      min: -20
+      max: 20
+    '3':
+      min: -15
+      max: 90
+    '2':
+      min: 0
+      max: 90
+    '1':
+      min: 0
+      max: 90
+  LF:
+    '5':
+      min: 0
+      max: 45
+    '4':
+      min: -20
+      max: 20
+    '3':
+      min: -15
+      max: 90
+    '2':
+      min: 0
+      max: 90
+    '1':
+      min: 0
+      max: 90
+  WR:
+    '1':
+      min: -40
+      max: 28
+    '2':
+      min: -30
+      max: 10
