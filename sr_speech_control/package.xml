@@ -27,8 +27,8 @@
   <exec_depend>python-speechrecognition-pip</exec_depend>
   <buildtool_depend>python3-pyaudio</buildtool_depend>
   <exec_depend>python3-pyaudio</exec_depend>
-  <buildtool_depend>python3-gTTS</buildtool_depend>
-  <exec_depend>python3-gTTS</exec_depend>
+  <buildtool_depend>python3-gtts</buildtool_depend>
+  <exec_depend>python3-gtts</exec_depend>
   <buildtool_depend>ffmpeg</buildtool_depend>
   <exec_depend>ffmpeg</exec_depend>
 
