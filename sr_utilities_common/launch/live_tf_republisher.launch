@@ -1,0 +1,20 @@
+<!--
+ Copyright 2024 Shadow Robot Company Ltd.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation version 2 of the License.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ more details.
+ You should have received a copy of the GNU General Public License along
+ with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+    <arg name="config_file" default="$(find sr_utilities_common)/config/frames_to_remap.yaml"/>
+    <!-- Node: live_tf_republisher -->
+    <node pkg="sr_utilities_common" type="live_tf_republisher.py" name="live_tf_republisher">
+        <param name="config_file" value="$(arg config_file)"/>
+    </node>
+</launch>
