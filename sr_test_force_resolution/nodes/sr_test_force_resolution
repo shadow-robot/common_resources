@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# Copyright 2020, 2021, 2022 Shadow Robot Company Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <http://www.gnu.org/licenses/>.
+
+import argparse
+import rospy
+import sys
+from sr_test_force_resolution.sr_test_force_resolution import TestForceResolution
+
+
+if __name__ == "__main__":
+    rospy.init_node('test_force_resolution_node')
+    if rospy.has_param('/rh/hand_id') and rospy.has_param('/lh/hand_id'):
+        rospy.logerr("This script only supports one hand at a time")
+        exit(1)
+    if not rospy.has_param('/rh/hand_id') and not rospy.has_param('/lh/hand_id'):
+        rospy.logerr("No hands detected, exiting...")
+        exit(1)
+    if rospy.has_param('rh/hand_id'):
+        side = 'right'
+    if rospy.has_param('lh/hand_id'):
+        side = 'left'
+    test_force_resolution = TestForceResolution(side)
+    while not rospy.is_shutdown():
+        test_force_resolution.run()
+
